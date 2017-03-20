@@ -1,0 +1,12 @@
+{
+  "EUR": {
+    "code": "EUR",
+    "name": "Euro",
+    "format": "€ %s"
+  },
+  "USD": {
+    "code": "USD",
+    "name": "Dollar",
+    "format": "$%s"
+  }
+}
