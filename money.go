@@ -34,5 +34,3 @@ func (m *Money) Compare(om *Money) int {
 func (m *Money) Equals(om *Money) bool {
 	return m.IsSameCurrency(om) && m.Amount == om.Amount
 }
-
-func (m *Money)
