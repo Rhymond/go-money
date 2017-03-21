@@ -58,13 +58,22 @@ func (m *Money) LessThanOrEqual(om *Money) bool {
 	return m.compare(om) <= 0
 }
 
-//func (m *Money) IsZero() bool     {}
-//func (m *Money) IsPositive() bool {}
-//func (m *Money) IsNegative() bool {}
+func (m *Money) IsZero() bool {
+	return m.Amount == 0
+}
+
+func (m *Money) IsPositive() bool {
+	return m.Amount > 0
+}
+
+func (m *Money) IsNegative() bool {
+	return m.Amount < 0
+}
+
 //
-//func (m *Money) Negative() {}
-//func (m *Money) Absolute() {}
-//func (m *Money) Round()    {}
+func (m *Money) Negative() {}
+func (m *Money) Absolute() {}
+func (m *Money) Round()    {}
 //
 //func (m *Money) Add(om *Money) *Money      {}
 //func (m *Money) Subtract(om *Money) *Money {}

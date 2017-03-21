@@ -126,3 +126,45 @@ func TestMoney_LessThanOrEqual(t *testing.T) {
 		}
 	}
 }
+
+func TestMoney_IsZero(t *testing.T) {
+	m := New(0, "EUR")
+
+	if !m.IsZero() {
+		t.Errorf("Expected zero got %d", m.Amount)
+	}
+
+	m = New(1, "EUR")
+
+	if m.IsZero() {
+		t.Errorf("Expected non zero got %d", m.Amount)
+	}
+}
+
+func TestMoney_IsNegative(t *testing.T) {
+	m := New(0, "EUR")
+
+	if m.IsNegative() {
+		t.Errorf("Expected not negative got %d", m.Amount)
+	}
+
+	m = New(-1, "EUR")
+
+	if !m.IsNegative() {
+		t.Errorf("Expected negative got %d", m.Amount)
+	}
+}
+
+func TestMoney_IsPositive(t *testing.T) {
+	m := New(0, "EUR")
+
+	if m.IsPositive() {
+		t.Errorf("Expected not positive got %d", m.Amount)
+	}
+
+	m = New(1, "EUR")
+
+	if !m.IsPositive() {
+		t.Errorf("Expected positive got %d", m.Amount)
+	}
+}
