@@ -20,7 +20,7 @@ func (m *Money) SameCurrency(om *Money) bool {
 
 func (m *Money) assertSameCurrency(om *Money) {
 	if !m.SameCurrency(om) {
-		log.Fatalf("Currencies don't match")
+		log.Fatalf("Currencies %s and %s don't match", m.Currency.Code, om.Currency.Code)
 	}
 }
 
@@ -47,7 +47,7 @@ func (m *Money) GreaterThan(om *Money) bool {
 }
 
 func (m *Money) GreaterThanOrEqual(om *Money) bool {
-	return m.compare(om) >= 1
+	return m.compare(om) >= 0
 }
 
 func (m *Money) LessThan(om *Money) bool {
