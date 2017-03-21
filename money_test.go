@@ -22,15 +22,15 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestMoney_IsSameCurrency(t *testing.T) {
+func TestMoney_SameCurrency(t *testing.T) {
 	me := New(0, "EUR")
 	mu := New(0, "USD")
 
-	if me.IsSameCurrency(mu) {
+	if me.SameCurrency(mu) {
 		t.Errorf("Expected %s not to be same as %s", me.Currency.Code, mu.Currency.Code)
 	}
 
-	if !me.IsSameCurrency(me) {
+	if !me.SameCurrency(me) {
 		t.Errorf("Expected %s to be same as %s", me.Currency.Code, mu.Currency.Code)
 	}
 }
@@ -55,5 +55,3 @@ func TestMoney_Equals(t *testing.T) {
 		t.Errorf("Expected %v to be same as %v", m, om)
 	}
 }
-
-
