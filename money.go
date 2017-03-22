@@ -5,14 +5,14 @@ import (
 )
 
 type Money struct {
-	Amount   int
+	Number   *Number
 	Currency *Currency
 }
 
 func New(a int, c string) *Money {
 	return &Money{
-		Amount:   a,
-		Currency: new(Currency).Get(c),
+		new(Number).New(a),
+		new(Currency).Get(c),
 	}
 }
 
@@ -31,9 +31,9 @@ func (m *Money) compare(om *Money) int {
 	m.assertSameCurrency(om)
 
 	switch {
-	case m.Amount > om.Amount:
+	case m.Number.Amount > om.Number.Amount:
 		return 1
-	case m.Amount < om.Amount:
+	case m.Number.Amount < om.Number.Amount:
 		return -1
 	}
 
@@ -61,38 +61,47 @@ func (m *Money) LessThanOrEqual(om *Money) bool {
 }
 
 func (m *Money) IsZero() bool {
-	return m.Amount == 0
+	return m.Number.Amount == 0
 }
 
 func (m *Money) IsPositive() bool {
-	return m.Amount > 0
+	return m.Number.Amount > 0
 }
 
 func (m *Money) IsNegative() bool {
-	return m.Amount < 0
+	return m.Number.Amount < 0
 }
 
 func (m *Money) Absolute() *Money {
-	if m.Amount < 0 {
-		m.Amount = -m.Amount
-	}
-
+	m.Number.Absolute()
 	return m
 }
 
 func (m *Money) Negative() *Money {
-	if m.Amount > 0 {
-		m.Amount = -m.Amount
-	}
-
+	m.Number.Negative()
 	return m
 }
 
-func (m *Money) Round() {}
+func (m *Money) Add(om *Money) *Money {
+	m.assertSameCurrency(om)
+	return New(m.Number.Amount+om.Number.Amount, m.Currency.Code)
+}
 
-//func (m *Money) Add(om *Money) *Money      {}
-//func (m *Money) Subtract(om *Money) *Money {}
+func (m *Money) Subtract(om *Money) *Money {
+	m.assertSameCurrency(om)
+	return New(m.Number.Amount-om.Number.Amount, m.Currency.Code)
+}
+
+func (m *Money) Multiply(mul int) *Money {
+	return New(m.Number.Amount*mul, m.Currency.Code)
+}
+
+func (m *Money) Divide(div int) *Money {
+	return New(m.Number.Amount/div, m.Currency.Code)
+}
+
 //func (m *Money) Multiply(om *Money) *Money {}
 //func (m *Money) Divide(om *Money) *Money   {}
 //func (m *Money) Allocate(r []int) []*Money {}
 //func (m *Money) Split(n int) []*Money      {}
+//func (m *Money) Round() {}
