@@ -1,6 +1,8 @@
 package gocash
 
-import "log"
+import (
+	"log"
+)
 
 type Money struct {
 	Amount   int
@@ -70,11 +72,24 @@ func (m *Money) IsNegative() bool {
 	return m.Amount < 0
 }
 
-//
-func (m *Money) Negative() {}
-func (m *Money) Absolute() {}
-func (m *Money) Round()    {}
-//
+func (m *Money) Absolute() *Money {
+	if m.Amount < 0 {
+		m.Amount = -m.Amount
+	}
+
+	return m
+}
+
+func (m *Money) Negative() *Money {
+	if m.Amount > 0 {
+		m.Amount = -m.Amount
+	}
+
+	return m
+}
+
+func (m *Money) Round() {}
+
 //func (m *Money) Add(om *Money) *Money      {}
 //func (m *Money) Subtract(om *Money) *Money {}
 //func (m *Money) Multiply(om *Money) *Money {}

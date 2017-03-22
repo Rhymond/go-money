@@ -128,43 +128,81 @@ func TestMoney_LessThanOrEqual(t *testing.T) {
 }
 
 func TestMoney_IsZero(t *testing.T) {
-	m := New(0, "EUR")
-
-	if !m.IsZero() {
-		t.Errorf("Expected zero got %d", m.Amount)
+	tc := map[int]bool{
+		-1: false,
+		0:  true,
+		1:  false,
 	}
 
-	m = New(1, "EUR")
+	for amount, expected := range tc {
+		m := New(amount, "EUR")
 
-	if m.IsZero() {
-		t.Errorf("Expected non zero got %d", m.Amount)
+		if m.IsZero() != expected {
+			t.Errorf("Expected %d to be zero == %t got %t", m.Amount, expected, m.IsZero())
+		}
 	}
 }
 
 func TestMoney_IsNegative(t *testing.T) {
-	m := New(0, "EUR")
-
-	if m.IsNegative() {
-		t.Errorf("Expected not negative got %d", m.Amount)
+	tc := map[int]bool{
+		-1: true,
+		0:  false,
+		1:  false,
 	}
 
-	m = New(-1, "EUR")
+	for amount, expected := range tc {
+		m := New(amount, "EUR")
 
-	if !m.IsNegative() {
-		t.Errorf("Expected negative got %d", m.Amount)
+		if m.IsNegative() != expected {
+			t.Errorf("Expected %d to be negative == %t got %t", m.Amount, expected, m.IsNegative())
+		}
 	}
 }
 
 func TestMoney_IsPositive(t *testing.T) {
-	m := New(0, "EUR")
-
-	if m.IsPositive() {
-		t.Errorf("Expected not positive got %d", m.Amount)
+	tc := map[int]bool{
+		-1: false,
+		0:  false,
+		1:  true,
 	}
 
-	m = New(1, "EUR")
+	for amount, expected := range tc {
+		m := New(amount, "EUR")
 
-	if !m.IsPositive() {
-		t.Errorf("Expected positive got %d", m.Amount)
+		if m.IsPositive() != expected {
+			t.Errorf("Expected %d to be positive == %t got %t", m.Amount, expected, m.IsPositive())
+		}
+	}
+}
+
+func TestMoney_Absolute(t *testing.T) {
+	tc := map[int]int{
+		-1: 1,
+		0:  0,
+		1:  1,
+	}
+
+	for amount, expected := range tc {
+		m := New(amount, "EUR")
+
+		if m.Absolute().Amount != expected {
+			t.Errorf("Expected absolute %d to be %d got %d", m.Amount, expected, m.Absolute().Amount)
+		}
+	}
+}
+
+func TestMoney_Negative(t *testing.T) {
+	tc := map[int]int{
+		-1: -1,
+		0:  0,
+		1:  -1,
+	}
+
+	for amount, expected := range tc {
+		m := New(amount, "EUR")
+
+		if m.Negative().Amount != expected {
+			t.Errorf("Expected absolute %d to be %d got %d", m.Amount, expected, m.Negative().Amount)
+		}
 	}
 }
