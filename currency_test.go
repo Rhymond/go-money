@@ -1,4 +1,4 @@
-package gocash
+package money
 
 import (
 	"testing"
