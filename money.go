@@ -1,39 +1,32 @@
-// Copyright © 2017 Raimondas Kazlauskas
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 package money
 
 import (
 	"log"
 )
 
+type Amount struct {
+	val int
+}
+
 type Money struct {
-	Number   *Number
+	Amount   *Amount
 	Currency *Currency
 }
 
 var calc *Calculator
 
+// New creates and returns new instance of Money
 func New(am int, curr string) *Money {
 
 	calc = new(Calculator)
 
 	return &Money{
-		&Number{am},
+		&Amount{am},
 		new(Currency).Get(curr),
 	}
 }
 
+// SameCurrency check if given Money is equals by currency
 func (m *Money) SameCurrency(om *Money) bool {
 	return m.Currency.Equals(om.Currency)
 }
@@ -49,9 +42,9 @@ func (m *Money) compare(om *Money) int {
 	m.assertSameCurrency(om)
 
 	switch {
-	case m.Number.Amount > om.Number.Amount:
+	case m.Amount.val > om.Amount.val:
 		return 1
-	case m.Number.Amount < om.Number.Amount:
+	case m.Amount.val < om.Amount.val:
 		return -1
 	}
 
@@ -79,47 +72,45 @@ func (m *Money) LessThanOrEqual(om *Money) bool {
 }
 
 func (m *Money) IsZero() bool {
-	return m.Number.Amount == 0
+	return m.Amount.val == 0
 }
 
 func (m *Money) IsPositive() bool {
-	return m.Number.Amount > 0
+	return m.Amount.val > 0
 }
 
 func (m *Money) IsNegative() bool {
-	return m.Number.Amount < 0
+	return m.Amount.val < 0
 }
 
 func (m *Money) Absolute() *Money {
-	m.Number.Absolute()
-	return m
+	return &Money{calc.absolute(m.Amount), m.Currency}
 }
 
 func (m *Money) Negative() *Money {
-	m.Number.Negative()
-	return m
+	return &Money{calc.negative(m.Amount), m.Currency}
 }
 
 func (m *Money) Add(om *Money) *Money {
 	m.assertSameCurrency(om)
-	return &Money{calc.add(m.Number, om.Number), m.Currency}
+	return &Money{calc.add(m.Amount, om.Amount), m.Currency}
 }
 
 func (m *Money) Subtract(om *Money) *Money {
 	m.assertSameCurrency(om)
-	return &Money{calc.subtract(m.Number, om.Number), m.Currency}
+	return &Money{calc.subtract(m.Amount, om.Amount), m.Currency}
 }
 
 func (m *Money) Multiply(mul int) *Money {
-	return &Money{calc.multiply(m.Number, mul), m.Currency}
+	return &Money{calc.multiply(m.Amount, mul), m.Currency}
 }
 
 func (m *Money) Divide(div int) *Money {
-	return &Money{calc.divide(m.Number, div), m.Currency}
+	return &Money{calc.divide(m.Amount, div), m.Currency}
 }
 
 func (m *Money) Round() *Money {
-	return &Money{calc.round(m.Number), m.Currency}
+	return &Money{calc.round(m.Amount), m.Currency}
 }
 
 func (m *Money) Split(n int) []*Money {
@@ -127,18 +118,18 @@ func (m *Money) Split(n int) []*Money {
 		log.Fatalf("Split must be higher than zero")
 	}
 
-	a := calc.divide(m.Number, n)
+	a := calc.divide(m.Amount, n)
 	ms := make([]*Money, n)
 
 	for i := 0; i < n; i++ {
 		ms[i] = &Money{a, m.Currency}
 	}
 
-	l := calc.modulus(m.Number, n).Amount
+	l := calc.modulus(m.Amount, n).val
 
 	// Add leftovers to the first parties
 	for p := 0; l != 0; p++ {
-		ms[p].Number = calc.add(ms[p].Number, &Number{1})
+		ms[p].Amount = calc.add(ms[p].Amount, &Amount{1})
 		l -= 1
 	}
 
@@ -160,25 +151,29 @@ func (m *Money) Allocate(rs []int) []*Money {
 	var ms []*Money
 	for _, r := range rs {
 		party := &Money{
-			calc.allocate(m.Number, r, sum),
+			calc.allocate(m.Amount, r, sum),
 			m.Currency,
 		}
 
 		ms = append(ms, party)
-		total += party.Number.Amount
+		total += party.Amount.val
 	}
 
 	// Calculate leftover value and divide to first parties
-	lo := m.Number.Amount - total
+	lo := m.Amount.val - total
 	sub := 1
 	if lo < 0 {
 		sub = -1
 	}
 
 	for p := 0; lo != 0; p++ {
-		ms[p].Number = calc.add(ms[p].Number, &Number{sub})
+		ms[p].Amount = calc.add(ms[p].Amount, &Amount{sub})
 		lo -= sub
 	}
 
 	return ms
+}
+
+func unit() {
+
 }

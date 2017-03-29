@@ -8,8 +8,8 @@ import (
 func TestNew(t *testing.T) {
 	m := New(1, "EUR")
 
-	if m.Number.Amount != 1 {
-		t.Errorf("Expected %d got %d", 1, m.Number.Amount)
+	if m.Amount.val != 1 {
+		t.Errorf("Expected %d got %d", 1, m.Amount.val)
 	}
 
 	if m.Currency.Code != "EUR" {
@@ -18,8 +18,8 @@ func TestNew(t *testing.T) {
 
 	m = New(-100, "EUR")
 
-	if m.Number.Amount != -100 {
-		t.Errorf("Expected %d got %d", -100, m.Number.Amount)
+	if m.Amount.val != -100 {
+		t.Errorf("Expected %d got %d", -100, m.Amount.val)
 	}
 }
 
@@ -54,8 +54,8 @@ func TestMoney_Equals(t *testing.T) {
 		r := m.Equals(om)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d Equals %d == %t got %t", m.Number.Amount,
-				om.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d Equals %d == %t got %t", m.Amount.val,
+				om.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -76,8 +76,8 @@ func TestMoney_GreaterThan(t *testing.T) {
 		r := m.GreaterThan(om)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d Greater Than %d == %t got %t", m.Number.Amount,
-				om.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d Greater Than %d == %t got %t", m.Amount.val,
+				om.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -98,8 +98,8 @@ func TestMoney_GreaterThanOrEqual(t *testing.T) {
 		r := m.GreaterThanOrEqual(om)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d Equals Or Greater Than %d == %t got %t", m.Number.Amount,
-				om.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d Equals Or Greater Than %d == %t got %t", m.Amount.val,
+				om.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -120,8 +120,8 @@ func TestMoney_LessThan(t *testing.T) {
 		r := m.LessThan(om)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d Less Than %d == %t got %t", m.Number.Amount,
-				om.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d Less Than %d == %t got %t", m.Amount.val,
+				om.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -142,8 +142,8 @@ func TestMoney_LessThanOrEqual(t *testing.T) {
 		r := m.LessThanOrEqual(om)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d Equal Or Less Than %d == %t got %t", m.Number.Amount,
-				om.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d Equal Or Less Than %d == %t got %t", m.Amount.val,
+				om.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -163,7 +163,7 @@ func TestMoney_IsZero(t *testing.T) {
 		r := m.IsZero()
 
 		if r != tc.expected {
-			t.Errorf("Expected %d to be zero == %t got %t", m.Number.Amount, tc.expected, r)
+			t.Errorf("Expected %d to be zero == %t got %t", m.Amount.val, tc.expected, r)
 		}
 	}
 }
@@ -183,7 +183,7 @@ func TestMoney_IsNegative(t *testing.T) {
 		r := m.IsNegative()
 
 		if r != tc.expected {
-			t.Errorf("Expected %d to be negative == %t got %t", m.Number.Amount,
+			t.Errorf("Expected %d to be negative == %t got %t", m.Amount.val,
 				tc.expected, r)
 		}
 	}
@@ -204,7 +204,7 @@ func TestMoney_IsPositive(t *testing.T) {
 		r := m.IsPositive()
 
 		if r != tc.expected {
-			t.Errorf("Expected %d to be positive == %t got %t", m.Number.Amount,
+			t.Errorf("Expected %d to be positive == %t got %t", m.Amount.val,
 				tc.expected, r)
 		}
 	}
@@ -222,10 +222,10 @@ func TestMoney_Absolute(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
-		r := m.Absolute().Number.Amount
+		r := m.Absolute().Amount.val
 
 		if r != tc.expected {
-			t.Errorf("Expected absolute %d to be %d got %d", m.Number.Amount,
+			t.Errorf("Expected absolute %d to be %d got %d", m.Amount.val,
 				tc.expected, r)
 		}
 	}
@@ -243,10 +243,10 @@ func TestMoney_Negative(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
-		r := m.Negative().Number.Amount
+		r := m.Negative().Amount.val
 
 		if r != tc.expected {
-			t.Errorf("Expected absolute %d to be %d got %d", m.Number.Amount,
+			t.Errorf("Expected absolute %d to be %d got %d", m.Amount.val,
 				tc.expected, r)
 		}
 	}
@@ -266,7 +266,7 @@ func TestMoney_Add(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount1, "EUR")
 		om := New(tc.amount2, "EUR")
-		r := m.Add(om).Number.Amount
+		r := m.Add(om).Amount.val
 
 		if r != tc.expected {
 			t.Errorf("Expected %d + %d = %d got %d", tc.amount1, tc.amount2, tc.expected, r)
@@ -288,7 +288,7 @@ func TestMoney_Subtract(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount1, "EUR")
 		om := New(tc.amount2, "EUR")
-		r := m.Subtract(om).Number.Amount
+		r := m.Subtract(om).Amount.val
 
 		if r != tc.expected {
 			t.Errorf("Expected %d - %d = %d got %d", tc.amount1, tc.amount2, tc.expected, r)
@@ -310,7 +310,7 @@ func TestMoney_Multiply(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
-		r := m.Multiply(tc.multiplier).Number.Amount
+		r := m.Multiply(tc.multiplier).Amount.val
 
 		if r != tc.expected {
 			t.Errorf("Expected %d * %d = %d got %d", tc.amount, tc.multiplier, tc.expected, r)
@@ -332,7 +332,7 @@ func TestMoney_Divide(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
-		r := m.Divide(tc.divisor).Number.Amount
+		r := m.Divide(tc.divisor).Amount.val
 
 		if r != tc.expected {
 			t.Errorf("Expected %d * %d = %d got %d", tc.amount, tc.divisor, tc.expected, r)
@@ -356,7 +356,7 @@ func TestMoney_Round(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
-		r := m.Round().Number.Amount
+		r := m.Round().Amount.val
 
 		if r != tc.expected {
 			t.Errorf("Expected rounded %d to be %d got %d", tc.amount, tc.expected, r)
@@ -380,7 +380,7 @@ func TestMoney_Split(t *testing.T) {
 		var rs []int
 
 		for _, party := range m.Split(tc.split) {
-			rs = append(rs, party.Number.Amount)
+			rs = append(rs, party.Amount.val)
 		}
 
 		if !reflect.DeepEqual(tc.expected, rs) {
@@ -406,12 +406,25 @@ func TestMoney_Allocate(t *testing.T) {
 		var rs []int
 
 		for _, party := range m.Allocate(tc.ratios) {
-			rs = append(rs, party.Number.Amount)
+			rs = append(rs, party.Amount.val)
 		}
 
 		if !reflect.DeepEqual(tc.expected, rs) {
 			t.Errorf("Expected allocation of %d for ratios %v to be %v got %v", tc.amount, tc.ratios,
 				tc.expected, rs)
 		}
+	}
+}
+
+func TestMoney_Chain(t *testing.T) {
+	m := New(10, "EUR")
+	om := New(5, "EUR")
+
+	// 10 + 5 = 15 / 5 = 3 * 4 = 12 - 5 = 7
+	r := m.Add(om).Divide(5).Multiply(4).Subtract(New(5, "EUR")).Amount.val
+	e := 7
+
+	if r != e {
+		t.Errorf("Expected %d got %d", e, r)
 	}
 }
