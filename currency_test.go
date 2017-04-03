@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Testcurrency_Get(t *testing.T) {
+func TestCurrency_Get(t *testing.T) {
 	tc := map[string]string{
 		"EUR": "EUR",
 		"Eur": "EUR",
@@ -19,7 +19,7 @@ func Testcurrency_Get(t *testing.T) {
 	}
 }
 
-func Testcurrency_Equals(t *testing.T) {
+func TestCurrency_Equals(t *testing.T) {
 	tc := map[string]string{
 		"EUR": "EUR",
 		"Eur": "EUR",

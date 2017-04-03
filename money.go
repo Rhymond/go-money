@@ -8,6 +8,7 @@ type amount struct {
 	val int
 }
 
+// Money stores money information
 type Money struct {
 	amount   *amount
 	currency *currency
@@ -26,20 +27,20 @@ func New(Amount int, Currency string) *Money {
 	}
 }
 
-// Samecurrency check if given Money is equals by currency
-func (m *Money) Samecurrency(om *Money) bool {
+// SameCurrency check if given Money is equals by currency
+func (m *Money) SameCurrency(om *Money) bool {
 	return m.currency.Equals(om.currency)
 }
 
-func (m *Money) assertSamecurrency(om *Money) {
-	if !m.Samecurrency(om) {
+func (m *Money) assertSameCurrency(om *Money) {
+	if !m.SameCurrency(om) {
 		log.Fatalf("Currencies %s and %s don't match", m.currency.Code, om.currency.Code)
 	}
 }
 
 func (m *Money) compare(om *Money) int {
 
-	m.assertSamecurrency(om)
+	m.assertSameCurrency(om)
 
 	switch {
 	case m.amount.val > om.amount.val:
@@ -86,7 +87,7 @@ func (m *Money) IsPositive() bool {
 	return m.amount.val > 0
 }
 
-// IsPositive returns boolean of whether the value of Money is negative
+// IsNegative returns boolean of whether the value of Money is negative
 func (m *Money) IsNegative() bool {
 	return m.amount.val < 0
 }
@@ -103,13 +104,13 @@ func (m *Money) Negative() *Money {
 
 // Add returns new Money struct with value representing sum of Self and Other Money
 func (m *Money) Add(om *Money) *Money {
-	m.assertSamecurrency(om)
+	m.assertSameCurrency(om)
 	return &Money{calc.add(m.amount, om.amount), m.currency}
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money
 func (m *Money) Subtract(om *Money) *Money {
-	m.assertSamecurrency(om)
+	m.assertSameCurrency(om)
 	return &Money{calc.subtract(m.amount, om.amount), m.currency}
 }
 
@@ -123,7 +124,7 @@ func (m *Money) Divide(div int) *Money {
 	return &Money{calc.divide(m.amount, div), m.currency}
 }
 
-// Divide returns new Money struct with value rounded to nearest zero
+// Round returns new Money struct with value rounded to nearest zero
 func (m *Money) Round() *Money {
 	return &Money{calc.round(m.amount), m.currency}
 }
@@ -148,14 +149,14 @@ func (m *Money) Split(n int) []*Money {
 	// Add leftovers to the first parties
 	for p := 0; l != 0; p++ {
 		ms[p].amount = calc.add(ms[p].amount, &amount{1})
-		l -= 1
+		l--
 	}
 
 	return ms
 }
 
 // Allocate returns slice of Money structs with split Self value in given ratios.
-//It lets split money by given ratios without losing pennies and as Split operations distributes
+// It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
 func (m *Money) Allocate(rs []int) []*Money {
 	if len(rs) == 0 {
