@@ -4,24 +4,24 @@ import (
 	"log"
 )
 
-type Amount struct {
+type amount struct {
 	val int
 }
 
 type Money struct {
-	Amount   *Amount
+	amount   *amount
 	Currency *Currency
 }
 
-var calc *Calculator
+var calc *calculator
 
 // New creates and returns new instance of Money
-func New(amount int, currency string) *Money {
+func New(value int, currency string) *Money {
 
-	calc = new(Calculator)
+	calc = new(calculator)
 
 	return &Money{
-		&Amount{amount},
+		&amount{value},
 		new(Currency).Get(currency),
 	}
 }
@@ -42,9 +42,9 @@ func (m *Money) compare(om *Money) int {
 	m.assertSameCurrency(om)
 
 	switch {
-	case m.Amount.val > om.Amount.val:
+	case m.amount.val > om.amount.val:
 		return 1
-	case m.Amount.val < om.Amount.val:
+	case m.amount.val < om.amount.val:
 		return -1
 	}
 
@@ -72,45 +72,45 @@ func (m *Money) LessThanOrEqual(om *Money) bool {
 }
 
 func (m *Money) IsZero() bool {
-	return m.Amount.val == 0
+	return m.amount.val == 0
 }
 
 func (m *Money) IsPositive() bool {
-	return m.Amount.val > 0
+	return m.amount.val > 0
 }
 
 func (m *Money) IsNegative() bool {
-	return m.Amount.val < 0
+	return m.amount.val < 0
 }
 
 func (m *Money) Absolute() *Money {
-	return &Money{calc.absolute(m.Amount), m.Currency}
+	return &Money{calc.absolute(m.amount), m.Currency}
 }
 
 func (m *Money) Negative() *Money {
-	return &Money{calc.negative(m.Amount), m.Currency}
+	return &Money{calc.negative(m.amount), m.Currency}
 }
 
 func (m *Money) Add(om *Money) *Money {
 	m.assertSameCurrency(om)
-	return &Money{calc.add(m.Amount, om.Amount), m.Currency}
+	return &Money{calc.add(m.amount, om.amount), m.Currency}
 }
 
 func (m *Money) Subtract(om *Money) *Money {
 	m.assertSameCurrency(om)
-	return &Money{calc.subtract(m.Amount, om.Amount), m.Currency}
+	return &Money{calc.subtract(m.amount, om.amount), m.Currency}
 }
 
 func (m *Money) Multiply(mul int) *Money {
-	return &Money{calc.multiply(m.Amount, mul), m.Currency}
+	return &Money{calc.multiply(m.amount, mul), m.Currency}
 }
 
 func (m *Money) Divide(div int) *Money {
-	return &Money{calc.divide(m.Amount, div), m.Currency}
+	return &Money{calc.divide(m.amount, div), m.Currency}
 }
 
 func (m *Money) Round() *Money {
-	return &Money{calc.round(m.Amount), m.Currency}
+	return &Money{calc.round(m.amount), m.Currency}
 }
 
 func (m *Money) Split(n int) []*Money {
@@ -118,18 +118,18 @@ func (m *Money) Split(n int) []*Money {
 		log.Fatalf("Split must be higher than zero")
 	}
 
-	a := calc.divide(m.Amount, n)
+	a := calc.divide(m.amount, n)
 	ms := make([]*Money, n)
 
 	for i := 0; i < n; i++ {
 		ms[i] = &Money{a, m.Currency}
 	}
 
-	l := calc.modulus(m.Amount, n).val
+	l := calc.modulus(m.amount, n).val
 
 	// Add leftovers to the first parties
 	for p := 0; l != 0; p++ {
-		ms[p].Amount = calc.add(ms[p].Amount, &Amount{1})
+		ms[p].amount = calc.add(ms[p].amount, &amount{1})
 		l -= 1
 	}
 
@@ -151,33 +151,32 @@ func (m *Money) Allocate(rs []int) []*Money {
 	var ms []*Money
 	for _, r := range rs {
 		party := &Money{
-			calc.allocate(m.Amount, r, sum),
+			calc.allocate(m.amount, r, sum),
 			m.Currency,
 		}
 
 		ms = append(ms, party)
-		total += party.Amount.val
+		total += party.amount.val
 	}
 
 	// Calculate leftover value and divide to first parties
-	lo := m.Amount.val - total
+	lo := m.amount.val - total
 	sub := 1
 	if lo < 0 {
 		sub = -1
 	}
 
 	for p := 0; lo != 0; p++ {
-		ms[p].Amount = calc.add(ms[p].Amount, &Amount{sub})
+		ms[p].amount = calc.add(ms[p].amount, &amount{sub})
 		lo -= sub
 	}
 
 	return ms
 }
 
-func (m *Money) Format() string {
+func (m *Money) Display() string {
 	f := NewFormatter(m.Currency.Fraction, ".", ",",
 		m.Currency.Grapheme, m.Currency.Template)
 
-	return f.Format(m.Amount.val)
-
+	return f.Format(m.amount.val)
 }

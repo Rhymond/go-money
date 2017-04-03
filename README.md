@@ -20,13 +20,14 @@ func main() {
 	twoPounds := pound.Add(pound)
 
 	parties := twoPounds.Split(3)
-	parties[0].Format() // £0.67
-	parties[1].Format() // £0.67
-	parties[2].Format() // £0.66
+	parties[0].Display() // £0.67
+	parties[1].Display() // £0.67
+	parties[2].Display() // £0.66
 }
 
 ```
-## Quick start
+Quick start
+-
 Get the package via
 
 ``` bash
@@ -39,15 +40,15 @@ $ go get github.com/rhymond/go-money
 * Represents monetary values as integers, in cents. This avoids floating point rounding errors.
 * Represents currency as ```Money.Currency``` instances providing a high level of flexibility.
 
-## Usage
-### Init
+Usage
+-
+### Instantiation
+Initialise Money by using smallest unit value (e.g 100 represents 1 pound). Use ISO 4217 Currency Code to set money Currency
 ```go
-// Initialise Money by using smallest unit value (e.g 100 represents 1 pound)
-// and use ISO 4217 Currency Code to set money Currency
 pound := money.New(100, "GBP")
 ```
-### Comparison
-
+Comparison
+-
 **Go-money** lets you to use base compare operations like:
 
 * Equals
@@ -55,11 +56,10 @@ pound := money.New(100, "GBP")
 * GreaterThanOrEqual
 * LessThan
 * LessThanOrEqual
+
 In order to use them currencies must be equal
 
 ```go
-// Initialise Money by using smallest unit value (e.g 100 represents 1 pound)
-// and use ISO 4217 Currency Code to set money Currency
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
 twoEuros := money.New(200, "EUR")
@@ -68,14 +68,172 @@ pound.GreaterThan(twoPounds) // false
 pound.LessThan(twoPounds) // true
 twoPounds.Equals(twoEuros) // Error: Currencies don't match
 ```
+Asserts
+-
+* IsZero
+* isNegative
+* IsPositive
+
+#### Zero value
+
+To assert if Money value is equal zero use `IsZero()`
+
+```go
+pound := money.New(100, "GBP")
+result := pound.IsZero(pound) // false
+```
+
+#### Positive value
+
+To assert if Money value is more than zero `IsPositive()`
+
+```go
+pound := money.New(100, "GBP")
+pound.IsPositive(pound) // true
+```
+
+#### Negative value
+
+To assert if Money value is less than zero `IsNegative()`
+
+```go
+pound := money.New(100, "GBP")
+pound.IsNegative(pound) // false
+```
+
+Operations
+-
+* Add
+* Subtract
+* Divide
+* Modulus
+* Multiply
+
+In Order to use operations between Money structures Currencies must be equal
+
+#### Addition
+
+Additions can be performed using `Add()`.
+
+```go
+pound := money.New(100, "GBP")
+twoPounds := money.New(200, "GBP")
+ 
+result := pound.Add(twoPounds).Display() // £3.00
+```
+
+#### Subtraction
+
+Subtraction can be performed using `Subtract()`.
+
+```go
+pound := money.New(100, "GBP")
+twoPounds := money.New(200, "GBP")
+ 
+result := pound.Subtract(twoPounds).Display() // -£3.00
+```
+
+#### Multiplication 
+
+Multiplication can be performed using `Multiply()`.
+
+```go
+pound := money.New(100, "GBP")
+ 
+result := pound.Multiply(2).Display() // £4.00
+```
+
+#### Division 
+
+Division can be performed using `Divide()`.
+
+```go
+pound := money.New(100, "GBP")
+ 
+result := pound.Divide(2).Display() // £4.00
+```
+
+There is possibilities to lose pennies by using division operation e.g:
+```go
+money.New(100, "GBP").Divide(3).Display() // £0.33
+```
+In order to split amount without losing pennies use `Split()` operation.
+
+
+#### Absolute
+
+Return `absolute` value of Money structure
+
+```go
+pound := money.New(-100, "GBP")
+ 
+result := pound.Absolute().Display() // £1.00
+```
+
+#### Negative
+
+Return `negative` value of Money structure
+
+```go
+pound := money.New(100, "GBP")
+ 
+result := pound.Negative().Display() // -£1.00
+```
+
+Allocation
+-
+
+* Split
+* Allocate
+
+#### Splitting
+
+In order to split Money for parties without losing any penny use `Split()`. 
+
+After division leftover pennies will be distributed round-robin amongst the parties. This means that parties listed first will likely receive more pennies than ones that are listed later
+
+```go
+pound := money.New(100, "GBP")
+parties := pound.Split(3)
+
+parties[0].Display() // £0.34
+parties[1].Display() // £0.33
+parties[2].Display() // £0.33
+```
+
+#### Allocation
+
+To perform allocation operation use `Allocate()`.
+
+It lets split money by given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle.
+
+```go
+pound := money.New(100, "GBP")
+parties := pound.Split([]int{33, 33, 33})
+
+parties[0].Display() // £0.34
+parties[1].Display() // £0.33
+parties[2].Display() // £0.33
+```
+
+Format
+-
+
+To format and return Money as string use `Display()`. 
+
+```go
+money.New(123456789, "EUR").Display() // €1,234,567.89
+```
+
+Contributing
+-
+Thank you for considering contributing! 
+Please use GitHub issues and Pull Requests for Contributing.
+
+License
+-
+The MIT License (MIT). Please see License File for more information.
 
 
 
-
-
-
-
-
-
-
-
+[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](https://github.com/Rhymond/go-money)
