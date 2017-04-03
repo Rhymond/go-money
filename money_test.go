@@ -1,8 +1,8 @@
 package money
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func TestNew(t *testing.T) {
@@ -427,4 +427,24 @@ func TestMoney_Chain(t *testing.T) {
 	if r != e {
 		t.Errorf("Expected %d got %d", e, r)
 	}
+}
+
+func TestMoney_Format(t *testing.T) {
+	tcs := []struct {
+		amount   int
+		code     string
+		expected string
+	}{
+		{100, "GBP", "£1.00"},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.Format()
+
+		if r != tc.expected {
+			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
+		}
+	}
+
 }

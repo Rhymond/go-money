@@ -16,13 +16,13 @@ type Money struct {
 var calc *Calculator
 
 // New creates and returns new instance of Money
-func New(am int, curr string) *Money {
+func New(amount int, currency string) *Money {
 
 	calc = new(Calculator)
 
 	return &Money{
-		&Amount{am},
-		new(Currency).Get(curr),
+		&Amount{amount},
+		new(Currency).Get(currency),
 	}
 }
 
@@ -172,4 +172,12 @@ func (m *Money) Allocate(rs []int) []*Money {
 	}
 
 	return ms
+}
+
+func (m *Money) Format() string {
+	f := NewFormatter(m.Currency.Fraction, ".", ",",
+		m.Currency.Grapheme, m.Currency.Template)
+
+	return f.Format(m.Amount.val)
+
 }

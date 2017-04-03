@@ -1,22 +1,17 @@
 package money
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"strings"
-	"io/ioutil"
-	"encoding/json"
 )
 
-type Symbol struct {
-	Template string
-	Rtl      bool
-	Grapheme string
-}
-
 type Currency struct {
-	Code         string
-	FractionSize int
-	Symbol       Symbol
+	Code     string
+	Fraction int
+	Grapheme string
+	Template string
 }
 
 type Currencies map[string]*Currency

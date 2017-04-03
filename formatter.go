@@ -3,7 +3,6 @@ package money
 import (
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 type Formatter struct {
@@ -38,9 +37,9 @@ func (f *Formatter) Format(amount int) string {
 		}
 	}
 
-	sa = sa[:len(sa) - f.Fraction] + f.Decimal + sa[len(sa) - f.Fraction:]
-	sa = fmt.Sprintf(f.Template, sa)
-	sa = strings.Replace(sa, "$", f.Grapheme, -1)
+	sa = sa[:len(sa)-f.Fraction] + f.Decimal + sa[len(sa)-f.Fraction:]
+	sa = strings.Replace(f.Template, "1", sa, 1)
+	sa = strings.Replace(sa, "$", f.Grapheme, 1)
 
 	// Add minus sign for negative amount
 	if amount < 0 {
