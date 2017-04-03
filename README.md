@@ -18,9 +18,9 @@ func main() {
 	twoPounds := pound.Add(pound)
 
 	parties := twoPounds.Split(3)
-	parties[0].format() // £0.67
-	parties[1].format() // £0.67
-	parties[2].format() // £0.66
+	parties[0].Format() // £0.67
+	parties[1].Format() // £0.67
+	parties[2].Format() // £0.66
 }
 
 ```
