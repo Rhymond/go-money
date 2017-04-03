@@ -18,7 +18,7 @@ type Currencies map[string]*Currency
 
 func (c *Currency) Get(code string) *Currency {
 	code = strings.ToUpper(code)
-	cs := c.read("./currencies.json")
+	cs := c.read("./resources/currencies.json")
 
 	if _, ok := cs[code]; !ok {
 		log.Fatalf("Currency %s not found", code)
