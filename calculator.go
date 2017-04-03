@@ -42,7 +42,7 @@ func (c *Calculator) negative(a *Amount) *Amount {
 	return &Amount{a.val}
 }
 
-func (c *Calculator) round(a *Amount, p int) *Amount {
+func (c *Calculator) round(a *Amount) *Amount {
 
 	if a.val == 0 {
 		return &Amount{0}

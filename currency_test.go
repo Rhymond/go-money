@@ -14,7 +14,7 @@ func TestCurrency_Get(t *testing.T) {
 		c := new(Currency).Get(code)
 
 		if c.Code != expected {
-			t.Errorf("Expected %s got %s", expected, c.Name)
+			t.Errorf("Expected %s got %s", expected, c.Code)
 		}
 	}
 }
