@@ -3,7 +3,7 @@
 ![alt text](http://i.imgur.com/c3XmCC6.jpg "Money")
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/rhymond/go-money)](https://goreportcard.com/report/github.com/rhymond/go-money)
-[![Coverage Status](https://coveralls.io/repos/github/Rhymond/go-money/badge.svg?branch=wip)](https://coveralls.io/github/Rhymond/go-money?branch=wip)
+[![Coverage Status](https://coveralls.io/repos/github/Rhymond/go-money/badge.svg?branch=master)](https://coveralls.io/github/Rhymond/go-money?branch=master)
 [![Build Status](https://travis-ci.org/Rhymond/go-money.svg?branch=master)](https://travis-ci.org/Rhymond/go-money)
 
 **GoMoney** provides ability to work with [monetary value using a currency's smallest unit](https://martinfowler.com/eaaCatalog/money.html).
