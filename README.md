@@ -71,7 +71,7 @@ twoPounds.Equals(twoEuros) // Error: Currencies don't match
 Asserts
 -
 * IsZero
-* isNegative
+* IsNegative
 * IsPositive
 
 #### Zero value
@@ -106,8 +106,9 @@ Operations
 * Add
 * Subtract
 * Divide
-* Modulus
 * Multiply
+* Absolute
+* Negative
 
 In Order to use operations between Money structures Currencies must be equal
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Formatter stores Money formatting information
 type Formatter struct {
 	Fraction int
 	Decimal  string
@@ -13,6 +14,7 @@ type Formatter struct {
 	Template string
 }
 
+// NewFormatter creates new Formatter instance
 func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *Formatter {
 	return &Formatter{
 		Fraction: fraction,
@@ -23,6 +25,7 @@ func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *F
 	}
 }
 
+// Format returns string of formatted integer using given currency template
 func (f *Formatter) Format(amount int) string {
 	// Work with absolute amount value
 	sa := strconv.Itoa(f.abs(amount))

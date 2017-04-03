@@ -12,8 +12,8 @@ func TestNew(t *testing.T) {
 		t.Errorf("Expected %d got %d", 1, m.amount.val)
 	}
 
-	if m.Currency.Code != "EUR" {
-		t.Errorf("Expected currency %s got %s", "EUR", m.Currency.Code)
+	if m.currency.Code != "EUR" {
+		t.Errorf("Expected currency %s got %s", "EUR", m.currency.Code)
 	}
 
 	m = New(-100, "EUR")
@@ -23,18 +23,18 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestMoney_SameCurrency(t *testing.T) {
+func TestMoney_Samecurrency(t *testing.T) {
 	m := New(0, "EUR")
 	om := New(0, "USD")
 
-	if m.SameCurrency(om) {
-		t.Errorf("Expected %s not to be same as %s", m.Currency.Code, om.Currency.Code)
+	if m.Samecurrency(om) {
+		t.Errorf("Expected %s not to be same as %s", m.currency.Code, om.currency.Code)
 	}
 
 	om = New(0, "EUR")
 
-	if !m.SameCurrency(om) {
-		t.Errorf("Expected %s to be same as %s", m.Currency.Code, om.Currency.Code)
+	if !m.Samecurrency(om) {
+		t.Errorf("Expected %s to be same as %s", m.currency.Code, om.currency.Code)
 	}
 }
 
