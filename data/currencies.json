@@ -1,0 +1,632 @@
+{
+  "AED": {
+    "fraction": 2,
+    "grapheme": ".\u062f.\u0625",
+    "template": "1 $"
+  },
+  "AFN": {
+    "fraction": 2,
+    "grapheme": "\u060b",
+    "template": "1 $"
+  },
+  "ALL": {
+    "fraction": 2,
+    "grapheme": "L",
+    "template": "$1"
+  },
+  "AMD": {
+    "fraction": 2,
+    "grapheme": "\u0564\u0580.",
+    "template": "1 $"
+  },
+  "ANG": {
+    "fraction": 2,
+    "grapheme": "\u0192",
+    "template": "$1"
+  },
+  "ARS": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "AUD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "AWG": {
+    "fraction": 2,
+    "grapheme": "\u0192",
+    "template": "$1"
+  },
+  "AZN": {
+    "fraction": 2,
+    "grapheme": "\u20bc",
+    "template": "$1"
+  },
+  "BAM": {
+    "fraction": 2,
+    "grapheme": "KM",
+    "template": "$1"
+  },
+  "BBD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "BGN": {
+    "fraction": 2,
+    "grapheme": "\u043b\u0432",
+    "template": "$1"
+  },
+  "BHD": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u0628",
+    "template": "1 $"
+  },
+  "BMD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "BND": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "BOB": {
+    "fraction": 2,
+    "grapheme": "Bs.",
+    "template": "$1"
+  },
+  "BRL": {
+    "fraction": 2,
+    "grapheme": "R$",
+    "template": "$1"
+  },
+  "BSD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "BWP": {
+    "fraction": 2,
+    "grapheme": "P",
+    "template": "$1"
+  },
+  "BYN": {
+    "fraction": 2,
+    "grapheme": "p.",
+    "template": "1 $"
+  },
+  "BYR": {
+    "fraction": 0,
+    "grapheme": "p.",
+    "template": "1 $"
+  },
+  "BZD": {
+    "fraction": 2,
+    "grapheme": "BZ$",
+    "template": "$1"
+  },
+  "CAD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "CLP": {
+    "fraction": 0,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "CNY": {
+    "fraction": 2,
+    "grapheme": "\u5143",
+    "template": "1 $"
+  },
+  "COP": {
+    "fraction": 0,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "CRC": {
+    "fraction": 2,
+    "grapheme": "\u20a1",
+    "template": "$1"
+  },
+  "CUP": {
+    "fraction": 2,
+    "grapheme": "$MN",
+    "template": "$1"
+  },
+  "CZK": {
+    "fraction": 2,
+    "grapheme": "K\u010d",
+    "template": "1 $"
+  },
+  "DKK": {
+    "fraction": 2,
+    "grapheme": "kr",
+    "template": "1 $"
+  },
+  "DOP": {
+    "fraction": 2,
+    "grapheme": "RD$",
+    "template": "$1"
+  },
+  "DZD": {
+    "fraction": 2,
+    "grapheme": ".\u062f.\u062c",
+    "template": "1 $"
+  },
+  "EEK": {
+    "fraction": 2,
+    "grapheme": "kr",
+    "template": "$1"
+  },
+  "EGP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "EUR": {
+    "fraction": 2,
+    "grapheme": "\u20ac",
+    "template": "$1"
+  },
+  "FJD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "FKP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "GBP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "GGP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "GHC": {
+    "fraction": 2,
+    "grapheme": "\u00a2",
+    "template": "$1"
+  },
+  "GIP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "GTQ": {
+    "fraction": 2,
+    "grapheme": "Q",
+    "template": "$1"
+  },
+  "GYD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "HKD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "HNL": {
+    "fraction": 2,
+    "grapheme": "L",
+    "template": "$1"
+  },
+  "HRK": {
+    "fraction": 2,
+    "grapheme": "kn",
+    "template": "$1"
+  },
+  "HUF": {
+    "fraction": 0,
+    "grapheme": "Ft",
+    "template": "$1"
+  },
+  "IDR": {
+    "fraction": 2,
+    "grapheme": "Rp",
+    "template": "$1"
+  },
+  "ILS": {
+    "fraction": 2,
+    "grapheme": "\u20aa",
+    "template": "$1"
+  },
+  "IMP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "INR": {
+    "fraction": 2,
+    "grapheme": "\u20b9",
+    "template": "$1"
+  },
+  "IQD": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u0639",
+    "template": "1 $"
+  },
+  "IRR": {
+    "fraction": 2,
+    "grapheme": "\ufdfc",
+    "template": "1 $"
+  },
+  "ISK": {
+    "fraction": 2,
+    "grapheme": "kr",
+    "template": "$1"
+  },
+  "JEP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "JMD": {
+    "fraction": 2,
+    "grapheme": "J$",
+    "template": "$1"
+  },
+  "JOD": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u0625",
+    "template": "1 $"
+  },
+  "JPY": {
+    "fraction": 0,
+    "grapheme": "\u00a5",
+    "template": "$1"
+  },
+  "KES": {
+    "fraction": 2,
+    "grapheme": "KSh",
+    "template": "$1"
+  },
+  "KGS": {
+    "fraction": 2,
+    "grapheme": "\u0441\u043e\u043c",
+    "template": "$1"
+  },
+  "KHR": {
+    "fraction": 2,
+    "grapheme": "\u17db",
+    "template": "$1"
+  },
+  "KPW": {
+    "fraction": 0,
+    "grapheme": "\u20a9",
+    "template": "$1"
+  },
+  "KRW": {
+    "fraction": 0,
+    "grapheme": "\u20a9",
+    "template": "$1"
+  },
+  "KWD": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u0643",
+    "template": "1 $"
+  },
+  "KYD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "KZT": {
+    "fraction": 2,
+    "grapheme": "\u20b8",
+    "template": "$1"
+  },
+  "LAK": {
+    "fraction": 2,
+    "grapheme": "\u20ad",
+    "template": "$1"
+  },
+  "LBP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "LKR": {
+    "fraction": 2,
+    "grapheme": "\u20a8",
+    "template": "$1"
+  },
+  "LRD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "LTL": {
+    "fraction": 2,
+    "grapheme": "Lt",
+    "template": "$1"
+  },
+  "LVL": {
+    "fraction": 2,
+    "grapheme": "Ls",
+    "template": "1 $"
+  },
+  "LYD": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u0644",
+    "template": "1 $"
+  },
+  "MAD": {
+    "fraction": 2,
+    "grapheme": ".\u062f.\u0645",
+    "template": "1 $"
+  },
+  "MKD": {
+    "fraction": 2,
+    "grapheme": "\u0434\u0435\u043d",
+    "template": "$1"
+  },
+  "MNT": {
+    "fraction": 2,
+    "grapheme": "\u20ae",
+    "template": "$1"
+  },
+  "MUR": {
+    "fraction": 2,
+    "grapheme": "\u20a8",
+    "template": "$1"
+  },
+  "MXN": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "MYR": {
+    "fraction": 2,
+    "grapheme": "RM",
+    "template": "$1"
+  },
+  "MZN": {
+    "fraction": 2,
+    "grapheme": "MT",
+    "template": "$1"
+  },
+  "NAD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "NGN": {
+    "fraction": 2,
+    "grapheme": "\u20a6",
+    "template": "$1"
+  },
+  "NIO": {
+    "fraction": 2,
+    "grapheme": "C$",
+    "template": "$1"
+  },
+  "NOK": {
+    "fraction": 2,
+    "grapheme": "kr",
+    "template": "1 $"
+  },
+  "NPR": {
+    "fraction": 2,
+    "grapheme": "\u20a8",
+    "template": "$1"
+  },
+  "NZD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "OMR": {
+    "fraction": 3,
+    "grapheme": "\ufdfc",
+    "template": "1 $"
+  },
+  "PAB": {
+    "fraction": 2,
+    "grapheme": "B\/.",
+    "template": "$1"
+  },
+  "PEN": {
+    "fraction": 2,
+    "grapheme": "S\/",
+    "template": "$1"
+  },
+  "PHP": {
+    "fraction": 2,
+    "grapheme": "\u20b1",
+    "template": "$1"
+  },
+  "PKR": {
+    "fraction": 2,
+    "grapheme": "\u20a8",
+    "template": "$1"
+  },
+  "PLN": {
+    "fraction": 2,
+    "grapheme": "z\u0142",
+    "template": "1 $"
+  },
+  "PYG": {
+    "fraction": 0,
+    "grapheme": "Gs",
+    "template": "1$"
+  },
+  "QAR": {
+    "fraction": 2,
+    "grapheme": "\ufdfc",
+    "template": "1 $"
+  },
+  "RON": {
+    "fraction": 2,
+    "grapheme": "lei",
+    "template": "$1"
+  },
+  "RSD": {
+    "fraction": 2,
+    "grapheme": "\u0414\u0438\u043d.",
+    "template": "$1"
+  },
+  "RUB": {
+    "fraction": 2,
+    "grapheme": "\u20bd",
+    "template": "1 $"
+  },
+  "RUR": {
+    "fraction": 2,
+    "grapheme": "\u20bd",
+    "template": "1 $"
+  },
+  "SAR": {
+    "fraction": 2,
+    "grapheme": "\ufdfc",
+    "template": "1 $"
+  },
+  "SBD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "SCR": {
+    "fraction": 2,
+    "grapheme": "\u20a8",
+    "template": "$1"
+  },
+  "SEK": {
+    "fraction": 2,
+    "grapheme": "kr",
+    "template": "1 $"
+  },
+  "SGD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "SHP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "SOS": {
+    "fraction": 2,
+    "grapheme": "S",
+    "template": "$1"
+  },
+  "SRD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "SVC": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "SYP": {
+    "fraction": 2,
+    "grapheme": "\u00a3",
+    "template": "$1"
+  },
+  "THB": {
+    "fraction": 2,
+    "grapheme": "\u0e3f",
+    "template": "$1"
+  },
+  "TND": {
+    "fraction": 3,
+    "grapheme": ".\u062f.\u062a",
+    "template": "1 $"
+  },
+  "TRL": {
+    "fraction": 2,
+    "grapheme": "\u20a4",
+    "template": "$1"
+  },
+  "TRY": {
+    "fraction": 2,
+    "grapheme": "\u20ba",
+    "template": "$1"
+  },
+  "TTD": {
+    "fraction": 2,
+    "grapheme": "TT$",
+    "template": "$1"
+  },
+  "TWD": {
+    "fraction": 0,
+    "grapheme": "NT$",
+    "template": "$1"
+  },
+  "TZS": {
+    "fraction": 0,
+    "grapheme": "TSh",
+    "template": "$1"
+  },
+  "UAH": {
+    "fraction": 2,
+    "grapheme": "\u20b4",
+    "template": "$1"
+  },
+  "UGX": {
+    "fraction": 0,
+    "grapheme": "USh",
+    "template": "$1"
+  },
+  "USD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "UYU": {
+    "fraction": 0,
+    "grapheme": "$U",
+    "template": "$1"
+  },
+  "UZS": {
+    "fraction": 2,
+    "grapheme": "so\u2019m",
+    "template": "$1"
+  },
+  "VEF": {
+    "fraction": 2,
+    "grapheme": "Bs",
+    "template": "$1"
+  },
+  "VND": {
+    "fraction": 0,
+    "grapheme": "\u20ab",
+    "template": "1 $"
+  },
+  "XCD": {
+    "fraction": 2,
+    "grapheme": "$",
+    "template": "$1"
+  },
+  "YER": {
+    "fraction": 2,
+    "grapheme": "\ufdfc",
+    "template": "1 $"
+  },
+  "ZAR": {
+    "fraction": 2,
+    "grapheme": "R",
+    "template": "$1"
+  },
+  "ZWD": {
+    "fraction": 2,
+    "grapheme": "Z$",
+    "template": "$1"
+  }
+}

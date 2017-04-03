@@ -173,7 +173,3 @@ func (m *Money) Allocate(rs []int) []*Money {
 
 	return ms
 }
-
-func unit() {
-
-}
