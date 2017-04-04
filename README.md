@@ -21,7 +21,7 @@ func main() {
 	pound := money.New(100, "GBP")
 	twoPounds := pound.Add(pound)
 
-	parties := twoPounds.Split(3)
+	parties, _ := twoPounds.Split(3)
 	parties[0].Display() // £0.67
 	parties[1].Display() // £0.67
 	parties[2].Display() // £0.66
@@ -66,9 +66,9 @@ pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
 twoEuros := money.New(200, "EUR")
 
-pound.GreaterThan(twoPounds) // false
-pound.LessThan(twoPounds) // true
-twoPounds.Equals(twoEuros) // Error: Currencies don't match
+pound.GreaterThan(twoPounds) // false, nil
+pound.LessThan(twoPounds) // true, nil
+twoPounds.Equals(twoEuros) // false, error: Currencies don't match
 ```
 Asserts
 -
@@ -122,7 +122,7 @@ Additions can be performed using `Add()`.
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
  
-result := pound.Add(twoPounds).Display() // £3.00
+result, err := pound.Add(twoPounds).Display() // £3.00, nil
 ```
 
 #### Subtraction
@@ -133,7 +133,7 @@ Subtraction can be performed using `Subtract()`.
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
  
-result := pound.Subtract(twoPounds).Display() // -£3.00
+result, err := pound.Subtract(twoPounds).Display() // -£3.00, nil
 ```
 
 #### Multiplication 
@@ -143,7 +143,7 @@ Multiplication can be performed using `Multiply()`.
 ```go
 pound := money.New(100, "GBP")
  
-result := pound.Multiply(2).Display() // £4.00
+result, err := pound.Multiply(2).Display() // £4.00, nil
 ```
 
 #### Division 
@@ -153,7 +153,7 @@ Division can be performed using `Divide()`.
 ```go
 pound := money.New(100, "GBP")
  
-result := pound.Divide(2).Display() // £4.00
+result, err := pound.Divide(2).Display() // £4.00, nil
 ```
 
 There is possibilities to lose pennies by using division operation e.g:
@@ -170,7 +170,7 @@ Return `absolute` value of Money structure
 ```go
 pound := money.New(-100, "GBP")
  
-result := pound.Absolute().Display() // £1.00
+result, err := pound.Absolute().Display() // £1.00
 ```
 
 #### Negative
@@ -180,7 +180,7 @@ Return `negative` value of Money structure
 ```go
 pound := money.New(100, "GBP")
  
-result := pound.Negative().Display() // -£1.00
+result, err := pound.Negative().Display() // -£1.00
 ```
 
 Allocation
@@ -197,7 +197,7 @@ After division leftover pennies will be distributed round-robin amongst the part
 
 ```go
 pound := money.New(100, "GBP")
-parties := pound.Split(3)
+parties, err := pound.Split(3)
 
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
@@ -212,7 +212,7 @@ It lets split money by given ratios without losing pennies and as Split operatio
 
 ```go
 pound := money.New(100, "GBP")
-parties := pound.Split([]int{33, 33, 33})
+parties, err := pound.Split([]int{33, 33, 33})
 
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
