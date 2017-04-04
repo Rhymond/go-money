@@ -11,7 +11,7 @@ func TestCurrency_Get(t *testing.T) {
 	}
 
 	for code, expected := range tc {
-		c := new(currency).Get(code)
+		c, _ := newCurrency(code).get()
 
 		if c.Code != expected {
 			t.Errorf("Expected %s got %s", expected, c.Code)
@@ -27,10 +27,10 @@ func TestCurrency_Equals(t *testing.T) {
 	}
 
 	for code, other := range tc {
-		c := new(currency).Get(code)
-		oc := new(currency).Get(other)
+		c, _ := newCurrency(code).get()
+		oc, _ := newCurrency(other).get()
 
-		if !c.Equals(oc) {
+		if !c.equals(oc) {
 			t.Errorf("Expected that %v is not equal %v", c, oc)
 		}
 	}

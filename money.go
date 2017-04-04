@@ -1,7 +1,7 @@
 package money
 
 import (
-	"log"
+	"errors"
 )
 
 type amount struct {
@@ -17,31 +17,30 @@ type Money struct {
 var calc *calculator
 
 // New creates and returns new instance of Money
-func New(Amount int, Currency string) *Money {
+func New(Amount int, code string) *Money {
 
 	calc = new(calculator)
 
 	return &Money{
 		&amount{Amount},
-		new(currency).Get(Currency),
+		newCurrency(code),
 	}
 }
 
 // SameCurrency check if given Money is equals by currency
 func (m *Money) SameCurrency(om *Money) bool {
-	return m.currency.Equals(om.currency)
+	return m.currency.equals(om.currency)
 }
 
-func (m *Money) assertSameCurrency(om *Money) {
+func (m *Money) assertSameCurrency(om *Money) error {
 	if !m.SameCurrency(om) {
-		log.Fatalf("Currencies %s and %s don't match", m.currency.Code, om.currency.Code)
+		return errors.New("Currencies don't match")
 	}
+
+	return nil
 }
 
 func (m *Money) compare(om *Money) int {
-
-	m.assertSameCurrency(om)
-
 	switch {
 	case m.amount.val > om.amount.val:
 		return 1
@@ -53,28 +52,48 @@ func (m *Money) compare(om *Money) int {
 }
 
 // Equals checks equality between two Money types
-func (m *Money) Equals(om *Money) bool {
-	return m.compare(om) == 0
+func (m *Money) Equals(om *Money) (bool, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return false, err
+	}
+
+	return m.compare(om) == 0, nil
 }
 
 // GreaterThan checks whether the value of Money is greater than the other
-func (m *Money) GreaterThan(om *Money) bool {
-	return m.compare(om) == 1
+func (m *Money) GreaterThan(om *Money) (bool, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return false, err
+	}
+
+	return m.compare(om) == 1, nil
 }
 
 // GreaterThanOrEqual checks whether the value of Money is greater or equal than the other
-func (m *Money) GreaterThanOrEqual(om *Money) bool {
-	return m.compare(om) >= 0
+func (m *Money) GreaterThanOrEqual(om *Money) (bool, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return false, err
+	}
+
+	return m.compare(om) >= 0, nil
 }
 
 // LessThan checks whether the value of Money is less than the other
-func (m *Money) LessThan(om *Money) bool {
-	return m.compare(om) == -1
+func (m *Money) LessThan(om *Money) (bool, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return false, err
+	}
+
+	return m.compare(om) == -1, nil
 }
 
 // LessThanOrEqual checks whether the value of Money is less or equal than the other
-func (m *Money) LessThanOrEqual(om *Money) bool {
-	return m.compare(om) <= 0
+func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return false, err
+	}
+
+	return m.compare(om) <= 0, nil
 }
 
 // IsZero returns boolean of whether the value of Money is equals to zero
@@ -132,9 +151,9 @@ func (m *Money) Round() *Money {
 // Split returns slice of Money structs with split Self value in given number.
 // After division leftover pennies will be distributed round-robin amongst the parties.
 // This means that parties listed first will likely receive more pennies than ones that are listed later
-func (m *Money) Split(n int) []*Money {
+func (m *Money) Split(n int) ([]*Money, error) {
 	if n <= 0 {
-		log.Fatalf("Split must be higher than zero")
+		return nil, errors.New("Split must be higher than zero")
 	}
 
 	a := calc.divide(m.amount, n)
@@ -152,15 +171,15 @@ func (m *Money) Split(n int) []*Money {
 		l--
 	}
 
-	return ms
+	return ms, nil
 }
 
 // Allocate returns slice of Money structs with split Self value in given ratios.
 // It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
-func (m *Money) Allocate(rs []int) []*Money {
+func (m *Money) Allocate(rs []int) ([]*Money, error) {
 	if len(rs) == 0 {
-		log.Fatalf("No ratios specified")
+		return nil, errors.New("No ratios specified")
 	}
 
 	// Calculate sum of ratios
@@ -193,13 +212,17 @@ func (m *Money) Allocate(rs []int) []*Money {
 		lo -= sub
 	}
 
-	return ms
+	return ms, nil
 }
 
 // Display lets represent Money struct as string in given Currency value
-func (m *Money) Display() string {
-	f := NewFormatter(m.currency.Fraction, ".", ",",
-		m.currency.Grapheme, m.currency.Template)
+func (m *Money) Display() (string, error) {
+	c, err := m.currency.get()
 
-	return f.Format(m.amount.val)
+	if err != nil {
+		return "", err
+	}
+
+	f := NewFormatter(c.Fraction, ".", ",", c.Grapheme, c.Template)
+	return f.Format(m.amount.val), nil
 }

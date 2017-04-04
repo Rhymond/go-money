@@ -51,9 +51,9 @@ func TestMoney_Equals(t *testing.T) {
 
 	for _, tc := range tcs {
 		om := New(tc.amount, "EUR")
-		r := m.Equals(om)
+		r, err := m.Equals(om)
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected %d Equals %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
@@ -73,9 +73,9 @@ func TestMoney_GreaterThan(t *testing.T) {
 
 	for _, tc := range tcs {
 		om := New(tc.amount, "EUR")
-		r := m.GreaterThan(om)
+		r, err := m.GreaterThan(om)
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected %d Greater Than %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
@@ -95,9 +95,9 @@ func TestMoney_GreaterThanOrEqual(t *testing.T) {
 
 	for _, tc := range tcs {
 		om := New(tc.amount, "EUR")
-		r := m.GreaterThanOrEqual(om)
+		r, err := m.GreaterThanOrEqual(om)
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected %d Equals Or Greater Than %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
@@ -117,9 +117,9 @@ func TestMoney_LessThan(t *testing.T) {
 
 	for _, tc := range tcs {
 		om := New(tc.amount, "EUR")
-		r := m.LessThan(om)
+		r, err := m.LessThan(om)
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected %d Less Than %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
@@ -139,9 +139,9 @@ func TestMoney_LessThanOrEqual(t *testing.T) {
 
 	for _, tc := range tcs {
 		om := New(tc.amount, "EUR")
-		r := m.LessThanOrEqual(om)
+		r, err := m.LessThanOrEqual(om)
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected %d Equal Or Less Than %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
@@ -378,8 +378,9 @@ func TestMoney_Split(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
 		var rs []int
+		split, _ := m.Split(tc.split)
 
-		for _, party := range m.Split(tc.split) {
+		for _, party := range split {
 			rs = append(rs, party.amount.val)
 		}
 
@@ -404,8 +405,9 @@ func TestMoney_Allocate(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
 		var rs []int
+		split, _ := m.Allocate(tc.ratios)
 
-		for _, party := range m.Allocate(tc.ratios) {
+		for _, party := range split {
 			rs = append(rs, party.amount.val)
 		}
 
@@ -440,9 +442,9 @@ func TestMoney_Format(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, tc.code)
-		r := m.Display()
+		r, err := m.Display()
 
-		if r != tc.expected {
+		if err != nil || r != tc.expected {
 			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
 		}
 	}

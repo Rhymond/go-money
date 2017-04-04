@@ -2,8 +2,8 @@ package money
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
-	"log"
 	"strings"
 )
 
@@ -16,32 +16,38 @@ type currency struct {
 
 type currencies map[string]*currency
 
-func (c *currency) Get(code string) *currency {
-	code = strings.ToUpper(code)
-	cs := c.read("./resources/currencies.json")
-
-	if _, ok := cs[code]; !ok {
-		log.Fatalf("currency %s not found", code)
-	}
-
-	cs[code].Code = code
-
-	return cs[code]
+func newCurrency(code string) *currency {
+	return &currency{Code: strings.ToUpper(code)}
 }
 
-func (c *currency) Equals(oc *currency) bool {
+func (c *currency) get() (*currency, error) {
+	cs, err := c.read("./resources/currencies.json")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if _, ok := cs[c.Code]; !ok {
+		return nil, errors.New("Currency not found")
+	}
+
+	cs[c.Code].Code = c.Code
+	return cs[c.Code], nil
+}
+
+func (c *currency) equals(oc *currency) bool {
 	return c.Code == oc.Code
 }
 
-func (c *currency) read(p string) currencies {
+func (c *currency) read(p string) (currencies, error) {
 	file, err := ioutil.ReadFile(p)
 
 	if err != nil {
-		log.Fatalf("Can't read currencies from file %s: %v", p, err)
+		return nil, errors.New("Can't read currencies resource")
 	}
 
 	currs := make(currencies, 0)
 	json.Unmarshal(file, &currs)
 
-	return currs
+	return currs, nil
 }
