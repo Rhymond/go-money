@@ -8,10 +8,11 @@ type amount struct {
 	val int
 }
 
-// Money stores money information
+// Money represents monetary value information, stores
+// currency and amount value
 type Money struct {
 	amount   *amount
-	currency *currency
+	currency *Currency
 }
 
 var calc *calculator
@@ -216,13 +217,7 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 }
 
 // Display lets represent Money struct as string in given Currency value
-func (m *Money) Display() (string, error) {
-	c, err := m.currency.get()
-
-	if err != nil {
-		return "", err
-	}
-
-	f := NewFormatter(c.Fraction, ".", ",", c.Grapheme, c.Template)
-	return f.Format(m.amount.val), nil
+func (m *Money) Display() string {
+	c := m.currency.get()
+	return c.Formatter().Format(m.amount.val)
 }
