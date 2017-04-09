@@ -442,11 +442,31 @@ func TestMoney_Format(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, tc.code)
-		r, err := m.Display()
+		r := m.Display()
 
-		if err != nil || r != tc.expected {
+		if r != tc.expected {
 			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
 		}
 	}
 
+}
+
+func TestMoney_Display(t *testing.T) {
+	tcs := []struct {
+		amount   int
+		code     string
+		expected string
+	}{
+		{100, "AED", "1.00 .\u062f.\u0625"},
+		{1, "USD", "$0.01"},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.Display()
+
+		if r != tc.expected {
+			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
+		}
+	}
 }

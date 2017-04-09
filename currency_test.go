@@ -5,33 +5,57 @@ import (
 )
 
 func TestCurrency_Get(t *testing.T) {
-	tc := map[string]string{
-		"EUR": "EUR",
-		"Eur": "EUR",
+	tcs := []struct {
+		code     string
+		expected string
+	}{
+		{"EUR", "EUR"},
+		{"Eur", "EUR"},
 	}
 
-	for code, expected := range tc {
-		c, _ := newCurrency(code).get()
+	for _, tc := range tcs {
+		c := newCurrency(tc.code).get()
 
-		if c.Code != expected {
-			t.Errorf("Expected %s got %s", expected, c.Code)
+		if c.Code != tc.expected {
+			t.Errorf("Expected %s got %s", tc.expected, c.Code)
 		}
 	}
 }
 
 func TestCurrency_Equals(t *testing.T) {
-	tc := map[string]string{
-		"EUR": "EUR",
-		"Eur": "EUR",
-		"usd": "USD",
+	tcs := []struct {
+		code  string
+		other string
+	}{
+		{"EUR", "EUR"},
+		{"Eur", "EUR"},
+		{"usd", "USD"},
 	}
 
-	for code, other := range tc {
-		c, _ := newCurrency(code).get()
-		oc, _ := newCurrency(other).get()
+	for _, tc := range tcs {
+		c := newCurrency(tc.code).get()
+		oc := newCurrency(tc.other).get()
 
 		if !c.equals(oc) {
 			t.Errorf("Expected that %v is not equal %v", c, oc)
+		}
+	}
+}
+
+func TestAddCurrency(t *testing.T) {
+	tcs := []struct {
+		code     string
+		template string
+	}{
+		{"GOLD", "1$"},
+	}
+
+	for _, tc := range tcs {
+		AddCurrency(tc.code, "", tc.template, "", "", 0)
+		c := newCurrency(tc.code).get()
+
+		if c.Template != tc.template {
+			t.Errorf("Expected currency template %v got %v", tc.template, c.Template)
 		}
 	}
 }

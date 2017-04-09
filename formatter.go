@@ -52,6 +52,7 @@ func (f *Formatter) Format(amount int) string {
 	return sa
 }
 
+// abs return absolute value of given integer
 func (f Formatter) abs(amount int) int {
 	if amount < 0 {
 		return -amount
