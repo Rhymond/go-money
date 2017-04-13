@@ -1,4 +1,4 @@
-package money
+package currency
 
 import (
 	"testing"
@@ -57,8 +57,8 @@ func TestFormatter_Format(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		formatter := newFormatter(tc.fraction, tc.decimal, tc.thousand, tc.grapheme, tc.template)
-		r := formatter.format(toAmount(tc.amount))
+		formatter := NewFormatter(tc.fraction, tc.decimal, tc.thousand, tc.grapheme, tc.template)
+		r := formatter.Format(tc.amount)
 
 		if r != tc.expected {
 			t.Errorf("Expected %d formatted to be %s got %s", tc.amount, tc.expected, r)

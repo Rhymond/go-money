@@ -1,4 +1,4 @@
-package money
+package currency
 
 import (
 	"strings"
@@ -158,14 +158,15 @@ func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction in
 	return currencies[Code]
 }
 
-func newCurrency(code string) Currency {
+// NewCurrency takes a currency code and returns a currency object for that code
+func NewCurrency(code string) Currency {
 	return Currency{Code: strings.ToUpper(code)}
 }
 
-// formatter returns currency formatter representing
+// Formatter returns currency formatter representing
 // used currency structure
-func (c Currency) formatter() formatter {
-	return formatter{
+func (c Currency) Formatter() Formatter {
+	return Formatter{
 		Fraction: c.Fraction,
 		Decimal:  c.Decimal,
 		Thousand: c.Thousand,
@@ -180,8 +181,8 @@ func (c Currency) getDefault() Currency {
 	return Currency{Decimal: ".", Thousand: ",", Code: c.Code, Fraction: 2, Grapheme: c.Code, Template: "1$"}
 }
 
-// get extended currency using currencies list
-func (c Currency) get() Currency {
+// Get extended currency using currencies list
+func (c Currency) Get() Currency {
 	if curr, ok := currencies[c.Code]; ok {
 		return curr
 	}
@@ -189,6 +190,7 @@ func (c Currency) get() Currency {
 	return c.getDefault()
 }
 
-func (c Currency) equals(oc Currency) bool {
+// Equals determines if two currency values are equal
+func (c Currency) Equals(oc Currency) bool {
 	return c.Code == oc.Code
 }
