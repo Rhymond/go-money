@@ -57,8 +57,8 @@ func TestFormatter_Format(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		formatter := NewFormatter(tc.fraction, tc.decimal, tc.thousand, tc.grapheme, tc.template)
-		r := formatter.Format(tc.amount)
+		formatter := newFormatter(tc.fraction, tc.decimal, tc.thousand, tc.grapheme, tc.template)
+		r := formatter.format(tc.amount)
 
 		if r != tc.expected {
 			t.Errorf("Expected %d formatted to be %s got %s", tc.amount, tc.expected, r)

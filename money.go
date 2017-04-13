@@ -247,5 +247,5 @@ func (m Money) Allocate(rs []int) ([]Money, error) {
 // Display lets represent Money struct as string in given Currency value
 func (m Money) Display() string {
 	c := m.currency.get()
-	return c.Formatter().Format(m.Amount.value)
+	return c.formatter().format(m.Amount)
 }

@@ -162,10 +162,10 @@ func newCurrency(code string) Currency {
 	return Currency{Code: strings.ToUpper(code)}
 }
 
-// Formatter returns currency formatter representing
+// formatter returns currency formatter representing
 // used currency structure
-func (c Currency) Formatter() Formatter {
-	return Formatter{
+func (c Currency) formatter() formatter {
+	return formatter{
 		Fraction: c.Fraction,
 		Decimal:  c.Decimal,
 		Thousand: c.Thousand,
