@@ -37,8 +37,8 @@ type Money interface {
 	Negative() Money
 	Add(om Money) Money
 	Subtract(om Money) Money
-	Multiply(mul interface{}) Money
-	Divide(div interface{}) Money
+	Multiply(om Money) Money
+	Divide(om Money) Money
 	Round() Money
 	Split(n int) ([]Money, error)
 	Allocate(rs []int) ([]Money, error)

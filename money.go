@@ -6,6 +6,6 @@ import (
 )
 
 // NewInt64 creates and returns new instance of Money
-func NewInt64(amount interface{}, currencyCode string) interfaces.Money {
+func NewInt64(amount interface{}, currencyCode string) (interfaces.Money, error) {
 	return concrete.NewMoneyInt64(amount, currencyCode)
 }

@@ -18,11 +18,15 @@ type MoneyInt64 struct {
 var _ interfaces.Money = (*MoneyInt64)(nil)
 
 // NewMoneyInt64 creates a new int64-based money object
-func NewMoneyInt64(amount interface{}, currencyCode string) interfaces.Money {
-	return MoneyInt64{
-		amount:   toAmount(amount),
-		currency: currency.NewCurrency(currencyCode),
+func NewMoneyInt64(amount interface{}, currencyCode string) (interfaces.Money, error) {
+	amt, err := toAmount(amount)
+	if err != nil {
+		return nil, err
 	}
+	return MoneyInt64{
+		amount:   amt,
+		currency: currency.NewCurrency(currencyCode),
+	}, nil
 }
 
 // Amount returns the internal amount object
@@ -150,13 +154,13 @@ func (m MoneyInt64) Subtract(om interfaces.Money) interfaces.Money {
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier
-func (m MoneyInt64) Multiply(mul interface{}) interfaces.Money {
-	return MoneyInt64{amount: m.amount.multiply(toAmount(mul)), currency: m.currency}
+func (m MoneyInt64) Multiply(mul interfaces.Money) interfaces.Money {
+	return MoneyInt64{amount: m.amount.multiply(mul.Amount().(AmountInt64)), currency: m.currency}
 }
 
 // Divide returns new Money struct with value representing Self division value by given divider
-func (m MoneyInt64) Divide(div interface{}) interfaces.Money {
-	return MoneyInt64{amount: m.amount.divide(toAmount(div)), currency: m.currency}
+func (m MoneyInt64) Divide(div interfaces.Money) interfaces.Money {
+	return MoneyInt64{amount: m.amount.divide(div.Amount().(AmountInt64)), currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero
@@ -172,7 +176,10 @@ func (m MoneyInt64) Split(n int) ([]interfaces.Money, error) {
 		return nil, errors.New("Split must be higher than zero")
 	}
 
-	num := toAmount(n)
+	num, err := toAmount(n)
+	if err != nil {
+		return nil, err
+	}
 	a := m.amount.divide(num)
 	ms := make([]MoneyInt64, n)
 
@@ -213,8 +220,10 @@ func (m MoneyInt64) Allocate(rs []int) ([]interfaces.Money, error) {
 	var total int64
 	var ms []MoneyInt64
 	for _, r := range rs {
+		rA, _ := toAmount(r)
+		sumA, _ := toAmount(sum)
 		party := MoneyInt64{
-			m.amount.allocate(toAmount(r), toAmount(sum)),
+			m.amount.allocate(rA, sumA),
 			m.currency,
 		}
 

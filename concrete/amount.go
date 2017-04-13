@@ -7,30 +7,30 @@ import (
 
 // toAmount takes an interface representing an integer format (not float) and
 // converts it to the internal amount type.
-func toAmount(amount interface{}) AmountInt64 {
+func toAmount(amount interface{}) (AmountInt64, error) {
 	switch amt := amount.(type) {
 	case uint:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case uint8:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case uint16:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case uint32:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case uint64:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case int:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case int8:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case int16:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case int32:
-		return AmountInt64{value: int64(amt)}
+		return AmountInt64{value: int64(amt)}, nil
 	case int64:
-		return AmountInt64{value: amt}
+		return AmountInt64{value: amt}, nil
 	}
-	panic(fmt.Sprintf("Unable to convert to Amount. Unsupported type: %s", reflect.TypeOf(amount).Name()))
+	return AmountInt64{}, fmt.Errorf("unable to convert to amount: unsupported type (%s)", reflect.TypeOf(amount).Name())
 }
 
 // AmountInt64 is the type in which calculation results are stored.
