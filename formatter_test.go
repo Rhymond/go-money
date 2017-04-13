@@ -11,7 +11,7 @@ func TestFormatter_Format(t *testing.T) {
 		thousand string
 		grapheme string
 		template string
-		amount   int
+		amount   int64
 		expected string
 	}{
 		{2, ".", ",", "$", "1 $", 0, "0.00 $"},

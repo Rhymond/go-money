@@ -15,7 +15,7 @@ type Currency struct {
 }
 
 // currencies represents a collection of currency
-var currencies = map[string]*Currency{
+var currencies = map[string]Currency{
 	"AED": {Decimal: ".", Thousand: ",", Code: "AED", Fraction: 2, Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	"AFN": {Decimal: ".", Thousand: ",", Code: "AFN", Fraction: 2, Grapheme: "\u060b", Template: "1 $"},
 	"ALL": {Decimal: ".", Thousand: ",", Code: "ALL", Fraction: 2, Grapheme: "L", Template: "$1"},
@@ -145,8 +145,8 @@ var currencies = map[string]*Currency{
 }
 
 // AddCurrency lets you insert or update currency in currencies list
-func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
-	currencies[Code] = &Currency{
+func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction int) Currency {
+	currencies[Code] = Currency{
 		Code:     Code,
 		Grapheme: Grapheme,
 		Template: Template,
@@ -158,14 +158,14 @@ func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction in
 	return currencies[Code]
 }
 
-func newCurrency(code string) *Currency {
-	return &Currency{Code: strings.ToUpper(code)}
+func newCurrency(code string) Currency {
+	return Currency{Code: strings.ToUpper(code)}
 }
 
 // Formatter returns currency formatter representing
 // used currency structure
-func (c *Currency) Formatter() *Formatter {
-	return &Formatter{
+func (c Currency) Formatter() Formatter {
+	return Formatter{
 		Fraction: c.Fraction,
 		Decimal:  c.Decimal,
 		Thousand: c.Thousand,
@@ -176,12 +176,12 @@ func (c *Currency) Formatter() *Formatter {
 
 // getDefault represent default currency if currency is not found in currencies list.
 // Grapheme and Code fields will be changed by currency code
-func (c *Currency) getDefault() *Currency {
-	return &Currency{Decimal: ".", Thousand: ",", Code: c.Code, Fraction: 2, Grapheme: c.Code, Template: "1$"}
+func (c Currency) getDefault() Currency {
+	return Currency{Decimal: ".", Thousand: ",", Code: c.Code, Fraction: 2, Grapheme: c.Code, Template: "1$"}
 }
 
 // get extended currency using currencies list
-func (c *Currency) get() *Currency {
+func (c Currency) get() Currency {
 	if curr, ok := currencies[c.Code]; ok {
 		return curr
 	}
@@ -189,6 +189,6 @@ func (c *Currency) get() *Currency {
 	return c.getDefault()
 }
 
-func (c *Currency) equals(oc *Currency) bool {
+func (c Currency) equals(oc Currency) bool {
 	return c.Code == oc.Code
 }

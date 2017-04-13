@@ -2,38 +2,57 @@ package money
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
 )
-
-type amount struct {
-	val int
-}
 
 // Money represents monetary value information, stores
 // currency and amount value
 type Money struct {
-	amount   *amount
-	currency *Currency
+	Amount   Amount
+	currency Currency
 }
 
-var calc *calculator
+func toAmount(amount interface{}) Amount {
+	switch amt := amount.(type) {
+	case uint:
+		return Amount{value: int64(amt)}
+	case uint8:
+		return Amount{value: int64(amt)}
+	case uint16:
+		return Amount{value: int64(amt)}
+	case uint32:
+		return Amount{value: int64(amt)}
+	case uint64:
+		return Amount{value: int64(amt)}
+	case int:
+		return Amount{value: int64(amt)}
+	case int8:
+		return Amount{value: int64(amt)}
+	case int16:
+		return Amount{value: int64(amt)}
+	case int32:
+		return Amount{value: int64(amt)}
+	case int64:
+		return Amount{value: amt}
+	}
+	panic(fmt.Sprintf("Unable to convert to Amount. Unsupported type: %s", reflect.TypeOf(amount).Name()))
+}
 
 // New creates and returns new instance of Money
-func New(Amount int, code string) *Money {
-
-	calc = new(calculator)
-
-	return &Money{
-		&amount{Amount},
-		newCurrency(code),
+func New(amount interface{}, code string) Money {
+	return Money{
+		Amount:   toAmount(amount),
+		currency: newCurrency(code),
 	}
 }
 
 // SameCurrency check if given Money is equals by currency
-func (m *Money) SameCurrency(om *Money) bool {
+func (m Money) SameCurrency(om Money) bool {
 	return m.currency.equals(om.currency)
 }
 
-func (m *Money) assertSameCurrency(om *Money) error {
+func (m Money) assertSameCurrency(om Money) error {
 	if !m.SameCurrency(om) {
 		return errors.New("Currencies don't match")
 	}
@@ -41,11 +60,11 @@ func (m *Money) assertSameCurrency(om *Money) error {
 	return nil
 }
 
-func (m *Money) compare(om *Money) int {
+func (m Money) compare(om Money) int {
 	switch {
-	case m.amount.val > om.amount.val:
+	case m.Amount.value > om.Amount.value:
 		return 1
-	case m.amount.val < om.amount.val:
+	case m.Amount.value < om.Amount.value:
 		return -1
 	}
 
@@ -53,7 +72,7 @@ func (m *Money) compare(om *Money) int {
 }
 
 // Equals checks equality between two Money types
-func (m *Money) Equals(om *Money) (bool, error) {
+func (m Money) Equals(om Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
 	}
@@ -62,7 +81,7 @@ func (m *Money) Equals(om *Money) (bool, error) {
 }
 
 // GreaterThan checks whether the value of Money is greater than the other
-func (m *Money) GreaterThan(om *Money) (bool, error) {
+func (m Money) GreaterThan(om Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
 	}
@@ -71,7 +90,7 @@ func (m *Money) GreaterThan(om *Money) (bool, error) {
 }
 
 // GreaterThanOrEqual checks whether the value of Money is greater or equal than the other
-func (m *Money) GreaterThanOrEqual(om *Money) (bool, error) {
+func (m Money) GreaterThanOrEqual(om Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
 	}
@@ -80,7 +99,7 @@ func (m *Money) GreaterThanOrEqual(om *Money) (bool, error) {
 }
 
 // LessThan checks whether the value of Money is less than the other
-func (m *Money) LessThan(om *Money) (bool, error) {
+func (m Money) LessThan(om Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
 	}
@@ -89,7 +108,7 @@ func (m *Money) LessThan(om *Money) (bool, error) {
 }
 
 // LessThanOrEqual checks whether the value of Money is less or equal than the other
-func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
+func (m Money) LessThanOrEqual(om Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
 	}
@@ -98,77 +117,86 @@ func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 }
 
 // IsZero returns boolean of whether the value of Money is equals to zero
-func (m *Money) IsZero() bool {
-	return m.amount.val == 0
+func (m Money) IsZero() bool {
+	return m.Amount.value == 0
 }
 
 // IsPositive returns boolean of whether the value of Money is positive
-func (m *Money) IsPositive() bool {
-	return m.amount.val > 0
+func (m Money) IsPositive() bool {
+	return m.Amount.value > 0
 }
 
 // IsNegative returns boolean of whether the value of Money is negative
-func (m *Money) IsNegative() bool {
-	return m.amount.val < 0
+func (m Money) IsNegative() bool {
+	return m.Amount.value < 0
 }
 
 // Absolute returns new Money struct from given Money using absolute monetary value
-func (m *Money) Absolute() *Money {
-	return &Money{calc.absolute(m.amount), m.currency}
+func (m Money) Absolute() Money {
+	return Money{Amount: m.Amount.absolute(), currency: m.currency}
 }
 
 // Negative returns new Money struct from given Money using negative monetary value
-func (m *Money) Negative() *Money {
-	return &Money{calc.negative(m.amount), m.currency}
+func (m Money) Negative() Money {
+	return Money{Amount: m.Amount.negative(), currency: m.currency}
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money
-func (m *Money) Add(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.add(m.amount, om.amount), m.currency}
+//
+// If the currencies don't match, the original Money object is returned
+func (m Money) Add(om Money) Money {
+	if err := m.assertSameCurrency(om); err != nil {
+		return m
+	}
+	return Money{Amount: m.Amount.add(om.Amount), currency: m.currency}
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money
-func (m *Money) Subtract(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.subtract(m.amount, om.amount), m.currency}
+//
+// If the currencies don't match, the original Money object is returned
+func (m Money) Subtract(om Money) Money {
+	if err := m.assertSameCurrency(om); err != nil {
+		return m
+	}
+	return Money{Amount: m.Amount.subtract(om.Amount), currency: m.currency}
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier
-func (m *Money) Multiply(mul int) *Money {
-	return &Money{calc.multiply(m.amount, mul), m.currency}
+func (m Money) Multiply(mul interface{}) Money {
+	return Money{Amount: m.Amount.multiply(toAmount(mul)), currency: m.currency}
 }
 
 // Divide returns new Money struct with value representing Self division value by given divider
-func (m *Money) Divide(div int) *Money {
-	return &Money{calc.divide(m.amount, div), m.currency}
+func (m Money) Divide(div interface{}) Money {
+	return Money{Amount: m.Amount.divide(toAmount(div)), currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero
-func (m *Money) Round() *Money {
-	return &Money{calc.round(m.amount), m.currency}
+func (m Money) Round() Money {
+	return Money{Amount: m.Amount.round(), currency: m.currency}
 }
 
 // Split returns slice of Money structs with split Self value in given number.
 // After division leftover pennies will be distributed round-robin amongst the parties.
 // This means that parties listed first will likely receive more pennies than ones that are listed later
-func (m *Money) Split(n int) ([]*Money, error) {
+func (m Money) Split(n int) ([]Money, error) {
 	if n <= 0 {
 		return nil, errors.New("Split must be higher than zero")
 	}
 
-	a := calc.divide(m.amount, n)
-	ms := make([]*Money, n)
+	num := toAmount(n)
+	a := m.Amount.divide(num)
+	ms := make([]Money, n)
 
 	for i := 0; i < n; i++ {
-		ms[i] = &Money{a, m.currency}
+		ms[i] = Money{a, m.currency}
 	}
 
-	l := calc.modulus(m.amount, n).val
+	l := m.Amount.modulus(num).value
 
 	// Add leftovers to the first parties
 	for p := 0; l != 0; p++ {
-		ms[p].amount = calc.add(ms[p].amount, &amount{1})
+		ms[p].Amount = ms[p].Amount.add(Amount{value: 1})
 		l--
 	}
 
@@ -178,7 +206,7 @@ func (m *Money) Split(n int) ([]*Money, error) {
 // Allocate returns slice of Money structs with split Self value in given ratios.
 // It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
-func (m *Money) Allocate(rs []int) ([]*Money, error) {
+func (m Money) Allocate(rs []int) ([]Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("No ratios specified")
 	}
@@ -189,27 +217,27 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 		sum += r
 	}
 
-	var total int
-	var ms []*Money
+	var total int64
+	var ms []Money
 	for _, r := range rs {
-		party := &Money{
-			calc.allocate(m.amount, r, sum),
+		party := Money{
+			m.Amount.allocate(toAmount(r), toAmount(sum)),
 			m.currency,
 		}
 
 		ms = append(ms, party)
-		total += party.amount.val
+		total += party.Amount.value
 	}
 
 	// Calculate leftover value and divide to first parties
-	lo := m.amount.val - total
-	sub := 1
+	lo := m.Amount.value - total
+	sub := int64(1)
 	if lo < 0 {
 		sub = -1
 	}
 
 	for p := 0; lo != 0; p++ {
-		ms[p].amount = calc.add(ms[p].amount, &amount{sub})
+		ms[p].Amount = ms[p].Amount.add(Amount{value: sub})
 		lo -= sub
 	}
 
@@ -217,7 +245,7 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 }
 
 // Display lets represent Money struct as string in given Currency value
-func (m *Money) Display() string {
+func (m Money) Display() string {
 	c := m.currency.get()
-	return c.Formatter().Format(m.amount.val)
+	return c.Formatter().Format(m.Amount.value)
 }
