@@ -133,7 +133,7 @@ Subtraction can be performed using `Subtract()`.
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
  
-result, err := pound.Subtract(twoPounds).Display() // -£3.00, nil
+result, err := pound.Subtract(twoPounds).Display() // -£1.00, nil
 ```
 
 #### Multiplication 
@@ -143,7 +143,7 @@ Multiplication can be performed using `Multiply()`.
 ```go
 pound := money.New(100, "GBP")
  
-result, err := pound.Multiply(2).Display() // £4.00, nil
+result, err := pound.Multiply(2).Display() // £2.00, nil
 ```
 
 #### Division 
@@ -153,7 +153,7 @@ Division can be performed using `Divide()`.
 ```go
 pound := money.New(100, "GBP")
  
-result, err := pound.Divide(2).Display() // £4.00, nil
+result, err := pound.Divide(2).Display() // £0.50, nil
 ```
 
 There is possibilities to lose pennies by using division operation e.g:
