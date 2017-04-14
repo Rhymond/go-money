@@ -1,4 +1,4 @@
-package money
+package currency
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestCurrency_Get(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		c := newCurrency(tc.code).get()
+		c := NewCurrency(tc.code).Get()
 
 		if c.Code != tc.expected {
 			t.Errorf("Expected %s got %s", tc.expected, c.Code)
@@ -33,10 +33,10 @@ func TestCurrency_Equals(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		c := newCurrency(tc.code).get()
-		oc := newCurrency(tc.other).get()
+		c := NewCurrency(tc.code).Get()
+		oc := NewCurrency(tc.other).Get()
 
-		if !c.equals(oc) {
+		if !c.Equals(oc) {
 			t.Errorf("Expected that %v is not equal %v", c, oc)
 		}
 	}
@@ -52,7 +52,7 @@ func TestAddCurrency(t *testing.T) {
 
 	for _, tc := range tcs {
 		AddCurrency(tc.code, "", tc.template, "", "", 0)
-		c := newCurrency(tc.code).get()
+		c := NewCurrency(tc.code).Get()
 
 		if c.Template != tc.template {
 			t.Errorf("Expected currency template %v got %v", tc.template, c.Template)
