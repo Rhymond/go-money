@@ -449,11 +449,11 @@ func TestMoney_Split(t *testing.T) {
 	tcs := []struct {
 		amount   int
 		split    int
-		expected []int
+		expected []int64
 	}{
-		{100, 3, []int{34, 33, 33}},
-		{100, 4, []int{25, 25, 25, 25}},
-		{5, 3, []int{2, 2, 1}},
+		{100, 3, []int64{34, 33, 33}},
+		{100, 4, []int64{25, 25, 25, 25}},
+		{5, 3, []int64{2, 2, 1}},
 	}
 
 	for _, tc := range tcs {
@@ -478,12 +478,12 @@ func TestMoney_Allocate(t *testing.T) {
 	tcs := []struct {
 		amount   int
 		ratios   []int
-		expected []int
+		expected []int64
 	}{
-		{100, []int{50, 50}, []int{50, 50}},
-		{100, []int{30, 30, 30}, []int{34, 33, 33}},
-		{200, []int{25, 25, 50}, []int{50, 50, 100}},
-		{5, []int{50, 25, 25}, []int{3, 1, 1}},
+		{100, []int{50, 50}, []int64{50, 50}},
+		{100, []int{30, 30, 30}, []int64{34, 33, 33}},
+		{200, []int{25, 25, 50}, []int64{50, 50, 100}},
+		{5, []int{50, 25, 25}, []int64{3, 1, 1}},
 	}
 
 	for _, tc := range tcs {
