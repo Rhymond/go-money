@@ -26,9 +26,9 @@ func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *F
 }
 
 // Format returns string of formatted integer using given currency template
-func (f *Formatter) Format(amount int) string {
+func (f *Formatter) Format(amount int64) string {
 	// Work with absolute amount value
-	sa := strconv.Itoa(f.abs(amount))
+	sa := strconv.FormatInt(f.abs(amount), 10)
 
 	if len(sa) <= f.Fraction {
 		sa = strings.Repeat("0", f.Fraction-len(sa)+1) + sa
@@ -53,7 +53,7 @@ func (f *Formatter) Format(amount int) string {
 }
 
 // abs return absolute value of given integer
-func (f Formatter) abs(amount int) int {
+func (f Formatter) abs(amount int64) int64 {
 	if amount < 0 {
 		return -amount
 	}
