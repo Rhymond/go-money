@@ -212,7 +212,7 @@ It lets split money by given ratios without losing pennies and as Split operatio
 
 ```go
 pound := money.New(100, "GBP")
-parties, err := pound.Split([]int{33, 33, 33})
+parties, err := pound.Allocate([]int{33, 33, 33})
 
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
