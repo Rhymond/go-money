@@ -94,6 +94,7 @@ var currencies = map[string]*Currency{
 	"MNT": {Decimal: ".", Thousand: ",", Code: "MNT", Fraction: 2, Grapheme: "\u20ae", Template: "$1"},
 	"MUR": {Decimal: ".", Thousand: ",", Code: "MUR", Fraction: 2, Grapheme: "\u20a8", Template: "$1"},
 	"MXN": {Decimal: ".", Thousand: ",", Code: "MXN", Fraction: 2, Grapheme: "$", Template: "$1"},
+	"MWK": {Decimal: ".", Thousand: ",", Code: "MWK", Fraction: 2, Grapheme: "MK", Template: "$1"},
 	"MYR": {Decimal: ".", Thousand: ",", Code: "MYR", Fraction: 2, Grapheme: "RM", Template: "$1"},
 	"MZN": {Decimal: ".", Thousand: ",", Code: "MZN", Fraction: 2, Grapheme: "MT", Template: "$1"},
 	"NAD": {Decimal: ".", Thousand: ",", Code: "NAD", Fraction: 2, Grapheme: "$", Template: "$1"},
@@ -141,6 +142,7 @@ var currencies = map[string]*Currency{
 	"XCD": {Decimal: ".", Thousand: ",", Code: "XCD", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"YER": {Decimal: ".", Thousand: ",", Code: "YER", Fraction: 2, Grapheme: "\ufdfc", Template: "1 $"},
 	"ZAR": {Decimal: ".", Thousand: ",", Code: "ZAR", Fraction: 2, Grapheme: "R", Template: "$1"},
+	"ZMW": {Decimal: ".", Thousand: ",", Code: "ZMW", Fraction: 2, Grapheme: "ZK", Template: "$1"},
 	"ZWD": {Decimal: ".", Thousand: ",", Code: "ZWD", Fraction: 2, Grapheme: "Z$", Template: "$1"},
 }
 
