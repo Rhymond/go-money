@@ -2,50 +2,50 @@ package money
 
 type calculator struct{}
 
-func (c *calculator) add(a, b *amount) *amount {
-	return &amount{a.val + b.val}
+func (c *calculator) add(a, b *Amount) *Amount {
+	return &Amount{a.val + b.val}
 }
 
-func (c *calculator) subtract(a, b *amount) *amount {
-	return &amount{a.val - b.val}
+func (c *calculator) subtract(a, b *Amount) *Amount {
+	return &Amount{a.val - b.val}
 }
 
-func (c *calculator) multiply(a *amount, m int) *amount {
-	return &amount{a.val * m}
+func (c *calculator) multiply(a *Amount, m int64) *Amount {
+	return &Amount{a.val * m}
 }
 
-func (c *calculator) divide(a *amount, d int) *amount {
-	return &amount{a.val / d}
+func (c *calculator) divide(a *Amount, d int64) *Amount {
+	return &Amount{a.val / d}
 }
 
-func (c *calculator) modulus(a *amount, d int) *amount {
-	return &amount{a.val % d}
+func (c *calculator) modulus(a *Amount, d int64) *Amount {
+	return &Amount{a.val % d}
 }
 
-func (c *calculator) allocate(a *amount, r, s int) *amount {
-	return &amount{a.val * r / s}
+func (c *calculator) allocate(a *Amount, r, s int) *Amount {
+	return &Amount{a.val * int64(r) / int64(s)}
 }
 
-func (c *calculator) absolute(a *amount) *amount {
+func (c *calculator) absolute(a *Amount) *Amount {
 	if a.val < 0 {
-		return &amount{-a.val}
+		return &Amount{-a.val}
 	}
 
-	return &amount{a.val}
+	return &Amount{a.val}
 }
 
-func (c *calculator) negative(a *amount) *amount {
+func (c *calculator) negative(a *Amount) *Amount {
 	if a.val > 0 {
-		return &amount{-a.val}
+		return &Amount{-a.val}
 	}
 
-	return &amount{a.val}
+	return &Amount{a.val}
 }
 
-func (c *calculator) round(a *amount) *amount {
+func (c *calculator) round(a *Amount) *Amount {
 
 	if a.val == 0 {
-		return &amount{0}
+		return &Amount{0}
 	}
 
 	absam := calc.absolute(a)
@@ -63,5 +63,5 @@ func (c *calculator) round(a *amount) *amount {
 		a.val = absam.val
 	}
 
-	return &amount{a.val}
+	return &Amount{a.val}
 }
