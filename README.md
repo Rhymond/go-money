@@ -18,22 +18,22 @@ package main
 import "github.com/rhymond/go-money"
 
 func main() {
-	pound := money.New(100, "GBP")
-	twoPounds, err := pound.Add(pound)
-	
+    pound := money.New(100, "GBP")
+    twoPounds, err := pound.Add(pound)
+    
     if err != nil {
         log.Fatal(err)
     }
-	
-	parties, err := twoPounds.Split(3)
-		
+    
+    parties, err := twoPounds.Split(3)
+        
     if err != nil {
         log.Fatal(err)
     }
-	
-	parties[0].Display() // £0.67
-	parties[1].Display() // £0.67
-	parties[2].Display() // £0.66
+    
+    parties[0].Display() // £0.67
+    parties[1].Display() // £0.67
+    parties[2].Display() // £0.66
 }
 
 ```
