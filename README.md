@@ -19,9 +19,18 @@ import "github.com/rhymond/go-money"
 
 func main() {
 	pound := money.New(100, "GBP")
-	twoPounds := pound.Add(pound)
-
-	parties, _ := twoPounds.Split(3)
+	twoPounds, err := pound.Add(pound)
+	
+    if err != nil {
+        log.Fatal(err)
+    }
+	
+	parties, err := twoPounds.Split(3)
+		
+    if err != nil {
+        log.Fatal(err)
+    }
+	
 	parties[0].Display() // £0.67
 	parties[1].Display() // £0.67
 	parties[2].Display() // £0.66
@@ -122,7 +131,7 @@ Additions can be performed using `Add()`.
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
  
-result, err := pound.Add(twoPounds).Display() // £3.00, nil
+result, err := pound.Add(twoPounds) // £3.00, nil
 ```
 
 #### Subtraction
@@ -133,7 +142,7 @@ Subtraction can be performed using `Subtract()`.
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
  
-result, err := pound.Subtract(twoPounds).Display() // -£1.00, nil
+result, err := pound.Subtract(twoPounds) // -£1.00, nil
 ```
 
 #### Multiplication 
@@ -143,7 +152,7 @@ Multiplication can be performed using `Multiply()`.
 ```go
 pound := money.New(100, "GBP")
  
-result, err := pound.Multiply(2).Display() // £2.00, nil
+result := pound.Multiply(2) // £2.00
 ```
 
 #### Division 
@@ -153,14 +162,14 @@ Division can be performed using `Divide()`.
 ```go
 pound := money.New(100, "GBP")
  
-result, err := pound.Divide(2).Display() // £0.50, nil
+result := pound.Divide(2) // £0.50
 ```
 
 There is possibilities to lose pennies by using division operation e.g:
 ```go
-money.New(100, "GBP").Divide(3).Display() // £0.33
+money.New(100, "GBP").Divide(3) // £0.33
 ```
-In order to split amount without losing pennies use `Split()` operation.
+In order to split amount without losing use `Split()` operation.
 
 
 #### Absolute
@@ -170,7 +179,7 @@ Return `absolute` value of Money structure
 ```go
 pound := money.New(-100, "GBP")
  
-result, err := pound.Absolute().Display() // £1.00
+result := pound.Absolute() // £1.00
 ```
 
 #### Negative
@@ -180,7 +189,7 @@ Return `negative` value of Money structure
 ```go
 pound := money.New(100, "GBP")
  
-result, err := pound.Negative().Display() // -£1.00
+result := pound.Negative() // -£1.00
 ```
 
 Allocation
@@ -199,6 +208,10 @@ After division leftover pennies will be distributed round-robin amongst the part
 pound := money.New(100, "GBP")
 parties, err := pound.Split(3)
 
+if err != nil {
+    log.Fatal(err)
+}
+
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
 parties[2].Display() // £0.33
@@ -213,6 +226,10 @@ It lets split money by given ratios without losing pennies and as Split operatio
 ```go
 pound := money.New(100, "GBP")
 parties, err := pound.Allocate([]int{33, 33, 33})
+
+if err != nil {
+    log.Fatal(err)
+}
 
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33

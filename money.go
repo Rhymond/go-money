@@ -18,45 +18,14 @@ type Money struct {
 
 var calc *calculator
 
-func newAmount(amount interface{}) (*Amount, error) {
-	switch amt := amount.(type) {
-	case uint:
-		return &Amount{val: int64(amt)}, nil
-	case uint8:
-		return &Amount{val: int64(amt)}, nil
-	case uint16:
-		return &Amount{val: int64(amt)}, nil
-	case uint32:
-		return &Amount{val: int64(amt)}, nil
-	case uint64:
-		return &Amount{val: int64(amt)}, nil
-	case int:
-		return &Amount{val: int64(amt)}, nil
-	case int8:
-		return &Amount{val: int64(amt)}, nil
-	case int16:
-		return &Amount{val: int64(amt)}, nil
-	case int32:
-		return &Amount{val: int64(amt)}, nil
-	case int64:
-		return &Amount{val: amt}, nil
-	}
-	return nil, errors.New("unsupported Amount type")
-}
-
 // New creates and returns new instance of Money
-func New(amount interface{}, code string) (*Money, error) {
+func New(amount int64, code string) *Money {
 	calc = new(calculator)
 
-	amt, err := newAmount(amount)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Money{
-		amount:   amt,
+		amount:   &Amount{val: amount},
 		currency: newCurrency(code),
-	}, nil
+	}
 }
 
 // SameCurrency check if given Money is equals by currency
@@ -154,15 +123,21 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money
-func (m *Money) Add(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.add(m.amount, om.amount), m.currency}
+func (m *Money) Add(om *Money) (*Money, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return nil, err
+	}
+
+	return &Money{calc.add(m.amount, om.amount), m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money
-func (m *Money) Subtract(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.subtract(m.amount, om.amount), m.currency}
+func (m *Money) Subtract(om *Money) (*Money, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return nil, err
+	}
+
+	return &Money{calc.subtract(m.amount, om.amount), m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier
@@ -236,7 +211,7 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 	lo := m.amount.val - total
 	sub := int64(1)
 	if lo < 0 {
-		sub = -1
+		sub = -sub
 	}
 
 	for p := 0; lo != 0; p++ {
