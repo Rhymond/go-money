@@ -4,27 +4,27 @@ import (
 	"errors"
 )
 
-type amount struct {
-	val int
+// Amount is a datastructure that stores the amount being used for calculations
+type Amount struct {
+	val int64
 }
 
 // Money represents monetary value information, stores
 // currency and amount value
 type Money struct {
-	amount   *amount
+	amount   *Amount
 	currency *Currency
 }
 
 var calc *calculator
 
 // New creates and returns new instance of Money
-func New(Amount int, code string) *Money {
-
+func New(amount int64, code string) *Money {
 	calc = new(calculator)
 
 	return &Money{
-		&amount{Amount},
-		newCurrency(code),
+		amount:   &Amount{val: amount},
+		currency: newCurrency(code),
 	}
 }
 
@@ -123,24 +123,30 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money
-func (m *Money) Add(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.add(m.amount, om.amount), m.currency}
+func (m *Money) Add(om *Money) (*Money, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return nil, err
+	}
+
+	return &Money{calc.add(m.amount, om.amount), m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money
-func (m *Money) Subtract(om *Money) *Money {
-	m.assertSameCurrency(om)
-	return &Money{calc.subtract(m.amount, om.amount), m.currency}
+func (m *Money) Subtract(om *Money) (*Money, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return nil, err
+	}
+
+	return &Money{calc.subtract(m.amount, om.amount), m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier
-func (m *Money) Multiply(mul int) *Money {
+func (m *Money) Multiply(mul int64) *Money {
 	return &Money{calc.multiply(m.amount, mul), m.currency}
 }
 
 // Divide returns new Money struct with value representing Self division value by given divider
-func (m *Money) Divide(div int) *Money {
+func (m *Money) Divide(div int64) *Money {
 	return &Money{calc.divide(m.amount, div), m.currency}
 }
 
@@ -157,18 +163,18 @@ func (m *Money) Split(n int) ([]*Money, error) {
 		return nil, errors.New("Split must be higher than zero")
 	}
 
-	a := calc.divide(m.amount, n)
+	a := calc.divide(m.amount, int64(n))
 	ms := make([]*Money, n)
 
 	for i := 0; i < n; i++ {
 		ms[i] = &Money{a, m.currency}
 	}
 
-	l := calc.modulus(m.amount, n).val
+	l := calc.modulus(m.amount, int64(n)).val
 
 	// Add leftovers to the first parties
 	for p := 0; l != 0; p++ {
-		ms[p].amount = calc.add(ms[p].amount, &amount{1})
+		ms[p].amount = calc.add(ms[p].amount, &Amount{1})
 		l--
 	}
 
@@ -189,7 +195,7 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 		sum += r
 	}
 
-	var total int
+	var total int64
 	var ms []*Money
 	for _, r := range rs {
 		party := &Money{
@@ -203,13 +209,13 @@ func (m *Money) Allocate(rs []int) ([]*Money, error) {
 
 	// Calculate leftover value and divide to first parties
 	lo := m.amount.val - total
-	sub := 1
+	sub := int64(1)
 	if lo < 0 {
-		sub = -1
+		sub = -sub
 	}
 
 	for p := 0; lo != 0; p++ {
-		ms[p].amount = calc.add(ms[p].amount, &amount{sub})
+		ms[p].amount = calc.add(ms[p].amount, &Amount{sub})
 		lo -= sub
 	}
 
