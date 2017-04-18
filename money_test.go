@@ -518,17 +518,17 @@ func TestMoney_Comparison(t *testing.T) {
 	twoPounds := New(200, "GBP")
 	twoEuros := New(200, "EUR")
 
-	if r, err := pound.GreaterThan(twoPounds); err != nil || r != false {
+	if r, err := pound.GreaterThan(twoPounds); err != nil || !r {
 		t.Errorf("Expected %d Greater Than %d == %t got %t", pound.amount.val,
 			twoPounds.amount.val, false, r)
 	}
 
-	if r, err := pound.LessThan(twoPounds); err != nil || r != true {
+	if r, err := pound.LessThan(twoPounds); err != nil || r {
 		t.Errorf("Expected %d Less Than %d == %t got %t", pound.amount.val,
 			twoPounds.amount.val, true, r)
 	}
 
-	if r, err := pound.LessThan(twoEuros); err == nil || r != false {
+	if r, err := pound.LessThan(twoEuros); err == nil || !r {
 		t.Error("Expected err")
 	}
 }
