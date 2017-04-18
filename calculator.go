@@ -48,7 +48,7 @@ func (c *calculator) round(a *Amount) *Amount {
 		return &Amount{0}
 	}
 
-	absam := calc.absolute(a)
+	absam := c.absolute(a)
 	m := absam.val % 100
 
 	if m > 50 {
