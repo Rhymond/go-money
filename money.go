@@ -185,7 +185,7 @@ func (m *Money) Split(n int) ([]*Money, error) {
 // Allocate returns slice of Money structs with split Self value in given ratios.
 // It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
-func (m *Money) Allocate(rs []int) ([]*Money, error) {
+func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("No ratios specified")
 	}

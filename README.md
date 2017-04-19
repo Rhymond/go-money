@@ -2,7 +2,7 @@
 
 ![alt text](http://i.imgur.com/c3XmCC6.jpg "Money")
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/rhymond/go-money)](https://goreportcard.com/report/github.com/rhymond/go-money)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rhseparatedmoney)](https://goreportcard.com/report/github.com/rhymond/go-money)
 [![Coverage Status](https://coveralls.io/repos/github/Rhymond/go-money/badge.svg?branch=master)](https://coveralls.io/github/Rhymond/go-money?branch=master)
 [![Build Status](https://travis-ci.org/Rhymond/go-money.svg?branch=master)](https://travis-ci.org/Rhymond/go-money)
 [![GoDoc](https://godoc.org/github.com/Rhymond/go-money?status.svg)](https://godoc.org/github.com/Rhymond/go-money)
@@ -225,7 +225,9 @@ It lets split money by given ratios without losing pennies and as Split operatio
 
 ```go
 pound := money.New(100, "GBP")
-parties, err := pound.Allocate([]int{33, 33, 33})
+// Allocate is variadic function which can receive ratios as
+// slice (int[]{33, 33, 33}...) or separated by a comma integers
+parties, err := pound.Allocate(33, 33, 33)
 
 if err != nil {
     log.Fatal(err)
