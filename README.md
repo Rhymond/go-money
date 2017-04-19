@@ -225,7 +225,9 @@ It lets split money by given ratios without losing pennies and as Split operatio
 
 ```go
 pound := money.New(100, "GBP")
-parties, err := pound.Allocate([]int{33, 33, 33})
+// Allocate is variadic function which can receive ratios as
+// slice (int[]{33, 33, 33}...) or separated by a comma integers
+parties, err := pound.Allocate(33, 33, 33)
 
 if err != nil {
     log.Fatal(err)

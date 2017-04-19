@@ -415,7 +415,7 @@ func TestMoney_Allocate(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount, "EUR")
 		var rs []int64
-		split, _ := m.Allocate(tc.ratios)
+		split, _ := m.Allocate(tc.ratios...)
 
 		for _, party := range split {
 			rs = append(rs, party.amount.val)
@@ -494,7 +494,7 @@ func TestMoney_Display(t *testing.T) {
 
 func TestMoney_Allocate2(t *testing.T) {
 	pound := New(100, "GBP")
-	parties, err := pound.Allocate([]int{33, 33, 33})
+	parties, err := pound.Allocate(33, 33, 33)
 
 	if err != nil {
 		t.Error(err)
