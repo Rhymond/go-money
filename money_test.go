@@ -584,6 +584,10 @@ func TestMoney_Comparison(t *testing.T) {
 	if r, err := pound.LessThanOrEqual(twoEuros); err == nil || r {
 		t.Error("Expected err")
 	}
+
+	if r, err := pound.GreaterThanOrEqual(twoEuros); err == nil || r {
+		t.Error("Expected err")
+	}
 }
 
 func TestMoney_Amount(t *testing.T) {
