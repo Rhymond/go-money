@@ -22,6 +22,15 @@ func TestCurrency_Get(t *testing.T) {
 	}
 }
 
+func TestCurrency_Get1(t *testing.T) {
+	code := "RANDOM"
+	c := newCurrency(code).get()
+
+	if c.Grapheme != code {
+		t.Errorf("Expected %s got %s", c.Grapheme, code)
+	}
+}
+
 func TestCurrency_Equals(t *testing.T) {
 	tcs := []struct {
 		code  string
@@ -42,7 +51,7 @@ func TestCurrency_Equals(t *testing.T) {
 	}
 }
 
-func TestAddCurrency(t *testing.T) {
+func TestCurrency_AddCurrency(t *testing.T) {
 	tcs := []struct {
 		code     string
 		template string

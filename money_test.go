@@ -272,10 +272,22 @@ func TestMoney_Add(t *testing.T) {
 			t.Error(err)
 		}
 
-		if r.amount.val != tc.expected {
+		if r.Amount() != tc.expected {
 			t.Errorf("Expected %d + %d = %d got %d", tc.amount1, tc.amount2,
 				tc.expected, r.amount.val)
 		}
+	}
+
+
+}
+
+func TestMoney_Add2(t *testing.T) {
+	m := New(100, "EUR")
+	dm := New(100, "GBP")
+	r, err := m.Add(dm)
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
 	}
 }
 
@@ -303,6 +315,16 @@ func TestMoney_Subtract(t *testing.T) {
 			t.Errorf("Expected %d - %d = %d got %d", tc.amount1, tc.amount2,
 				tc.expected, r.amount.val)
 		}
+	}
+}
+
+func TestMoney_Subtract2(t *testing.T) {
+	m := New(100, "EUR")
+	dm := New(100, "GBP")
+	r, err := m.Subtract(dm)
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
 	}
 }
 
@@ -400,6 +422,15 @@ func TestMoney_Split(t *testing.T) {
 	}
 }
 
+func TestMoney_Split2(t *testing.T) {
+	m := New(100, "EUR")
+	r, err := m.Split(-10)
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
+	}
+}
+
 func TestMoney_Allocate(t *testing.T) {
 	tcs := []struct {
 		amount   int64
@@ -427,6 +458,16 @@ func TestMoney_Allocate(t *testing.T) {
 		}
 	}
 }
+
+func TestMoney_Allocate2(t *testing.T) {
+	m := New(100, "EUR")
+	r, err := m.Allocate()
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
+	}
+}
+
 
 func TestMoney_Chain(t *testing.T) {
 	m := New(10, "EUR")
@@ -492,7 +533,7 @@ func TestMoney_Display(t *testing.T) {
 	}
 }
 
-func TestMoney_Allocate2(t *testing.T) {
+func TestMoney_Allocate3(t *testing.T) {
 	pound := New(100, "GBP")
 	parties, err := pound.Allocate(33, 33, 33)
 
@@ -530,5 +571,29 @@ func TestMoney_Comparison(t *testing.T) {
 
 	if r, err := pound.LessThan(twoEuros); err == nil || r {
 		t.Error("Expected err")
+	}
+
+	if r, err := pound.GreaterThan(twoEuros); err == nil || r {
+		t.Error("Expected err")
+	}
+
+	if r, err := pound.Equals(twoEuros); err == nil || r {
+		t.Error("Expected err")
+	}
+
+	if r, err := pound.LessThanOrEqual(twoEuros); err == nil || r {
+		t.Error("Expected err")
+	}
+
+	if r, err := pound.GreaterThanOrEqual(twoEuros); err == nil || r {
+		t.Error("Expected err")
+	}
+}
+
+func TestMoney_Amount(t *testing.T) {
+	pound := New(100, "GBP")
+
+	if pound.Amount() != 100 {
+		t.Errorf("Expected %d got %d", 100, pound.Amount())
 	}
 }
