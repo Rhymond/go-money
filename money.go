@@ -24,6 +24,11 @@ func New(amount int64, code string) *Money {
 	}
 }
 
+// Currency returns the currency used by Money
+func (m *Money) Currency() *Currency {
+	return m.currency
+}
+
 // Amount returns a copy of the internal monetary value as an int64
 func (m *Money) Amount() int64 {
 	return m.amount.val
