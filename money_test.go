@@ -278,7 +278,6 @@ func TestMoney_Add(t *testing.T) {
 		}
 	}
 
-
 }
 
 func TestMoney_Add2(t *testing.T) {
@@ -468,7 +467,6 @@ func TestMoney_Allocate2(t *testing.T) {
 	}
 }
 
-
 func TestMoney_Chain(t *testing.T) {
 	m := New(10, "EUR")
 	om := New(5, "EUR")
@@ -587,6 +585,14 @@ func TestMoney_Comparison(t *testing.T) {
 
 	if r, err := pound.GreaterThanOrEqual(twoEuros); err == nil || r {
 		t.Error("Expected err")
+	}
+}
+
+func TestMoney_Currency(t *testing.T) {
+	pound := New(100, "GBP")
+
+	if pound.Currency().Code != "GBP" {
+		t.Errorf("Expected %s got %s", "GBP", pound.Currency().Code)
 	}
 }
 
