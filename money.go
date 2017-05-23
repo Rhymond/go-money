@@ -18,9 +18,13 @@ type Money struct {
 
 // New creates and returns new instance of Money
 func New(amount int64, code string) *Money {
+	c := currencies[code]
+	if c == nil {
+		c = newCurrency(code)
+	}
 	return &Money{
 		amount:   &Amount{val: amount},
-		currency: newCurrency(code),
+		currency: newCurrency(code).get(),
 	}
 }
 

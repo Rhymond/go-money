@@ -23,6 +23,14 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestCurrency(t *testing.T) {
+	m := New(1, "EUR")
+	f := m.Currency().Fraction
+	if f != 2 {
+		t.Errorf("Expected %d got %d", 2, f)
+	}
+}
+
 func TestMoney_SameCurrency(t *testing.T) {
 	m := New(0, "EUR")
 	om := New(0, "USD")
