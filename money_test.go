@@ -24,10 +24,17 @@ func TestNew(t *testing.T) {
 }
 
 func TestCurrency(t *testing.T) {
-	m := New(1, "EUR")
+	code := "MOCK"
+	decimals := 5
+	AddCurrency(code, "M$", "1 $", ".", ",", decimals)
+	m := New(1, code)
+	c := m.Currency().Code
+	if c != code {
+		t.Errorf("Expected %d got %d", code, c)
+	}
 	f := m.Currency().Fraction
-	if f != 2 {
-		t.Errorf("Expected %d got %d", 2, f)
+	if f != decimals {
+		t.Errorf("Expected %d got %d", decimals, f)
 	}
 }
 
