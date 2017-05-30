@@ -20,7 +20,7 @@ type Money struct {
 func New(amount int64, code string) *Money {
 	return &Money{
 		amount:   &Amount{val: amount},
-		currency: newCurrency(code),
+		currency: newCurrency(code).get(),
 	}
 }
 
