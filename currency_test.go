@@ -1,6 +1,7 @@
 package money
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -66,5 +67,20 @@ func TestCurrency_AddCurrency(t *testing.T) {
 		if c.Template != tc.template {
 			t.Errorf("Expected currency template %v got %v", tc.template, c.Template)
 		}
+	}
+}
+
+func TestCurrency_GetCurrency(t *testing.T) {
+	currency := GetCurrency("USD")
+	desired := Currency{Decimal: ".", Thousand: ",", Code: "USD", Fraction: 2, Grapheme: "$", Template: "$1"}
+	if !reflect.DeepEqual(currency, &desired) {
+		t.Errorf("Currencies do not match %+v got %+v", desired, currency)
+	}
+}
+
+func TestCurrency_GetNonExistingCurrency(t *testing.T) {
+	currency := GetCurrency("I*am*Not*a*Currency")
+	if currency != nil {
+		t.Errorf("Unexpected currency returned %+v", currency)
 	}
 }
