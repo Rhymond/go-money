@@ -164,6 +164,11 @@ func newCurrency(code string) *Currency {
 	return &Currency{Code: strings.ToUpper(code)}
 }
 
+// GetCurrency returns the currency given the code.
+func GetCurrency(code string) *Currency {
+	return currencies[code]
+}
+
 // Formatter returns currency formatter representing
 // used currency structure
 func (c *Currency) Formatter() *Formatter {
