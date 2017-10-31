@@ -40,7 +40,9 @@ func (f *Formatter) Format(amount int64) string {
 		}
 	}
 
-	sa = sa[:len(sa)-f.Fraction] + f.Decimal + sa[len(sa)-f.Fraction:]
+	if f.Fraction > 0 {
+		sa = sa[:len(sa)-f.Fraction] + f.Decimal + sa[len(sa)-f.Fraction:]
+	}
 	sa = strings.Replace(f.Template, "1", sa, 1)
 	sa = strings.Replace(sa, "$", f.Grapheme, 1)
 
