@@ -9,8 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **GoMoney** provides ability to work with [monetary value using a currency's smallest unit](https://martinfowler.com/eaaCatalog/money.html).
-Package allows you to use basic Money operations like rounding, splitting or allocating without losing a penny.
-You shouldn't use float for monetary values, since they always carry small rounding differences.
+This package provides basic and precise Money operations such as rounding, splitting and allocating.  Monetary values should not be stored as floats due to small rounding differences.
 
 ```go
 package main
@@ -39,28 +38,28 @@ func main() {
 ```
 Quick start
 -
-Get the package via
+Get the package:
 
 ``` bash
 $ go get github.com/rhymond/go-money
 ```
 
 ## Features
-* Provides a Money struct which stores information about an Money amount value and it's currency.
+* Provides a Money struct which stores information about an Money amount value and its currency.
 * Provides a ```Money.Amount``` struct which encapsulates all information about a monetary unit.
 * Represents monetary values as integers, in cents. This avoids floating point rounding errors.
 * Represents currency as ```Money.Currency``` instances providing a high level of flexibility.
 
 Usage
 -
-### Instantiation
-Initialise Money by using smallest unit value (e.g 100 represents 1 pound). Use ISO 4217 Currency Code to set money Currency
+### Initialization
+Initialize Money by using smallest unit value (e.g 100 represents 1 pound). Use ISO 4217 Currency Code to set money Currency
 ```go
 pound := money.New(100, "GBP")
 ```
 Comparison
 -
-**Go-money** lets you to use base compare operations like:
+**Go-money** provides base compare operations like:
 
 * Equals
 * GreaterThan
@@ -68,7 +67,7 @@ Comparison
 * LessThan
 * LessThanOrEqual
 
-In order to use them currencies must be equal
+Comparisons must be made between the same currency units.
 
 ```go
 pound := money.New(100, "GBP")
@@ -87,7 +86,7 @@ Asserts
 
 #### Zero value
 
-To assert if Money value is equal zero use `IsZero()`
+To assert if Money value is equal to zero use `IsZero()`
 
 ```go
 pound := money.New(100, "GBP")
@@ -96,7 +95,7 @@ result := pound.IsZero(pound) // false
 
 #### Positive value
 
-To assert if Money value is more than zero `IsPositive()`
+To assert if Money value is more than zero use `IsPositive()`
 
 ```go
 pound := money.New(100, "GBP")
@@ -105,7 +104,7 @@ pound.IsPositive(pound) // true
 
 #### Negative value
 
-To assert if Money value is less than zero `IsNegative()`
+To assert if Money value is less than zero use `IsNegative()`
 
 ```go
 pound := money.New(100, "GBP")
@@ -121,7 +120,7 @@ Operations
 * Absolute
 * Negative
 
-In Order to use operations between Money structures Currencies must be equal
+Comparisons must be made between the same currency units.
 
 #### Addition
 
@@ -200,9 +199,9 @@ Allocation
 
 #### Splitting
 
-In order to split Money for parties without losing any penny use `Split()`. 
+In order to split Money for parties without losing any pennies due to rounding differences, use `Split()`. 
 
-After division leftover pennies will be distributed round-robin amongst the parties. This means that parties listed first will likely receive more pennies than ones that are listed later
+After division leftover pennies will be distributed round-robin amongst the parties. This means that parties listed first will likely receive more pennies than ones that are listed later.
 
 ```go
 pound := money.New(100, "GBP")
@@ -221,7 +220,7 @@ parties[2].Display() // £0.33
 
 To perform allocation operation use `Allocate()`.
 
-It lets split money by given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle.
+It splits money using the given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle.
 
 ```go
 pound := money.New(100, "GBP")
@@ -241,7 +240,7 @@ parties[2].Display() // £0.33
 Format
 -
 
-To format and return Money as string use `Display()`. 
+To format and return Money as a string use `Display()`. 
 
 ```go
 money.New(123456789, "EUR").Display() // €1,234,567.89
@@ -250,7 +249,7 @@ money.New(123456789, "EUR").Display() // €1,234,567.89
 Contributing
 -
 Thank you for considering contributing! 
-Please use GitHub issues and Pull Requests for Contributing.
+Please use GitHub issues and Pull Requests for contributing.
 
 License
 -
