@@ -30,7 +30,7 @@ func TestCurrency(t *testing.T) {
 	m := New(1, code)
 	c := m.Currency().Code
 	if c != code {
-		t.Errorf("Expected %d got %d", code, c)
+		t.Errorf("Expected %s got %s", code, c)
 	}
 	f := m.Currency().Fraction
 	if f != decimals {
