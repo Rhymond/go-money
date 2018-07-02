@@ -91,6 +91,7 @@ var currencies = map[string]*Currency{
 	"LYD": {Decimal: ".", Thousand: ",", Code: "LYD", Fraction: 3, Grapheme: ".\u062f.\u0644", Template: "1 $"},
 	"MAD": {Decimal: ".", Thousand: ",", Code: "MAD", Fraction: 2, Grapheme: ".\u062f.\u0645", Template: "1 $"},
 	"MKD": {Decimal: ".", Thousand: ",", Code: "MKD", Fraction: 2, Grapheme: "\u0434\u0435\u043d", Template: "$1"},
+	"MMK": {Decimal: ".", Thousand: ",", Code: "MMK", Fraction: 2, Grapheme: "K", Template: "$1"},
 	"MNT": {Decimal: ".", Thousand: ",", Code: "MNT", Fraction: 2, Grapheme: "\u20ae", Template: "$1"},
 	"MUR": {Decimal: ".", Thousand: ",", Code: "MUR", Fraction: 2, Grapheme: "\u20a8", Template: "$1"},
 	"MXN": {Decimal: ".", Thousand: ",", Code: "MXN", Fraction: 2, Grapheme: "$", Template: "$1"},
