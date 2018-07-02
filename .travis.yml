@@ -3,12 +3,14 @@ language: go
 go:
   - 1.7
   - 1.8
-  - tip
+  - 1.9
+  - 1.10
+  - master
 
 script:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
   - go test -v -covermode=count -coverprofile=coverage.out
-  
+
 after_success:
   - goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
