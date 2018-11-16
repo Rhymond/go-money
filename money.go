@@ -1,7 +1,10 @@
 package money
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 // Amount is a datastructure that stores the amount being used for calculations
@@ -14,6 +17,21 @@ type Amount struct {
 type Money struct {
 	amount   *Amount
 	currency *Currency
+}
+
+func (m *Money) UnmarshalJSON(b []byte) error {
+	data := make(map[string]interface{})
+	json.Unmarshal(b, &data)
+
+	ref := New(int64(data["amount"].(float64)), data["currency"].(string))
+	m.amount = ref.amount
+	m.currency = ref.Currency()
+	return nil
+}
+
+func (m Money) MarshalJSON() ([]byte, error) {
+	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
+	return buff.Bytes(), nil
 }
 
 // New creates and returns new instance of Money
