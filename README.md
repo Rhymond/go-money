@@ -14,22 +14,22 @@ This package provides basic and precise Money operations such as rounding, split
 ```go
 package main
 
-import "github.com/rhymond/go-money"
+import "github.com/Rhymond/go-money"
 
 func main() {
     pound := money.New(100, "GBP")
     twoPounds, err := pound.Add(pound)
-    
+
     if err != nil {
         log.Fatal(err)
     }
-    
+
     parties, err := twoPounds.Split(3)
-        
+
     if err != nil {
         log.Fatal(err)
     }
-    
+
     parties[0].Display() // £0.67
     parties[1].Display() // £0.67
     parties[2].Display() // £0.66
@@ -41,7 +41,7 @@ Quick start
 Get the package:
 
 ``` bash
-$ go get github.com/rhymond/go-money
+$ go get github.com/Rhymond/go-money
 ```
 
 ## Features
@@ -129,7 +129,7 @@ Additions can be performed using `Add()`.
 ```go
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
- 
+
 result, err := pound.Add(twoPounds) // £3.00, nil
 ```
 
@@ -140,27 +140,27 @@ Subtraction can be performed using `Subtract()`.
 ```go
 pound := money.New(100, "GBP")
 twoPounds := money.New(200, "GBP")
- 
+
 result, err := pound.Subtract(twoPounds) // -£1.00, nil
 ```
 
-#### Multiplication 
+#### Multiplication
 
 Multiplication can be performed using `Multiply()`.
 
 ```go
 pound := money.New(100, "GBP")
- 
+
 result := pound.Multiply(2) // £2.00
 ```
 
-#### Division 
+#### Division
 
 Division can be performed using `Divide()`.
 
 ```go
 pound := money.New(100, "GBP")
- 
+
 result := pound.Divide(2) // £0.50
 ```
 
@@ -177,7 +177,7 @@ Return `absolute` value of Money structure
 
 ```go
 pound := money.New(-100, "GBP")
- 
+
 result := pound.Absolute() // £1.00
 ```
 
@@ -187,7 +187,7 @@ Return `negative` value of Money structure
 
 ```go
 pound := money.New(100, "GBP")
- 
+
 result := pound.Negative() // -£1.00
 ```
 
@@ -199,7 +199,7 @@ Allocation
 
 #### Splitting
 
-In order to split Money for parties without losing any pennies due to rounding differences, use `Split()`. 
+In order to split Money for parties without losing any pennies due to rounding differences, use `Split()`.
 
 After division leftover pennies will be distributed round-robin amongst the parties. This means that parties listed first will likely receive more pennies than ones that are listed later.
 
@@ -240,7 +240,7 @@ parties[2].Display() // £0.33
 Format
 -
 
-To format and return Money as a string use `Display()`. 
+To format and return Money as a string use `Display()`.
 
 ```go
 money.New(123456789, "EUR").Display() // €1,234,567.89
@@ -248,7 +248,7 @@ money.New(123456789, "EUR").Display() // €1,234,567.89
 
 Contributing
 -
-Thank you for considering contributing! 
+Thank you for considering contributing!
 Please use GitHub issues and Pull Requests for contributing.
 
 License
