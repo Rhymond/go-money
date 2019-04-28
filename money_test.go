@@ -410,6 +410,25 @@ func TestMoney_Round(t *testing.T) {
 	}
 }
 
+func TestMoney_RoundWithExponential(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		expected int64
+	}{
+		{12555, 13000},
+	}
+
+	for _, tc := range tcs {
+		AddCurrency("CUR", "*", "$1", ".", ",", 3)
+		m := New(tc.amount, "CUR")
+		r := m.Round().amount.val
+
+		if r != tc.expected {
+			t.Errorf("Expected rounded %d to be %d got %d", tc.amount, tc.expected, r)
+		}
+	}
+}
+
 func TestMoney_Split(t *testing.T) {
 	tcs := []struct {
 		amount   int64

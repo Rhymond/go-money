@@ -1,5 +1,7 @@
 package money
 
+import "math"
+
 type calculator struct{}
 
 func (c *calculator) add(a, b *Amount) *Amount {
@@ -42,20 +44,20 @@ func (c *calculator) negative(a *Amount) *Amount {
 	return &Amount{a.val}
 }
 
-func (c *calculator) round(a *Amount) *Amount {
-
+func (c *calculator) round(a *Amount, e int) *Amount {
 	if a.val == 0 {
 		return &Amount{0}
 	}
 
 	absam := c.absolute(a)
-	m := absam.val % 100
+	exp := int64(math.Pow(10, float64(e)))
+	m := absam.val % exp
 
-	if m > 50 {
-		absam.val += 100
+	if m > (exp / 2) {
+		absam.val += exp
 	}
 
-	absam.val = (absam.val / 100) * 100
+	absam.val = (absam.val / exp) * exp
 
 	if a.val < 0 {
 		a.val = -absam.val
