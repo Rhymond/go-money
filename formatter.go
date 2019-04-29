@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Formatter stores Money formatting information
+// Formatter stores Money formatting information.
 type Formatter struct {
 	Fraction int
 	Decimal  string
@@ -14,7 +14,7 @@ type Formatter struct {
 	Template string
 }
 
-// NewFormatter creates new Formatter instance
+// NewFormatter creates new Formatter instance.
 func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *Formatter {
 	return &Formatter{
 		Fraction: fraction,
@@ -25,7 +25,7 @@ func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *F
 	}
 }
 
-// Format returns string of formatted integer using given currency template
+// Format returns string of formatted integer using given currency template.
 func (f *Formatter) Format(amount int64) string {
 	// Work with absolute amount value
 	sa := strconv.FormatInt(f.abs(amount), 10)
@@ -46,7 +46,7 @@ func (f *Formatter) Format(amount int64) string {
 	sa = strings.Replace(f.Template, "1", sa, 1)
 	sa = strings.Replace(sa, "$", f.Grapheme, 1)
 
-	// Add minus sign for negative amount
+	// Add minus sign for negative amount.
 	if amount < 0 {
 		sa = "-" + sa
 	}
@@ -54,7 +54,7 @@ func (f *Formatter) Format(amount int64) string {
 	return sa
 }
 
-// abs return absolute value of given integer
+// abs return absolute value of given integer.
 func (f Formatter) abs(amount int64) int64 {
 	if amount < 0 {
 		return -amount
