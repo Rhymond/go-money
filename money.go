@@ -233,3 +233,9 @@ func (m *Money) Display() string {
 	c := m.currency.get()
 	return c.Formatter().Format(m.amount.val)
 }
+
+// AsSubUnits lets represent Money struct as subunits (float64) in given Currency value
+func (m *Money) AsSubunits() float64 {
+	c := m.currency.get()
+	return c.Formatter().ToSubunits(m.amount.val)
+}
