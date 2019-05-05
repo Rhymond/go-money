@@ -565,7 +565,7 @@ func TestMoney_Display(t *testing.T) {
 	}
 }
 
-func TestMoney_AsSubunits(t *testing.T) {
+func TestMoney_AsMajorUnits(t *testing.T) {
 	tcs := []struct {
 		amount   int64
 		code     string
@@ -577,10 +577,10 @@ func TestMoney_AsSubunits(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, tc.code)
-		r := m.AsSubunits()
+		r := m.AsMajorUnits()
 
 		if r != tc.expected {
-			t.Errorf("Expected value as subunits of %d to be %f got %f", tc.amount, tc.expected, r)
+			t.Errorf("Expected value as major units of %d to be %f got %f", tc.amount, tc.expected, r)
 		}
 	}
 }

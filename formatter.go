@@ -55,8 +55,8 @@ func (f *Formatter) Format(amount int64) string {
 	return sa
 }
 
-// ToSubunits returns float64 representing the value in sub units using the currency data
-func (f *Formatter) ToSubunits(amount int64) float64 {
+// ToMajorUnits returns float64 representing the value in sub units using the currency data
+func (f *Formatter) ToMajorUnits(amount int64) float64 {
 	return float64(amount) / float64(math.Pow10(f.Fraction))
 }
 

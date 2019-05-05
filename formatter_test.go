@@ -86,7 +86,7 @@ func TestFormatter_Format(t *testing.T) {
 	}
 }
 
-func TestFormatter_ToSubunits(t *testing.T) {
+func TestFormatter_ToMajorUnits(t *testing.T) {
 	tcs := []struct {
 		fraction int
 		decimal  string
@@ -160,10 +160,10 @@ func TestFormatter_ToSubunits(t *testing.T) {
 
 	for _, tc := range tcs {
 		formatter := NewFormatter(tc.fraction, tc.decimal, tc.thousand, tc.grapheme, tc.template)
-		r := formatter.ToSubunits(tc.amount)
+		r := formatter.ToMajorUnits(tc.amount)
 
 		if r != tc.expected {
-			t.Errorf("Expected %d formatted to sub units to be %f got %f", tc.amount, tc.expected, r)
+			t.Errorf("Expected %d formatted to major units to be %f got %f", tc.amount, tc.expected, r)
 		}
 	}
 }
