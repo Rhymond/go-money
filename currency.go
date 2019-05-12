@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// Currency represents money currency information required for formatting
+// Currency represents money currency information required for formatting.
 type Currency struct {
 	Code     string
 	Fraction int
@@ -14,7 +14,7 @@ type Currency struct {
 	Thousand string
 }
 
-// currencies represents a collection of currency
+// currencies represents a collection of currency.
 var currencies = map[string]*Currency{
 	"AED": {Decimal: ".", Thousand: ",", Code: "AED", Fraction: 2, Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	"AFN": {Decimal: ".", Thousand: ",", Code: "AFN", Fraction: 2, Grapheme: "\u060b", Template: "1 $"},
@@ -186,7 +186,7 @@ var currencies = map[string]*Currency{
 	"ZWD": {Decimal: ".", Thousand: ",", Code: "ZWD", Fraction: 2, Grapheme: "Z$", Template: "$1"},
 }
 
-// AddCurrency lets you insert or update currency in currencies list
+// AddCurrency lets you insert or update currency in currencies list.
 func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
 	currencies[Code] = &Currency{
 		Code:     Code,
@@ -209,7 +209,7 @@ func GetCurrency(code string) *Currency {
 	return currencies[code]
 }
 
-// Formatter returns currency formatter representing
+// Formatter returns currency formatter representing.
 // used currency structure
 func (c *Currency) Formatter() *Formatter {
 	return &Formatter{
@@ -222,12 +222,12 @@ func (c *Currency) Formatter() *Formatter {
 }
 
 // getDefault represent default currency if currency is not found in currencies list.
-// Grapheme and Code fields will be changed by currency code
+// Grapheme and Code fields will be changed by currency code.
 func (c *Currency) getDefault() *Currency {
 	return &Currency{Decimal: ".", Thousand: ",", Code: c.Code, Fraction: 2, Grapheme: c.Code, Template: "1$"}
 }
 
-// get extended currency using currencies list
+// get extended currency using currencies list.
 func (c *Currency) get() *Currency {
 	if curr, ok := currencies[c.Code]; ok {
 		return curr
