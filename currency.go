@@ -210,7 +210,7 @@ func GetCurrency(code string) *Currency {
 }
 
 // Formatter returns currency formatter representing.
-// used currency structure
+// used currency structure.
 func (c *Currency) Formatter() *Formatter {
 	return &Formatter{
 		Fraction: c.Fraction,
