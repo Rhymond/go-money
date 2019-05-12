@@ -209,7 +209,7 @@ func GetCurrency(code string) *Currency {
 	return currencies[code]
 }
 
-// Formatter returns currency formatter representing.
+// Formatter returns currency formatter representing
 // used currency structure.
 func (c *Currency) Formatter() *Formatter {
 	return &Formatter{
