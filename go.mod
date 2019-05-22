@@ -1,1 +1,1 @@
-module github.com/danielwitz/go-money
+module github.com/Rhymond/go-money
