@@ -245,7 +245,7 @@ To format and return Money as a string use `Display()`.
 ```go
 money.New(123456789, "EUR").Display() // €1,234,567.89
 ```
-To format and return Money as a float64 representing the amount value in the currency's subunit use `AsSubunits()`.
+To format and return Money as a float64 representing the amount value in the currency's subunit use `AsMajorUnits()`.
 
 ```go
 money.New(123456789, "EUR").AsMajorUnits() // 1234567.89
