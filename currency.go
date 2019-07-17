@@ -6,12 +6,14 @@ import (
 
 // Currency represents money currency information required for formatting.
 type Currency struct {
-	Code     string
-	Fraction int
-	Grapheme string
-	Template string
-	Decimal  string
-	Thousand string
+	Code         string
+	Fraction     int
+	Grapheme     string
+	Template     string
+	Decimal      string
+	Thousand     string
+	MainCurrency string
+	SubCurrency  string
 }
 
 // currencies represents a collection of currency.
@@ -67,7 +69,7 @@ var currencies = map[string]*Currency{
 	"IDR": {Decimal: ".", Thousand: ",", Code: "IDR", Fraction: 2, Grapheme: "Rp", Template: "$1"},
 	"ILS": {Decimal: ".", Thousand: ",", Code: "ILS", Fraction: 2, Grapheme: "\u20aa", Template: "$1"},
 	"IMP": {Decimal: ".", Thousand: ",", Code: "IMP", Fraction: 2, Grapheme: "\u00a3", Template: "$1"},
-	"INR": {Decimal: ".", Thousand: ",", Code: "INR", Fraction: 2, Grapheme: "\u20b9", Template: "$1"},
+	"INR": {Decimal: ".", Thousand: ",", Code: "INR", Fraction: 2, Grapheme: "\u20b9", Template: "$1", MainCurrency: "rupee", SubCurrency: "paise"},
 	"IQD": {Decimal: ".", Thousand: ",", Code: "IQD", Fraction: 3, Grapheme: ".\u062f.\u0639", Template: "1 $"},
 	"IRR": {Decimal: ".", Thousand: ",", Code: "IRR", Fraction: 2, Grapheme: "\ufdfc", Template: "1 $"},
 	"ISK": {Decimal: ".", Thousand: ",", Code: "ISK", Fraction: 2, Grapheme: "kr", Template: "$1"},
@@ -108,7 +110,7 @@ var currencies = map[string]*Currency{
 	"OMR": {Decimal: ".", Thousand: ",", Code: "OMR", Fraction: 3, Grapheme: "\ufdfc", Template: "1 $"},
 	"PAB": {Decimal: ".", Thousand: ",", Code: "PAB", Fraction: 2, Grapheme: "B/.", Template: "$1"},
 	"PEN": {Decimal: ".", Thousand: ",", Code: "PEN", Fraction: 2, Grapheme: "S/", Template: "$1"},
-	"PHP": {Decimal: ".", Thousand: ",", Code: "PHP", Fraction: 2, Grapheme: "\u20b1", Template: "$1"},
+	"PHP": {Decimal: ".", Thousand: ",", Code: "PHP", Fraction: 2, Grapheme: "\u20b1", Template: "$1", MainCurrency: "Peso", SubCurrency: "centavos"},
 	"PKR": {Decimal: ".", Thousand: ",", Code: "PKR", Fraction: 2, Grapheme: "\u20a8", Template: "$1"},
 	"PLN": {Decimal: ".", Thousand: ",", Code: "PLN", Fraction: 2, Grapheme: "z\u0142", Template: "1 $"},
 	"PYG": {Decimal: ".", Thousand: ",", Code: "PYG", Fraction: 0, Grapheme: "Gs", Template: "1$"},
@@ -121,7 +123,7 @@ var currencies = map[string]*Currency{
 	"SBD": {Decimal: ".", Thousand: ",", Code: "SBD", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"SCR": {Decimal: ".", Thousand: ",", Code: "SCR", Fraction: 2, Grapheme: "\u20a8", Template: "$1"},
 	"SEK": {Decimal: ".", Thousand: ",", Code: "SEK", Fraction: 2, Grapheme: "kr", Template: "1 $"},
-	"SGD": {Decimal: ".", Thousand: ",", Code: "SGD", Fraction: 2, Grapheme: "$", Template: "$1"},
+	"SGD": {Decimal: ".", Thousand: ",", Code: "SGD", Fraction: 2, Grapheme: "$", Template: "$1", MainCurrency: "dollar", SubCurrency: "cents"},
 	"SHP": {Decimal: ".", Thousand: ",", Code: "SHP", Fraction: 2, Grapheme: "\u00a3", Template: "$1"},
 	"SOS": {Decimal: ".", Thousand: ",", Code: "SOS", Fraction: 2, Grapheme: "S", Template: "$1"},
 	"SRD": {Decimal: ".", Thousand: ",", Code: "SRD", Fraction: 2, Grapheme: "$", Template: "$1"},
