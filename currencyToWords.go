@@ -1,4 +1,3 @@
-
 package money
 
 import (
@@ -14,11 +13,11 @@ type CurrencyMeta struct {
 }
 
 var CountryCurrencyMeta = map[string]CurrencyMeta{
-	"PH": {MainWord: "pesos", SubWord: "sentimos"},
-	"SG": {MainWord: "dollar", SubWord: "cents"},
+	"PHP": {MainWord: "pesos", SubWord: "sentimos"},
+	"SGD": {MainWord: "dollar", SubWord: "cents"},
 }
 
-func GetCurrencyAmountWords(amount float64, countryCode string) string {
+func GetCurrencyAmountWords(amount float64, currencyCode string) string {
 	amount = ConvertTo2DecimalPlaces(amount)
 	strAmount := fmt.Sprintf("%+v", amount)
 	str := strings.Split(strAmount, ".")
@@ -41,13 +40,9 @@ func GetCurrencyAmountWords(amount float64, countryCode string) string {
 	mainAmtStr := num2words.Convert(mainAmt)
 	subAmtStr := num2words.Convert(subAmt)
 
-	var c CurrencyMeta
-	switch countryCode {
-	case "PH":
-		c = CountryCurrencyMeta["PH"]
-	case "SG":
-		c = CountryCurrencyMeta["SG"]
-
+	c, ok := CountryCurrencyMeta[currencyCode]
+	if !ok {
+		return fmt.Sprintf("%v", amount)
 	}
 
 	if c.MainWord == "" {

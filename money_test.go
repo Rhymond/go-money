@@ -565,6 +565,26 @@ func TestMoney_Display(t *testing.T) {
 	}
 }
 
+func TestMoney_ToWords(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		code     string
+		expected string
+	}{
+		{100, "PHP", "one hundred pesos only"},
+		{1, "SGD", "one dollar only"},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.ToWords()
+
+		if r != tc.expected {
+			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
+		}
+	}
+}
+
 func TestMoney_Allocate3(t *testing.T) {
 	pound := New(100, "GBP")
 	parties, err := pound.Allocate(33, 33, 33)

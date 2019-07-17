@@ -233,3 +233,9 @@ func (m *Money) Display() string {
 	c := m.currency.get()
 	return c.Formatter().Format(m.amount.val)
 }
+
+// Display lets represent Money struct as string in given Currency value.
+func (m *Money) ToWords() string {
+	c := m.currency.get()
+	return GetCurrencyAmountWords(float64(m.Amount()), c.Code)
+}
