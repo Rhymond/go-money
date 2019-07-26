@@ -137,7 +137,7 @@ var currencies = map[string]*Currency{
 	"UAH": {Decimal: ".", Thousand: ",", Code: "UAH", Fraction: 2, Grapheme: "\u20b4", Template: "$1"},
 	"UGX": {Decimal: ".", Thousand: ",", Code: "UGX", Fraction: 0, Grapheme: "USh", Template: "$1"},
 	"USD": {Decimal: ".", Thousand: ",", Code: "USD", Fraction: 2, Grapheme: "$", Template: "$1"},
-	"UYU": {Decimal: ".", Thousand: ",", Code: "UYU", Fraction: 0, Grapheme: "$U", Template: "$1"},
+	"UYU": {Decimal: ".", Thousand: ",", Code: "UYU", Fraction: 2, Grapheme: "$U", Template: "$1"},
 	"UZS": {Decimal: ".", Thousand: ",", Code: "UZS", Fraction: 2, Grapheme: "so\u2019m", Template: "$1"},
 	"VEF": {Decimal: ".", Thousand: ",", Code: "VEF", Fraction: 2, Grapheme: "Bs", Template: "$1"},
 	"VND": {Decimal: ".", Thousand: ",", Code: "VND", Fraction: 0, Grapheme: "\u20ab", Template: "1 $"},
