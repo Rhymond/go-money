@@ -1,6 +1,7 @@
 package money
 
 import (
+	"math"
 	"strconv"
 	"strings"
 )
@@ -52,6 +53,15 @@ func (f *Formatter) Format(amount int64) string {
 	}
 
 	return sa
+}
+
+// ToMajorUnits returns float64 representing the value in sub units using the currency data
+func (f *Formatter) ToMajorUnits(amount int64) float64 {
+	if f.Fraction == 0 {
+		return float64(amount)
+	}
+
+	return float64(amount) / float64(math.Pow10(f.Fraction))
 }
 
 // abs return absolute value of given integer.

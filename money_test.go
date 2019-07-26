@@ -565,6 +565,26 @@ func TestMoney_Display(t *testing.T) {
 	}
 }
 
+func TestMoney_AsMajorUnits(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		code     string
+		expected float64
+	}{
+		{100, "AED", 1.00},
+		{1, "USD", 0.01},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.AsMajorUnits()
+
+		if r != tc.expected {
+			t.Errorf("Expected value as major units of %d to be %f got %f", tc.amount, tc.expected, r)
+		}
+	}
+}
+
 func TestMoney_Allocate3(t *testing.T) {
 	pound := New(100, "GBP")
 	parties, err := pound.Allocate(33, 33, 33)
