@@ -1,6 +1,7 @@
 package money
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -655,5 +656,31 @@ func TestMoney_Amount(t *testing.T) {
 
 	if pound.Amount() != 100 {
 		t.Errorf("Expected %d got %d", 100, pound.Amount())
+	}
+}
+
+func TestMarshaling(t *testing.T) {
+	given := New(12345, "IQD")
+	expected := `{"amount":12345,"currency":"IQD"}`
+
+	b, err := json.Marshal(given)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(b) != expected {
+		t.Errorf("Expected %s got %s", expected, string(b))
+	}
+}
+
+func TestUnmarshalling(t *testing.T) {
+	given := `{"amount": 10012, "currency":"USD"}`
+	expected := "$100.12"
+	var m Money
+	json.Unmarshal([]byte(given), &m)
+
+	if m.Display() != expected {
+		t.Errorf("Expected %s got %s", expected, m.Display())
 	}
 }

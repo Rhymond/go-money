@@ -1,6 +1,7 @@
 package money
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -238,4 +239,30 @@ func (m *Money) Display() string {
 func (m *Money) AsMajorUnits() float64 {
 	c := m.currency.get()
 	return c.Formatter().ToMajorUnits(m.amount.val)
+}
+
+func (m *Money) UnmarshalJSON(b []byte) error {
+	data := struct {
+		Amount   int64  `json:"amount"`
+		Currency string `json:"currency"`
+	}{}
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	ref := New(data.Amount, data.Currency)
+	m.amount = ref.amount
+	m.currency = ref.currency
+	return nil
+}
+
+func (m Money) MarshalJSON() ([]byte, error) {
+	data := struct {
+		Amount   int64  `json:"amount"`
+		Currency string `json:"currency"`
+	}{
+		Amount:   m.Amount(),
+		Currency: m.Currency().Code,
+	}
+	return json.Marshal(&data)
 }
