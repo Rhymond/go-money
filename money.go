@@ -1,9 +1,39 @@
 package money
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 )
+
+// Injection points for backward compatibility.
+// If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
+//   money.UnmarshalJSONMoneyFunc = func (m *Money, b []byte) error { ... }
+//   money.MarshalJSONMoneyFunc = func (m Money) ([]byte, error) { ... }
+var (
+	// UnmarshalJSONMoneyFunc is injection point of json.Unmarshaller for money.Money
+	UnmarshalJSONMoneyFunc func(m *Money, b []byte) error = defaultUnmarshalJSONMoneyFunc
+	// MarshalJSONMoneyFunc is injection point of json.Marshaller for money.Money
+	MarshalJSONMoneyFunc   func(m Money) ([]byte, error)  = defaultMarshalJSONMoneyFunc
+)
+
+func defaultUnmarshalJSONMoneyFunc(m *Money, b []byte) error {
+	data := make(map[string]interface{})
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	ref := New(int64(data["amount"].(float64)), data["currency"].(string))
+	m.amount = ref.amount
+	m.currency = ref.Currency()
+	return nil
+}
+
+func defaultMarshalJSONMoneyFunc(m Money) ([]byte, error) {
+	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
+	return buff.Bytes(), nil
+}
 
 // Amount is a datastructure that stores the amount being used for calculations.
 type Amount struct {
@@ -241,28 +271,13 @@ func (m *Money) AsMajorUnits() float64 {
 	return c.Formatter().ToMajorUnits(m.amount.val)
 }
 
+// UnmarshalJSON is implementation of json.Unmarshaller
 func (m *Money) UnmarshalJSON(b []byte) error {
-	data := struct {
-		Amount   int64  `json:"amount"`
-		Currency string `json:"currency"`
-	}{}
-	err := json.Unmarshal(b, &data)
-	if err != nil {
-		return err
-	}
-	ref := New(data.Amount, data.Currency)
-	m.amount = ref.amount
-	m.currency = ref.currency
-	return nil
+	return UnmarshalJSONMoneyFunc(m, b)
 }
 
+// MarshalJSON is implementation of json.Marshaller
 func (m Money) MarshalJSON() ([]byte, error) {
-	data := struct {
-		Amount   int64  `json:"amount"`
-		Currency string `json:"currency"`
-	}{
-		Amount:   m.Amount(),
-		Currency: m.Currency().Code,
-	}
-	return json.Marshal(&data)
+	return MarshalJSONMoneyFunc(m)
 }
+
