@@ -164,6 +164,20 @@ pound := money.New(100, "GBP")
 result := pound.Divide(2) // £0.50
 ```
 
+#### Percent
+
+Percent can be performed using `Percent()`. The result might be rounded.
+
+```go
+pound := money.New(100, "GBP")
+
+result := pound.Percent(33) // £0.33
+
+euro := money.New(126, "EUR")
+
+result := pound.Percent(10) // €0.13
+```
+
 There is possibilities to lose pennies by using division operation e.g:
 ```go
 money.New(100, "GBP").Divide(3) // £0.33

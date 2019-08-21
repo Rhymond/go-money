@@ -16,6 +16,10 @@ func (c *calculator) multiply(a *Amount, m int64) *Amount {
 	return &Amount{a.val * m}
 }
 
+func (c *calculator) percent(a *Amount, m int64) *Amount {
+	return &Amount{int64(math.Round((float64(a.val * m)) / 100))}
+}
+
 func (c *calculator) divide(a *Amount, d int64) *Amount {
 	return &Amount{a.val / d}
 }

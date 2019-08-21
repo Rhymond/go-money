@@ -657,3 +657,28 @@ func TestMoney_Amount(t *testing.T) {
 		t.Errorf("Expected %d got %d", 100, pound.Amount())
 	}
 }
+
+func TestMoney_Percent(t *testing.T) {
+	tcs := []struct {
+		name    string
+		amount  int64
+		percent int64
+		want    int64
+	}{
+		{"round up", 12555, 10, 1256},
+		{"round up negative", 12555, -10, -1256},
+		{"round down", 12554, 10, 1255},
+		{"round down negative", 12554, -10, -1255},
+		{"more than 100percent", 12555, 145, 18205},
+	}
+	for _, tt := range tcs {
+		t.Run(tt.name, func(t *testing.T) {
+			m := New(tt.amount, "EUR")
+			expected := New(tt.want, "EUR")
+			got := m.Percent(tt.percent)
+			if eq, _ := got.Equals(expected); !eq {
+				t.Errorf("Percent() = %s, want %s", got.Display(), expected.Display())
+			}
+		})
+	}
+}

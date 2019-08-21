@@ -156,6 +156,11 @@ func (m *Money) Divide(div int64) *Money {
 	return &Money{amount: mutate.calc.divide(m.amount, div), currency: m.currency}
 }
 
+// Percent returns new Money struct with value given percent.
+func (m *Money) Percent(percent int64) *Money {
+	return &Money{amount: mutate.calc.percent(m.amount, percent), currency: m.currency}
+}
+
 // Round returns new Money struct with value rounded to nearest zero.
 func (m *Money) Round() *Money {
 	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}
