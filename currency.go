@@ -55,7 +55,7 @@ var currencies = map[string]*Currency{
 	"CVE": {Decimal: ".", Thousand: ",", Code: "CVE", Fraction: 2, Grapheme: "$", Template: "1$"},
 	"CZK": {Decimal: ".", Thousand: ",", Code: "CZK", Fraction: 2, Grapheme: "K\u010d", Template: "1 $"},
 	"DJF": {Decimal: ".", Thousand: ",", Code: "DJF", Fraction: 0, Grapheme: "Fdj", Template: "1 $"},
-	"DKK": {Decimal: ".", Thousand: ",", Code: "DKK", Fraction: 2, Grapheme: "kr", Template: "1 $"},
+	"DKK": {Decimal: ",", Thousand: ".", Code: "DKK", Fraction: 2, Grapheme: "kr", Template: "$ 1"},
 	"DOP": {Decimal: ".", Thousand: ",", Code: "DOP", Fraction: 2, Grapheme: "RD$", Template: "$1"},
 	"DZD": {Decimal: ".", Thousand: ",", Code: "DZD", Fraction: 2, Grapheme: ".\u062f.\u062c", Template: "1 $"},
 	"EEK": {Decimal: ".", Thousand: ",", Code: "EEK", Fraction: 2, Grapheme: "kr", Template: "$1"},
