@@ -202,7 +202,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	var total int64
-	var ms []*Money
+  ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
 			amount:   mutate.calc.allocate(m.amount, r, sum),
