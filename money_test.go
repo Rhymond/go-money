@@ -295,7 +295,6 @@ func TestMoney_Add(t *testing.T) {
 				tc.expected, r.amount.val)
 		}
 	}
-
 }
 
 func TestMoney_Add2(t *testing.T) {
@@ -545,7 +544,6 @@ func TestMoney_Format(t *testing.T) {
 			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
 		}
 	}
-
 }
 
 func TestMoney_Display(t *testing.T) {
