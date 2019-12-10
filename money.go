@@ -9,28 +9,27 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSONMoneyFunc = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSONMoneyFunc = func (m Money) ([]byte, error) { ... }
+//   money.UnmarshalJSONFunc = func (m *Money, b []byte) error { ... }
+//   money.MarshalJSONFunc = func (m Money) ([]byte, error) { ... }
 var (
-	// UnmarshalJSONMoneyFunc is injection point of json.Unmarshaller for money.Money
-	UnmarshalJSONMoneyFunc func(m *Money, b []byte) error = defaultUnmarshalJSONMoneyFunc
-	// MarshalJSONMoneyFunc is injection point of json.Marshaller for money.Money
-	MarshalJSONMoneyFunc   func(m Money) ([]byte, error)  = defaultMarshalJSONMoneyFunc
+	// UnmarshalJSONFunc is injection point of json.Unmarshaller for money.Money
+	UnmarshalJSONFunc func(m *Money, b []byte) error = defaultUnmarshalJSON
+	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
+	MarshalJSONFunc func(m Money) ([]byte, error) = defaultMarshalJSON
 )
 
-func defaultUnmarshalJSONMoneyFunc(m *Money, b []byte) error {
+func defaultUnmarshalJSON(m *Money, b []byte) error {
 	data := make(map[string]interface{})
 	err := json.Unmarshal(b, &data)
 	if err != nil {
 		return err
 	}
 	ref := New(int64(data["amount"].(float64)), data["currency"].(string))
-	m.amount = ref.amount
-	m.currency = ref.Currency()
+	*m = *ref
 	return nil
 }
 
-func defaultMarshalJSONMoneyFunc(m Money) ([]byte, error) {
+func defaultMarshalJSON(m Money) ([]byte, error) {
 	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
 	return buff.Bytes(), nil
 }
@@ -273,11 +272,11 @@ func (m *Money) AsMajorUnits() float64 {
 
 // UnmarshalJSON is implementation of json.Unmarshaller
 func (m *Money) UnmarshalJSON(b []byte) error {
-	return UnmarshalJSONMoneyFunc(m, b)
+	return UnmarshalJSONFunc(m, b)
 }
 
 // MarshalJSON is implementation of json.Marshaller
 func (m Money) MarshalJSON() ([]byte, error) {
-	return MarshalJSONMoneyFunc(m)
+	return MarshalJSONFunc(m)
 }
 

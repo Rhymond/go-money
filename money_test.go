@@ -659,7 +659,7 @@ func TestMoney_Amount(t *testing.T) {
 	}
 }
 
-func TestMarshaling(t *testing.T) {
+func TestDefaultMarshal(t *testing.T) {
 	given := New(12345, "IQD")
 	expected := `{"amount":12345,"currency":"IQD"}`
 
@@ -674,10 +674,10 @@ func TestMarshaling(t *testing.T) {
 	}
 }
 
-func TestMarshaling2(t *testing.T) {
+func TestCustomMarshal(t *testing.T) {
 	given := New(12345, "IQD")
 	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
-	MarshalJSONMoneyFunc = func(m Money) ([]byte, error) {
+	MarshalJSONFunc = func(m Money) ([]byte, error) {
 		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
 		return buff.Bytes(), nil
 	}
@@ -693,7 +693,7 @@ func TestMarshaling2(t *testing.T) {
 	}
 }
 
-func TestUnmarshalling(t *testing.T) {
+func TestDefaultUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency":"USD"}`
 	expected := "$100.12"
 	var m Money
@@ -707,18 +707,17 @@ func TestUnmarshalling(t *testing.T) {
 	}
 }
 
-func TestUnmarshalling2(t *testing.T) {
-	given := `{"amount": 10012, "currency_code":"USD"}`
+func TestCustomUnmarshal(t *testing.T) {
+	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
 	expected := "$100.12"
-	UnmarshalJSONMoneyFunc = func(m *Money, b []byte) error {
+	UnmarshalJSONFunc = func(m *Money, b []byte) error {
 		data := make(map[string]interface{})
 		err := json.Unmarshal(b, &data)
 		if err != nil {
 			return err
 		}
 		ref := New(int64(data["amount"].(float64)), data["currency_code"].(string))
-		m.amount = ref.amount
-		m.currency = ref.Currency()
+		*m = *ref
 		return nil
 	}
 
