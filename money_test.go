@@ -677,7 +677,7 @@ func TestDefaultMarshal(t *testing.T) {
 func TestCustomMarshal(t *testing.T) {
 	given := New(12345, "IQD")
 	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
-	MarshalJSONFunc = func(m Money) ([]byte, error) {
+	MarshalJSON = func(m Money) ([]byte, error) {
 		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
 		return buff.Bytes(), nil
 	}
@@ -710,7 +710,7 @@ func TestDefaultUnmarshal(t *testing.T) {
 func TestCustomUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
 	expected := "$100.12"
-	UnmarshalJSONFunc = func(m *Money, b []byte) error {
+	UnmarshalJSON = func(m *Money, b []byte) error {
 		data := make(map[string]interface{})
 		err := json.Unmarshal(b, &data)
 		if err != nil {

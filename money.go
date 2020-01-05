@@ -9,13 +9,13 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSONFunc = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSONFunc = func (m Money) ([]byte, error) { ... }
+//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSONFunc is injection point of json.Unmarshaller for money.Money
-	UnmarshalJSONFunc func(m *Money, b []byte) error = defaultUnmarshalJSON
+	UnmarshalJSON = defaultUnmarshalJSON
 	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
-	MarshalJSONFunc func(m Money) ([]byte, error) = defaultMarshalJSON
+	MarshalJSON = defaultMarshalJSON
 )
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
@@ -272,11 +272,10 @@ func (m *Money) AsMajorUnits() float64 {
 
 // UnmarshalJSON is implementation of json.Unmarshaller
 func (m *Money) UnmarshalJSON(b []byte) error {
-	return UnmarshalJSONFunc(m, b)
+	return UnmarshalJSON(m, b)
 }
 
 // MarshalJSON is implementation of json.Marshaller
 func (m Money) MarshalJSON() ([]byte, error) {
-	return MarshalJSONFunc(m)
+	return MarshalJSON(m)
 }
-
