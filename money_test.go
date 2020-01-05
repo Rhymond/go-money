@@ -1,6 +1,9 @@
 package money
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -292,7 +295,6 @@ func TestMoney_Add(t *testing.T) {
 				tc.expected, r.amount.val)
 		}
 	}
-
 }
 
 func TestMoney_Add2(t *testing.T) {
@@ -542,7 +544,6 @@ func TestMoney_Format(t *testing.T) {
 			t.Errorf("Expected formatted %d to be %s got %s", tc.amount, tc.expected, r)
 		}
 	}
-
 }
 
 func TestMoney_Display(t *testing.T) {
@@ -655,5 +656,78 @@ func TestMoney_Amount(t *testing.T) {
 
 	if pound.Amount() != 100 {
 		t.Errorf("Expected %d got %d", 100, pound.Amount())
+	}
+}
+
+func TestDefaultMarshal(t *testing.T) {
+	given := New(12345, "IQD")
+	expected := `{"amount":12345,"currency":"IQD"}`
+
+	b, err := json.Marshal(given)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(b) != expected {
+		t.Errorf("Expected %s got %s", expected, string(b))
+	}
+}
+
+func TestCustomMarshal(t *testing.T) {
+	given := New(12345, "IQD")
+	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
+	MarshalJSONFunc = func(m Money) ([]byte, error) {
+		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
+		return buff.Bytes(), nil
+	}
+
+	b, err := json.Marshal(given)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(b) != expected {
+		t.Errorf("Expected %s got %s", expected, string(b))
+	}
+}
+
+func TestDefaultUnmarshal(t *testing.T) {
+	given := `{"amount": 10012, "currency":"USD"}`
+	expected := "$100.12"
+	var m Money
+	err := json.Unmarshal([]byte(given), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m.Display() != expected {
+		t.Errorf("Expected %s got %s", expected, m.Display())
+	}
+}
+
+func TestCustomUnmarshal(t *testing.T) {
+	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
+	expected := "$100.12"
+	UnmarshalJSONFunc = func(m *Money, b []byte) error {
+		data := make(map[string]interface{})
+		err := json.Unmarshal(b, &data)
+		if err != nil {
+			return err
+		}
+		ref := New(int64(data["amount"].(float64)), data["currency_code"].(string))
+		*m = *ref
+		return nil
+	}
+
+	var m Money
+	err := json.Unmarshal([]byte(given), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m.Display() != expected {
+		t.Errorf("Expected %s got %s", expected, m.Display())
 	}
 }

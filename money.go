@@ -1,8 +1,38 @@
 package money
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 )
+
+// Injection points for backward compatibility.
+// If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
+//   money.UnmarshalJSONFunc = func (m *Money, b []byte) error { ... }
+//   money.MarshalJSONFunc = func (m Money) ([]byte, error) { ... }
+var (
+	// UnmarshalJSONFunc is injection point of json.Unmarshaller for money.Money
+	UnmarshalJSONFunc func(m *Money, b []byte) error = defaultUnmarshalJSON
+	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
+	MarshalJSONFunc func(m Money) ([]byte, error) = defaultMarshalJSON
+)
+
+func defaultUnmarshalJSON(m *Money, b []byte) error {
+	data := make(map[string]interface{})
+	err := json.Unmarshal(b, &data)
+	if err != nil {
+		return err
+	}
+	ref := New(int64(data["amount"].(float64)), data["currency"].(string))
+	*m = *ref
+	return nil
+}
+
+func defaultMarshalJSON(m Money) ([]byte, error) {
+	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
+	return buff.Bytes(), nil
+}
 
 // Amount is a datastructure that stores the amount being used for calculations.
 type Amount struct {
@@ -202,7 +232,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	var total int64
-	var ms []*Money
+	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
 			amount:   mutate.calc.allocate(m.amount, r, sum),
@@ -239,3 +269,14 @@ func (m *Money) AsMajorUnits() float64 {
 	c := m.currency.get()
 	return c.Formatter().ToMajorUnits(m.amount.val)
 }
+
+// UnmarshalJSON is implementation of json.Unmarshaller
+func (m *Money) UnmarshalJSON(b []byte) error {
+	return UnmarshalJSONFunc(m, b)
+}
+
+// MarshalJSON is implementation of json.Marshaller
+func (m Money) MarshalJSON() ([]byte, error) {
+	return MarshalJSONFunc(m)
+}
+

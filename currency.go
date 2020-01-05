@@ -187,9 +187,9 @@ var currencies = map[string]*Currency{
 }
 
 // AddCurrency lets you insert or update currency in currencies list.
-func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
-	currencies[Code] = &Currency{
-		Code:     Code,
+func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
+	currencies[code] = &Currency{
+		Code:     code,
 		Grapheme: Grapheme,
 		Template: Template,
 		Decimal:  Decimal,
@@ -197,7 +197,7 @@ func AddCurrency(Code, Grapheme, Template, Decimal, Thousand string, Fraction in
 		Fraction: Fraction,
 	}
 
-	return currencies[Code]
+	return currencies[code]
 }
 
 func newCurrency(code string) *Currency {
