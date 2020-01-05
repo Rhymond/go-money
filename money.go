@@ -181,11 +181,6 @@ func (m *Money) Multiply(mul int64) *Money {
 	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
 }
 
-// Divide returns new Money struct with value representing Self division value by given divider.
-func (m *Money) Divide(div int64) *Money {
-	return &Money{amount: mutate.calc.divide(m.amount, div), currency: m.currency}
-}
-
 // Round returns new Money struct with value rounded to nearest zero.
 func (m *Money) Round() *Money {
 	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}

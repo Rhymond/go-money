@@ -366,28 +366,6 @@ func TestMoney_Multiply(t *testing.T) {
 	}
 }
 
-func TestMoney_Divide(t *testing.T) {
-	tcs := []struct {
-		amount   int64
-		divisor  int64
-		expected int64
-	}{
-		{5, 5, 1},
-		{10, 5, 2},
-		{1, -1, -1},
-		{10, 3, 3},
-	}
-
-	for _, tc := range tcs {
-		m := New(tc.amount, "EUR")
-		r := m.Divide(tc.divisor).amount.val
-
-		if r != tc.expected {
-			t.Errorf("Expected %d * %d = %d got %d", tc.amount, tc.divisor, tc.expected, r)
-		}
-	}
-}
-
 func TestMoney_Round(t *testing.T) {
 	tcs := []struct {
 		amount   int64
@@ -500,30 +478,6 @@ func TestMoney_Allocate2(t *testing.T) {
 
 	if r != nil || err == nil {
 		t.Error("Expected err")
-	}
-}
-
-func TestMoney_Chain(t *testing.T) {
-	m := New(10, "EUR")
-	om := New(5, "EUR")
-	// 10 + 5 = 15 / 5 = 3 * 4 = 12 - 5 = 7
-	e := int64(7)
-
-	m, err := m.Add(om)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	m = m.Divide(5).Multiply(4)
-	m, err = m.Subtract(om)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if m.amount.val != int64(7) {
-		t.Errorf("Expected %d got %d", e, m.amount.val)
 	}
 }
 
