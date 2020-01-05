@@ -35,7 +35,7 @@ var currencies = map[string]*Currency{
 	"BMD": {Decimal: ".", Thousand: ",", Code: "BMD", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"BND": {Decimal: ".", Thousand: ",", Code: "BND", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"BOB": {Decimal: ".", Thousand: ",", Code: "BOB", Fraction: 2, Grapheme: "Bs.", Template: "$1"},
-	"BRL": {Decimal: ".", Thousand: ",", Code: "BRL", Fraction: 2, Grapheme: "R$", Template: "$1"},
+	"BRL": {Decimal: ",", Thousand: ".", Code: "BRL", Fraction: 2, Grapheme: "R$", Template: "$1"},
 	"BSD": {Decimal: ".", Thousand: ",", Code: "BSD", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"BTN": {Decimal: ".", Thousand: ",", Code: "BTN", Fraction: 2, Grapheme: "Nu.", Template: "1$"},
 	"BWP": {Decimal: ".", Thousand: ",", Code: "BWP", Fraction: 2, Grapheme: "P", Template: "$1"},
