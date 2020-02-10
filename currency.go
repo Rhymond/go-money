@@ -164,7 +164,7 @@ var currencies = map[string]*Currency{
 	"TRL": {Decimal: ".", Thousand: ",", Code: "TRL", Fraction: 2, Grapheme: "\u20a4", Template: "$1"},
 	"TRY": {Decimal: ".", Thousand: ",", Code: "TRY", Fraction: 2, Grapheme: "\u20ba", Template: "$1"},
 	"TTD": {Decimal: ".", Thousand: ",", Code: "TTD", Fraction: 2, Grapheme: "TT$", Template: "$1"},
-	"TWD": {Decimal: ".", Thousand: ",", Code: "TWD", Fraction: 0, Grapheme: "NT$", Template: "$1"},
+	"TWD": {Decimal: ".", Thousand: ",", Code: "TWD", Fraction: 2, Grapheme: "NT$", Template: "$1"},
 	"TZS": {Decimal: ".", Thousand: ",", Code: "TZS", Fraction: 0, Grapheme: "TSh", Template: "$1"},
 	"UAH": {Decimal: ".", Thousand: ",", Code: "UAH", Fraction: 2, Grapheme: "\u20b4", Template: "1 $"},
 	"UGX": {Decimal: ".", Thousand: ",", Code: "UGX", Fraction: 0, Grapheme: "USh", Template: "1 $"},
