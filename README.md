@@ -115,7 +115,6 @@ Operations
 -
 * Add
 * Subtract
-* Divide
 * Multiply
 * Absolute
 * Negative
@@ -153,23 +152,6 @@ pound := money.New(100, "GBP")
 
 result := pound.Multiply(2) // £2.00
 ```
-
-#### Division
-
-Division can be performed using `Divide()`.
-
-```go
-pound := money.New(100, "GBP")
-
-result := pound.Divide(2) // £0.50
-```
-
-There is possibilities to lose pennies by using division operation e.g:
-```go
-money.New(100, "GBP").Divide(3) // £0.33
-```
-In order to split amount without losing use `Split()` operation.
-
 
 #### Absolute
 
