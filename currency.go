@@ -62,7 +62,7 @@ var currencies = map[string]*Currency{
 	"EGP": {Decimal: ".", Thousand: ",", Code: "EGP", Fraction: 2, Grapheme: "\u00a3", Template: "$1"},
 	"ERN": {Decimal: ".", Thousand: ",", Code: "ERN", Fraction: 2, Grapheme: "Nfk", Template: "1 $"},
 	"ETB": {Decimal: ".", Thousand: ",", Code: "ETB", Fraction: 2, Grapheme: "Br", Template: "1 $"},
-	"EUR": {Decimal: ".", Thousand: ",", Code: "EUR", Fraction: 2, Grapheme: "\u20ac", Template: "$1"},
+	"EUR": {Decimal: ",", Thousand: ".", Code: "EUR", Fraction: 2, Grapheme: "\u20ac", Template: "1 $"},
 	"FJD": {Decimal: ".", Thousand: ",", Code: "FJD", Fraction: 2, Grapheme: "$", Template: "$1"},
 	"FKP": {Decimal: ".", Thousand: ",", Code: "FKP", Fraction: 2, Grapheme: "\u00a3", Template: "$1"},
 	"GBP": {Decimal: ".", Thousand: ",", Code: "GBP", Fraction: 2, Grapheme: "\u00a3", Template: "$1"},
