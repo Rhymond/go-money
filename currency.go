@@ -181,6 +181,7 @@ var currencies = map[string]*Currency{
 	"XAU": {Decimal: ".", Thousand: ",", Code: "XAU", Fraction: 0, NumericCode: "959", Grapheme: "oz t", Template: "1 $"},
 	"XCD": {Decimal: ".", Thousand: ",", Code: "XCD", Fraction: 2, NumericCode: "951", Grapheme: "$", Template: "$1"},
 	"XDR": {Decimal: ".", Thousand: ",", Code: "XDR", Fraction: 0, NumericCode: "960", Grapheme: "SDR", Template: "1 $"},
+	"XPF": {Decimal: ".", Thousand: ",", Code: "XPF", Fraction: 0, NumericCode: "953", Grapheme: "₣", Template: "1 $"},
 	"YER": {Decimal: ".", Thousand: ",", Code: "YER", Fraction: 2, NumericCode: "886", Grapheme: "\ufdfc", Template: "1 $"},
 	"ZAR": {Decimal: ".", Thousand: ",", Code: "ZAR", Fraction: 2, NumericCode: "710", Grapheme: "R", Template: "$1"},
 	"ZMW": {Decimal: ".", Thousand: ",", Code: "ZMW", Fraction: 2, NumericCode: "967", Grapheme: "ZK", Template: "$1"},
