@@ -167,6 +167,21 @@ func (m *Money) Add(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
 }
 
+// AddMultiple Returns new Money Struct With Value Of Sum Over Multiple Moneys
+//Return m plus sigma[om[i]]
+func (m *Money) AddMultiple(om ...*Money) (*Money, error) {
+	k := New(0, m.currency.Code)
+
+	for i := 0; i < len(om); i++ {
+		if err := m.assertSameCurrency(om[i]); err != nil {
+			return nil, err
+		}
+		k.amount = mutate.calc.add(k.amount, om[i].amount)
+	}
+
+	return &Money{amount: mutate.calc.add(m.amount, k.amount), currency: m.currency}, nil
+}
+
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
 func (m *Money) Subtract(om *Money) (*Money, error) {
 	if err := m.assertSameCurrency(om); err != nil {
@@ -174,6 +189,20 @@ func (m *Money) Subtract(om *Money) (*Money, error) {
 	}
 
 	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
+}
+
+//SubtractMultiple Returns New Money Struct With Value Representing Difference of Self and Other Moneys.
+func (m *Money) SubtractMultiple(om ...*Money) (*Money, error) {
+	k := New(0, m.currency.Code)
+
+	for i := 0; i < len(om); i++ {
+		if err := m.assertSameCurrency(om[i]); err != nil {
+			return nil, err
+		}
+		k.amount = mutate.calc.add(k.amount, om[i].amount)
+	}
+
+	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.

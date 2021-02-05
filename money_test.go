@@ -307,6 +307,77 @@ func TestMoney_Add2(t *testing.T) {
 	}
 }
 
+func TestMoney_AddMultiple1(t *testing.T) {
+	m := New(100, "EUR")
+	dm := New(100, "GBP")
+	a := New(100, "GBP")
+	k := New(200, "EUR")
+	r, err := m.AddMultiple(dm, a, k)
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
+	}
+}
+
+func TestMoney_AddMultiple2(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		expected int64
+	}{
+		{5, 2, 5, 12},
+		{10, 3, 5, 18},
+		{1, 0, -1, 0},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount1, "EUR")
+		om := New(tc.amount2, "EUR")
+		k := New(tc.amount3, "EUR")
+		r, err := m.AddMultiple(om, k)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.Amount() != tc.expected {
+			t.Errorf("Expected %d + %d = %d got %d", tc.amount1, tc.amount2,
+				tc.expected, r.amount.val)
+		}
+	}
+}
+
+func TestMoney_AddMultiple3(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		amount4  int64
+		expected int64
+	}{
+		{5, 2, 5, 100, 112},
+		{10, 3, 5, 50, 68},
+		{1, 0, -1, 40, 40},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount1, "EUR")
+		om := New(tc.amount2, "EUR")
+		k := New(tc.amount3, "EUR")
+		l := New(tc.amount4, "EUR")
+		r, err := m.AddMultiple(om, k, l)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.Amount() != tc.expected {
+			t.Errorf("Expected %d + %d = %d got %d", tc.amount1, tc.amount2,
+				tc.expected, r.amount.val)
+		}
+	}
+}
 func TestMoney_Subtract(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
@@ -344,6 +415,76 @@ func TestMoney_Subtract2(t *testing.T) {
 	}
 }
 
+func TestMoney_SubtractMultiple1(t *testing.T) {
+	m := New(100, "EUR")
+	dm := New(100, "GBP")
+	dkm := New(100, "GBP")
+	r, err := m.SubtractMultiple(dm, dkm)
+
+	if r != nil || err == nil {
+		t.Error("Expected err")
+	}
+}
+
+func TestMoney_SubtractMultiple2(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		expected int64
+	}{
+		{6, 5, 1, 0},
+		{10, 5, 1, 4},
+		{1, -1, 1, 1},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount1, "EUR")
+		om := New(tc.amount2, "EUR")
+		k := New(tc.amount3, "EUR")
+		r, err := m.SubtractMultiple(om, k)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.amount.val != tc.expected {
+			t.Errorf("Expected %d - %d = %d got %d", tc.amount1, tc.amount2,
+				tc.expected, r.amount.val)
+		}
+	}
+}
+
+func TestMoney_SubtractMultiple3(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		amount4  int64
+		expected int64
+	}{
+		{10, 5, 1, 2, 2},
+		{30, 10, 1, 4, 15},
+		{100, -1, 1, 1, 99},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount1, "EUR")
+		om := New(tc.amount2, "EUR")
+		k := New(tc.amount3, "EUR")
+		l := New(tc.amount4, "EUR")
+		r, err := m.SubtractMultiple(om, k, l)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.amount.val != tc.expected {
+			t.Errorf("Expected %d - %d = %d got %d", tc.amount1, tc.amount2,
+				tc.expected, r.amount.val)
+		}
+	}
+}
 func TestMoney_Multiply(t *testing.T) {
 	tcs := []struct {
 		amount     int64
