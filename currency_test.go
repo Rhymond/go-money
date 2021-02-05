@@ -27,11 +27,21 @@ func TestCurrency_Get1(t *testing.T) {
 	code := "RANDOM"
 	c := newCurrency(code).get()
 
-	if c.Grapheme != code {
-		t.Errorf("Expected %s got %s", c.Grapheme, code)
+	if c.Code != defaultCurrency {
+		t.Errorf("Expected %s got %s", c.Code, code)
 	}
+
 }
 
+func TestCurrency_Get2(t *testing.T) {
+	code := "RANDOM"
+
+	ChangeDefaultCurrency("GBP")
+	c1 := newCurrency(code).get()
+	if c1.Code != defaultCurrency {
+		t.Errorf("Expected %s got %s", c1.Code, defaultCurrency)
+	}
+}
 func TestCurrency_Equals(t *testing.T) {
 	tcs := []struct {
 		code  string

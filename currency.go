@@ -15,6 +15,9 @@ type Currency struct {
 	Thousand    string
 }
 
+// default currency
+var defaultCurrency = "USD"
+
 // currencies represents a collection of currency.
 var currencies = map[string]*Currency{
 	"AED": {Decimal: ".", Thousand: ",", Code: "AED", Fraction: 2, NumericCode: "784", Grapheme: ".\u062f.\u0625", Template: "1 $"},
@@ -211,6 +214,14 @@ func GetCurrency(code string) *Currency {
 	return currencies[code]
 }
 
+// ChangeDefaultCurrency changes the default currency
+func ChangeDefaultCurrency(code string) {
+	if _, ok := currencies[code]; ok {
+		defaultCurrency = code
+	}
+	return
+}
+
 // Formatter returns currency formatter representing
 // used currency structure.
 func (c *Currency) Formatter() *Formatter {
@@ -235,7 +246,7 @@ func (c *Currency) get() *Currency {
 		return curr
 	}
 
-	return c.getDefault()
+	return currencies[defaultCurrency]
 }
 
 func (c *Currency) equals(oc *Currency) bool {
