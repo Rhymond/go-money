@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/shopspring/decimal"
 )
 
 func TestNew(t *testing.T) {
@@ -683,5 +685,54 @@ func TestCustomUnmarshal(t *testing.T) {
 
 	if m.Display() != expected {
 		t.Errorf("Expected %s got %s", expected, m.Display())
+	}
+}
+
+func TestFromMajorUnits(t *testing.T) {
+	amount, _ := decimal.NewFromString("100.32")
+	money := FromMajorUnits(amount, "USD")
+
+	expected := int64(10032)
+	got := money.Amount()
+	if got != expected {
+		t.Errorf("Expected %v got %v", expected, got)
+	}
+
+	amount, _ = decimal.NewFromString("55365")
+	money = FromMajorUnits(amount, "BIF")
+
+	expected = int64(55365)
+	got = money.Amount()
+	if got != expected {
+		t.Errorf("Expected %v got %v", expected, got)
+	}
+
+	amount, _ = decimal.NewFromString("12.345")
+	money = FromMajorUnits(amount, "BHD")
+
+	expected = int64(12345)
+	got = money.Amount()
+	if got != expected {
+		t.Errorf("Expected %v got %v", expected, got)
+	}
+}
+
+func TestFromMajorUnitsRounding(t *testing.T) {
+	amount, _ := decimal.NewFromString("100.3234")
+	money := FromMajorUnits(amount, "USD")
+
+	expected := int64(10032)
+	got := money.Amount()
+	if got != expected {
+		t.Errorf("Expected %v got %v", expected, got)
+	}
+
+	amount, _ = decimal.NewFromString("12.346")
+	money = FromMajorUnits(amount, "USD")
+
+	expected = int64(1234)
+	got = money.Amount()
+	if got != expected {
+		t.Errorf("Expected %v got %v", expected, got)
 	}
 }

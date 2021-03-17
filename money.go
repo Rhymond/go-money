@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+
+	"github.com/shopspring/decimal"
 )
 
 // Injection points for backward compatibility.
@@ -52,6 +55,17 @@ func New(amount int64, code string) *Money {
 		amount:   &Amount{val: amount},
 		currency: newCurrency(code).get(),
 	}
+}
+
+func FromMajorUnits(amount decimal.Decimal, code string) *Money {
+	currency := newCurrency(code).get()
+	multiple := decimal.NewFromFloat(math.Pow10(currency.Fraction))
+	minorUnits := amount.Mul(multiple)
+	return New(minorUnits.BigInt().Int64(), code)
+}
+
+func FromMinorUnits(amount int64, code string) *Money {
+	return New(amount, code)
 }
 
 // Currency returns the currency used by Money.
