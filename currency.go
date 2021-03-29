@@ -80,7 +80,7 @@ var currencies = map[string]*Currency{
 	"HNL": {Decimal: ".", Thousand: ",", Code: "HNL", Fraction: 2, NumericCode: "340", Grapheme: "L", Template: "$1"},
 	"HRK": {Decimal: ",", Thousand: ".", Code: "HRK", Fraction: 2, NumericCode: "191", Grapheme: "kn", Template: "1 $"},
 	"HTG": {Decimal: ",", Thousand: ".", Code: "HTG", Fraction: 2, NumericCode: "332", Grapheme: "G", Template: "1 $"},
-	"HUF": {Decimal: ".", Thousand: ",", Code: "HUF", Fraction: 0, NumericCode: "348", Grapheme: "Ft", Template: "$1"},
+	"HUF": {Decimal: ",", Thousand: ".", Code: "HUF", Fraction: 0, NumericCode: "348", Grapheme: "Ft", Template: "1 $"},
 	"IDR": {Decimal: ".", Thousand: ",", Code: "IDR", Fraction: 2, NumericCode: "360", Grapheme: "Rp", Template: "$1"},
 	"ILS": {Decimal: ".", Thousand: ",", Code: "ILS", Fraction: 2, NumericCode: "376", Grapheme: "\u20aa", Template: "$1"},
 	"IMP": {Decimal: ".", Thousand: ",", Code: "IMP", Fraction: 2, NumericCode: "", Grapheme: "\u00a3", Template: "$1"},
