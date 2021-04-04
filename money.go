@@ -54,6 +54,25 @@ func New(amount int64, code string) *Money {
 	}
 }
 
+// NewFromStringWithCode parses a given money string, and returns a new instance of Money
+// (e.g. "GBP 1.00")
+func NewFromFormattedStringWithCode(amount string) (*Money, error) {
+	currency, err := inferCurrencyFromString(amount)
+	if err != nil {
+		return nil, err
+	}
+
+	intAmount, err := parseFormattedString(amount, currency)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Money{
+		amount:   &Amount{val: intAmount},
+		currency: currency,
+	}, nil
+}
+
 // Currency returns the currency used by Money.
 func (m *Money) Currency() *Currency {
 	return m.currency
@@ -257,6 +276,12 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 func (m *Money) Display() string {
 	c := m.currency.get()
 	return c.Formatter().Format(m.amount.val)
+}
+
+// Display represents Money as a human readable value with currency code (e.g. GBP 1.00)
+func (m *Money) DisplayWithCode() string {
+	c := m.currency.get()
+	return c.Formatter().FormatWithCurrencyCode(m.amount.val)
 }
 
 // AsMajorUnits lets represent Money struct as subunits (float64) in given Currency value

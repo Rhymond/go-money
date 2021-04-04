@@ -685,3 +685,58 @@ func TestCustomUnmarshal(t *testing.T) {
 		t.Errorf("Expected %s got %s", expected, m.Display())
 	}
 }
+
+func TestNewFromFormattedStringWithCode(t *testing.T) {
+	tests := []struct {
+		name    string
+		amount  string
+		want    *Money
+		wantErr bool
+	}{
+		{
+			name:   "GBP string with empty decimal",
+			amount: "GBP 1.00",
+			want: &Money{
+				amount: &Amount{
+					val: 100,
+				},
+				currency: currencies["GBP"],
+			},
+			wantErr: false,
+		},
+		{
+			name:   "USD string with decimal",
+			amount: "USD 123.45",
+			want: &Money{
+				amount: &Amount{
+					val: 12345,
+				},
+				currency: currencies["USD"],
+			},
+			wantErr: false,
+		},
+		{
+			name:   "USD string with thousands and decimal",
+			amount: "USD 123,456.78",
+			want: &Money{
+				amount: &Amount{
+					val: 12345678,
+				},
+				currency: currencies["USD"],
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewFromFormattedStringWithCode(tt.amount)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewFromFormattedStringWithCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewFromFormattedStringWithCode() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

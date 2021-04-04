@@ -1,6 +1,7 @@
 package money
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -220,6 +221,7 @@ func (c *Currency) Formatter() *Formatter {
 		Thousand: c.Thousand,
 		Grapheme: c.Grapheme,
 		Template: c.Template,
+		Code:     c.Code,
 	}
 }
 
@@ -240,4 +242,17 @@ func (c *Currency) get() *Currency {
 
 func (c *Currency) equals(oc *Currency) bool {
 	return c.Code == oc.Code
+}
+
+// inferCurrencyFromString infers the currency of a given string of money in a best effort approach
+func inferCurrencyFromString(s string) (*Currency, error) {
+	// Iterate through known currencies and check if the currency code exists
+	for _, currency := range currencies {
+		// If we find the code, assume this is the right currency (e.g. GBP 1.00)
+		if strings.Contains(s, currency.Code) {
+			return currency, nil
+		}
+	}
+
+	return nil, errors.New("unknown currency")
 }

@@ -86,3 +86,50 @@ func TestCurrency_GetNonExistingCurrency(t *testing.T) {
 		t.Errorf("Unexpected currency returned %+v", currency)
 	}
 }
+
+func Test_inferCurrencyFromString(t *testing.T) {
+	tests := []struct {
+		name        string
+		moneyString string
+		want        *Currency
+		wantErr     bool
+	}{
+		{
+			name:        "GBP code",
+			moneyString: "GBP 1.00",
+			want:        currencies["GBP"],
+			wantErr:     false,
+		},
+		{
+			name:        "USD code",
+			moneyString: "USD 1.00",
+			want:        currencies["USD"],
+			wantErr:     false,
+		},
+		{
+			name:        "formatted string",
+			moneyString: New(1000, "GBP").DisplayWithCode(),
+			want:        currencies["GBP"],
+			wantErr:     false,
+		},
+		{
+			name:        "no currency",
+			moneyString: "1.00",
+			want:        nil,
+			wantErr:     true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := inferCurrencyFromString(tc.moneyString)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("inferCurrencyFromString() error = %v, wantErr %v", err, tc.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("inferCurrencyFromString() got = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
