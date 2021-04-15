@@ -10,6 +10,7 @@ func TestCurrency_Get(t *testing.T) {
 		code     string
 		expected string
 	}{
+		{EUR, "EUR"},
 		{"EUR", "EUR"},
 		{"Eur", "EUR"},
 	}
@@ -37,6 +38,7 @@ func TestCurrency_Equals(t *testing.T) {
 		code  string
 		other string
 	}{
+		{EUR, "EUR"},
 		{"EUR", "EUR"},
 		{"Eur", "EUR"},
 		{"usd", "USD"},
