@@ -145,7 +145,7 @@ var currencies = map[string]*Currency{
 	SBD: {Decimal: ".", Thousand: ",", Code: SBD, Fraction: 2, NumericCode: "090", Grapheme: "$", Template: "$1"},
 	SCR: {Decimal: ".", Thousand: ",", Code: SCR, Fraction: 2, NumericCode: "690", Grapheme: "\u20a8", Template: "$1"},
 	SDG: {Decimal: ".", Thousand: ",", Code: SDG, Fraction: 2, NumericCode: "938", Grapheme: "\u00a3", Template: "$1"},
-	SEK: {Decimal: ".", Thousand: ",", Code: SEK, Fraction: 2, NumericCode: "752", Grapheme: "kr", Template: "1 $"},
+	SEK: {Decimal: ",", Thousand: ".", Code: SEK, Fraction: 2, NumericCode: "752", Grapheme: "kr", Template: "1 $"},
 	SGD: {Decimal: ".", Thousand: ",", Code: SGD, Fraction: 2, NumericCode: "702", Grapheme: "$", Template: "$1"},
 	SHP: {Decimal: ".", Thousand: ",", Code: SHP, Fraction: 2, NumericCode: "654", Grapheme: "\u00a3", Template: "$1"},
 	SKK: {Decimal: ".", Thousand: ",", Code: SKK, Fraction: 2, NumericCode: "", Grapheme: "Sk", Template: "$1"},
