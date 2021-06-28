@@ -2,6 +2,7 @@ package money
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -273,4 +274,60 @@ func (m *Money) UnmarshalJSON(b []byte) error {
 // MarshalJSON is implementation of json.Marshaller
 func (m Money) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(m)
+}
+
+// Scan is an implementation the database/sql scanner interface
+func (a *Amount) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	data, ok := value.(int64)
+	if !ok {
+		return errors.New("Type assertion .(int64) failed.")
+	}
+	*a = Amount{
+		val: data,
+	}
+	return nil
+}
+
+// Value is an implementation of driver.Value
+func (a Amount) Value() (driver.Value, error) {
+	return a.val, nil
+}
+
+// Scan is an implementation the database/sql scanner interface
+func (c *Currency) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	data, ok := value.(string)
+	if !ok {
+		return errors.New("Type assertion .(string) failed.")
+	}
+	*c = *newCurrency(data).get()
+	return nil
+}
+
+// Value is an implementation of driver.Value
+func (c Currency) Value() (driver.Value, error) {
+	return c.Code, nil
+}
+
+// Scan is an implementation the database/sql scanner interface
+func (m *Money) Scan(value interface{}) error {
+	if value == nil {
+		m = nil
+		return nil
+	}
+	data, ok := value.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+	return json.Unmarshal(data, &m)
+}
+
+// Value is an implementation of driver.Value
+func (m Money) Value() (driver.Value, error) {
+	return json.Marshal(m)
 }
