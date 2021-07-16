@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-16.04
     strategy:
       matrix:
-        go: [ '1.10', '1.11', '1.12', '1.13', '1.14', '1.15', '1.16' ]
+        go: [ '1.14', '1.15', '1.16' ]
     name: Running Tests on Go ${{ matrix.go }}
     steps:
       - uses: actions/checkout@v2
