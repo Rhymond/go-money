@@ -16,6 +16,9 @@ var (
 	UnmarshalJSON = defaultUnmarshalJSON
 	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
 	MarshalJSON = defaultMarshalJSON
+
+	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
+	ErrCurrencyMismatch = errors.New("currencies don't match")
 )
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
@@ -71,7 +74,7 @@ func (m *Money) SameCurrency(om *Money) bool {
 
 func (m *Money) assertSameCurrency(om *Money) error {
 	if !m.SameCurrency(om) {
-		return errors.New("currencies don't match")
+		return ErrCurrencyMismatch
 	}
 
 	return nil
