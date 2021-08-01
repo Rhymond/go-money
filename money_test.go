@@ -3,6 +3,7 @@ package money
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -75,6 +76,18 @@ func TestMoney_Equals(t *testing.T) {
 			t.Errorf("Expected %d Equals %d == %t got %t", m.amount.val,
 				om.amount.val, tc.expected, r)
 		}
+	}
+}
+
+func TestMoney_Equals_DifferentCurrencies(t *testing.T) {
+	t.Parallel()
+
+	eur := New(0, EUR)
+	usd := New(0, USD)
+
+	_, err := eur.Equals(usd)
+	if err == nil || !errors.Is(ErrCurrencyMismatch, err) {
+		t.Errorf("Expected Equals to return %q, got %v", ErrCurrencyMismatch.Error(), err)
 	}
 }
 
