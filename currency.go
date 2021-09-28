@@ -230,7 +230,7 @@ func GetCurrency(code string) *Currency {
 }
 
 // GetCurrencyByNumericCode returns the currency given the numeric code defined in ISO-4271.
-func GetCurrencyByNumericCode(code string) (*Currency, error) {
+func CurrencyByNumericCode(code string) (*Currency, error) {
 	if code == "" {
 		return nil, ErrCurrencyNotFound
 	}
