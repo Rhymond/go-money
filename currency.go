@@ -16,7 +16,7 @@ type Currency struct {
 	Thousand    string
 }
 
-var(
+var (
 	// ErrCurrencyNotFound happens when it wasn't possible to find the currency by the given parameter.
 	ErrCurrencyNotFound = errors.New("currency not found")
 
@@ -236,13 +236,12 @@ func GetCurrencyByNumericCode(code string) (*Currency, error) {
 	}
 
 	currency, ok := currenciesByNumericCode[code]
-	if !ok || currency.Code == ""{
+	if !ok || currency.Code == "" {
 		return nil, ErrCurrencyNotFound
 	}
 
 	return currency, nil
 }
-
 
 // Formatter returns currency formatter representing
 // used currency structure.
