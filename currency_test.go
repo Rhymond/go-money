@@ -94,9 +94,9 @@ func TestGetCurrencyByNumericCode(t *testing.T) {
 		code string
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    *Currency
+		name string
+		args args
+		want *Currency
 	}{
 		{
 			"happy-currency-find",
@@ -116,7 +116,7 @@ func TestGetCurrencyByNumericCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got  := CurrencyByNumericCode(tt.args.code)
+			got := CurrencyByNumericCode(tt.args.code)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetCurrencyByNumericCode() got = %v, want %v", got, tt.want)
 			}
