@@ -192,11 +192,11 @@ var (
 		ZMW: {Decimal: ".", Thousand: ",", Code: ZMW, Fraction: 2, NumericCode: "967", Grapheme: "ZK", Template: "$1"},
 		ZWD: {Decimal: ".", Thousand: ",", Code: ZWD, Fraction: 2, NumericCode: "932", Grapheme: "Z$", Template: "$1"},
 	}
-	currenciesByNumericCode = loadCurrencies()
+	currenciesByNumericCode = loadMapByNumericCodeCurrencies()
 )
 
-// loadCurrencies adds a second map with its key value being the numeric ISO code.
-func loadCurrencies() (currenciesByCode map[string]*Currency) {
+// loadMapByNumericCodeCurrencies adds a second map with its key value being the numeric ISO code.
+func loadMapByNumericCodeCurrencies() (currenciesByCode map[string]*Currency) {
 	currenciesByCode = make(map[string]*Currency)
 	for _, currency := range currencies {
 		if currency.NumericCode != "" {
