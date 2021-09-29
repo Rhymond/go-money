@@ -88,3 +88,38 @@ func TestCurrency_GetNonExistingCurrency(t *testing.T) {
 		t.Errorf("Unexpected currency returned %+v", currency)
 	}
 }
+
+func TestGetCurrencyByNumericCode(t *testing.T) {
+	type args struct {
+		code string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Currency
+	}{
+		{
+			"happy-currency-find",
+			args{code: "986"},
+			&Currency{Decimal: ",", Thousand: ".", Code: BRL, Fraction: 2, NumericCode: "986", Grapheme: "R$", Template: "$1"},
+		},
+		{
+			"happy-currency-not-found",
+			args{code: "1111"},
+			nil,
+		},
+		{
+			"happy-currency-empty",
+			args{code: ""},
+			nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CurrencyByNumericCode(tt.args.code)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetCurrencyByNumericCode() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
