@@ -26,6 +26,14 @@ func TestMoney_Scan(t *testing.T) {
 			want: New(30000, IDR),
 		},
 		{
+			src: "10,",
+			wantErr: true,
+		},
+		{
+			src: ",SAR",
+			wantErr: true,
+		},
+		{
 			src: "10",
 			wantErr: true,
 		},
@@ -34,7 +42,7 @@ func TestMoney_Scan(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			src: "USD, 10",
+			src: "USD,10",
 			wantErr: true,
 		},
 		{
