@@ -42,21 +42,19 @@ type Numeric interface {
 }
 
 // Amount is a datastructure that stores the amount being used for calculations.
-type Amount[T Numeric] struct {
-	val T
-}
+type Amount[T Numeric] T
 
 // Money represents monetary value information, stores
 // currency and amount value.
-type Money struct {
-	amount   *Amount
+type Money[T Numeric] struct {
+	amount   Amount
 	currency *Currency
 }
 
 // New creates and returns new instance of Money.
 func New[T Numeric](amount T, code string) *Money {
 	return &Money{
-		amount:   &Amount{val: amount},
+		amount:   Amount(amount),
 		currency: newCurrency(code).get(),
 	}
 }
@@ -67,8 +65,8 @@ func (m *Money) Currency() *Currency {
 }
 
 // Amount returns a copy of the internal monetary value as an int64.
-func (m *Money) Amount() Numeric {
-	return m.amount.val
+func (m *Money[T]) Amount() T {
+	return m.amount
 }
 
 // SameCurrency check if given Money is equals by currency.
@@ -86,9 +84,9 @@ func (m *Money) assertSameCurrency(om *Money) error {
 
 func (m *Money) compare(om *Money) int {
 	switch {
-	case m.amount.val > om.amount.val:
+	case m.amount > om.amount:
 		return 1
-	case m.amount.val < om.amount.val:
+	case m.amount < om.amount:
 		return -1
 	}
 
@@ -142,17 +140,17 @@ func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 
 // IsZero returns boolean of whether the value of Money is equals to zero.
 func (m *Money) IsZero() bool {
-	return m.amount.val == 0
+	return m.amount == 0
 }
 
 // IsPositive returns boolean of whether the value of Money is positive.
 func (m *Money) IsPositive() bool {
-	return m.amount.val > 0
+	return m.amount > 0
 }
 
 // IsNegative returns boolean of whether the value of Money is negative.
 func (m *Money) IsNegative() bool {
-	return m.amount.val < 0
+	return m.amount < 0
 }
 
 // Absolute returns new Money struct from given Money using absolute monetary value.

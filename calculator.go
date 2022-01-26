@@ -4,16 +4,16 @@ import "math"
 
 type calculator struct{}
 
-func (c *calculator) add(a, b *Amount) *Amount {
-	return &Amount{a.val + b.val}
+func (c *calculator) add(a, b Amount) Amount {
+	return a + b
 }
 
-func (c *calculator) subtract(a, b *Amount) *Amount {
-	return &Amount{a.val - b.val}
+func (c *calculator) subtract(a, b Amount) Amount {
+	return a - b
 }
 
-func (c *calculator) multiply(a *Amount, m int64) *Amount {
-	return &Amount{a.val * m}
+func (c *calculator) multiply(a Amount, m int64) Amount {
+	return a * Numeric(m)
 }
 
 func (c *calculator) divide(a *Amount, d int64) *Amount {
