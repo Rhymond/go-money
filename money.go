@@ -37,9 +37,13 @@ func defaultMarshalJSON(m Money) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
+type Numeric interface {
+	int | int64
+}
+
 // Amount is a datastructure that stores the amount being used for calculations.
-type Amount struct {
-	val int64
+type Amount[T Numeric] struct {
+	val T
 }
 
 // Money represents monetary value information, stores
@@ -50,7 +54,7 @@ type Money struct {
 }
 
 // New creates and returns new instance of Money.
-func New(amount int64, code string) *Money {
+func New[T Numeric](amount T, code string) *Money {
 	return &Money{
 		amount:   &Amount{val: amount},
 		currency: newCurrency(code).get(),
@@ -63,7 +67,7 @@ func (m *Money) Currency() *Currency {
 }
 
 // Amount returns a copy of the internal monetary value as an int64.
-func (m *Money) Amount() int64 {
+func (m *Money) Amount() Numeric {
 	return m.amount.val
 }
 
