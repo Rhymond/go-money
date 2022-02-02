@@ -13,10 +13,15 @@ This package provides basic and precise Money operations such as rounding, split
 ```go
 package main
 
-import "github.com/Rhymond/go-money"
+import (
+    "fmt"
+    "log"
+    
+    "github.com/Rhymond/go-money"
+)
 
 func main() {
-    pound := money.New(100, money.GBP)
+    pound := money.New(100, "GBP")
     twoPounds, err := pound.Add(pound)
 
     if err != nil {
@@ -29,9 +34,9 @@ func main() {
         log.Fatal(err)
     }
 
-    parties[0].Display() // £0.67
-    parties[1].Display() // £0.67
-    parties[2].Display() // £0.66
+    for _, v := range parties {
+        fmt.Println(v.Display())
+    }
 }
 
 ```
