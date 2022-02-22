@@ -639,6 +639,19 @@ func TestDefaultMarshal(t *testing.T) {
 	if string(b) != expected {
 		t.Errorf("Expected %s got %s", expected, string(b))
 	}
+
+	given = &Money{}
+	expected = `{"amount":0,"currency":""}`
+
+	b, err = json.Marshal(given)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(b) != expected {
+		t.Errorf("Expected %s got %s", expected, string(b))
+	}
 }
 
 func TestCustomMarshal(t *testing.T) {
