@@ -685,6 +685,16 @@ func TestDefaultUnmarshal(t *testing.T) {
 	if m.Display() != expected {
 		t.Errorf("Expected %s got %s", expected, m.Display())
 	}
+
+	given = `{"amount": 0, "currency":""}`
+	err = json.Unmarshal([]byte(given), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m != (Money{}) {
+		t.Errorf("Expected zero value, got %+v", m)
+	}
 }
 
 func TestCustomUnmarshal(t *testing.T) {
