@@ -35,7 +35,7 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 	if amount == 0 && currency == "" {
 		ref = &Money{}
 	} else {
-		ref = New(int64(data["amount"].(float64)), data["currency"].(string))
+		ref = New(amount, currency)
 	}
 
 	*m = *ref
