@@ -28,15 +28,14 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 		return err
 	}
 
-	amountRaw := data["amount"]
 	var amount float64
-	if amountRaw != nil {
+	if amountRaw, ok := data["amount"]; ok {
 		amount = amountRaw.(float64)
 	}
-	currencyRaw := data["currency"]
+
 	var currency string
-	if currencyRaw != nil {
-		currency = data["currency"].(string)
+	if currencyRaw, ok := data["currency"]; ok {
+		currency = currencyRaw.(string)
 	}
 
 	var ref *Money
