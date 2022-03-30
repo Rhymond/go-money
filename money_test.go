@@ -639,6 +639,19 @@ func TestDefaultMarshal(t *testing.T) {
 	if string(b) != expected {
 		t.Errorf("Expected %s got %s", expected, string(b))
 	}
+
+	given = &Money{}
+	expected = `{"amount":0,"currency":""}`
+
+	b, err = json.Marshal(given)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if string(b) != expected {
+		t.Errorf("Expected %s got %s", expected, string(b))
+	}
 }
 
 func TestCustomMarshal(t *testing.T) {
@@ -671,6 +684,38 @@ func TestDefaultUnmarshal(t *testing.T) {
 
 	if m.Display() != expected {
 		t.Errorf("Expected %s got %s", expected, m.Display())
+	}
+
+	given = `{"amount": 0, "currency":""}`
+	err = json.Unmarshal([]byte(given), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m != (Money{}) {
+		t.Errorf("Expected zero value, got %+v", m)
+	}
+
+	given = `{}`
+	err = json.Unmarshal([]byte(given), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m != (Money{}) {
+		t.Errorf("Expected zero value, got %+v", m)
+	}
+
+	given = `{"amount": "foo", "currency": "USD"}`
+	err = json.Unmarshal([]byte(given), &m)
+	if !errors.Is(err, ErrInvalidJSONUnmarshal) {
+		t.Errorf("Expected ErrInvalidJSONUnmarshal, got %+v", err)
+	}
+
+	given = `{"amount": 1234, "currency": 1234}`
+	err = json.Unmarshal([]byte(given), &m)
+	if !errors.Is(err, ErrInvalidJSONUnmarshal) {
+		t.Errorf("Expected ErrInvalidJSONUnmarshal, got %+v", err)
 	}
 }
 
