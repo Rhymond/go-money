@@ -19,6 +19,9 @@ var (
 
 	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
 	ErrCurrencyMismatch = errors.New("currencies don't match")
+
+	// ErrInvalidJSONUnmarshal happens when the default money.UnmarshalJSON fails to unmarshal Money because of invalid data.
+	ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
 )
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
@@ -30,12 +33,18 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 
 	var amount float64
 	if amountRaw, ok := data["amount"]; ok {
-		amount = amountRaw.(float64)
+		amount, ok = amountRaw.(float64)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
 	}
 
 	var currency string
 	if currencyRaw, ok := data["currency"]; ok {
-		currency = currencyRaw.(string)
+		currency, ok = currencyRaw.(string)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
 	}
 
 	var ref *Money
