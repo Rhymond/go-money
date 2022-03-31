@@ -117,34 +117,22 @@ func TestCurrencies(t *testing.T) {
 	}
 	cs = cs.Add(curBar)
 
-	ac, ok := cs.CurrencyByCode(currencyFooCode)
-	if !ok {
-		t.Fatalf("expected to find currency by code %s", currencyFooCode)
-	}
+	ac := cs.CurrencyByCode(currencyFooCode)
 	if !curFoo.equals(ac) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", curFoo, ac)
 	}
 
-	ac, ok = cs.CurrencyByNumericCode(currencyFooNumericCode)
-	if !ok {
-		t.Fatalf("expected to find currency by numeric code %s", currencyFooCode)
-	}
+	ac = cs.CurrencyByNumericCode(currencyFooNumericCode)
 	if !curFoo.equals(ac) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", curFoo, ac)
 	}
 
-	ac, ok = cs.CurrencyByCode(currencyBarCode)
-	if !ok {
-		t.Fatalf("expected to find currency by code %s", currencyBarCode)
-	}
+	ac = cs.CurrencyByCode(currencyBarCode)
 	if !curBar.equals(ac) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", curBar, ac)
 	}
 
-	ac, ok = cs.CurrencyByNumericCode(currencyBarNumericCode)
-	if !ok {
-		t.Fatalf("expected to find currency by numeric code %s", currencyBarCode)
-	}
+	ac = cs.CurrencyByNumericCode(currencyBarNumericCode)
 	if !curBar.equals(ac) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", curBar, ac)
 	}

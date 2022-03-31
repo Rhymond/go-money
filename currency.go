@@ -18,20 +18,24 @@ type Currency struct {
 type Currencies map[string]*Currency
 
 // CurrencyByNumericCode returns the currency given the numeric code defined in ISO-4271.
-func (c Currencies) CurrencyByNumericCode(code string) (*Currency, bool) {
+func (c Currencies) CurrencyByNumericCode(code string) *Currency {
 	for _, sc := range c {
 		if sc.NumericCode == code {
-			return sc, true
+			return sc
 		}
 	}
 
-	return nil, false
+	return nil
 }
 
 // CurrencyByCode returns the currency given the currency code defined as a constant.
-func (c Currencies) CurrencyByCode(code string) (*Currency, bool) {
+func (c Currencies) CurrencyByCode(code string) *Currency {
 	sc, ok := c[code]
-	return sc, ok
+	if !ok {
+		return nil
+	}
+
+	return sc
 }
 
 // Add updates currencies list by adding a given Currency to it.
@@ -233,8 +237,7 @@ func newCurrency(code string) *Currency {
 
 // GetCurrency returns the currency given the code.
 func GetCurrency(code string) *Currency {
-	c, _ := currencies.CurrencyByCode(code)
-	return c
+	return currencies.CurrencyByCode(code)
 }
 
 // Formatter returns currency formatter representing
