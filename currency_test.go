@@ -88,3 +88,64 @@ func TestCurrency_GetNonExistingCurrency(t *testing.T) {
 		t.Errorf("Unexpected currency returned %+v", currency)
 	}
 }
+
+func TestCurrencies(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const currencyFooNumericCode = "1234"
+	curFoo := &Currency{
+		Code:        currencyFooCode,
+		NumericCode: currencyFooNumericCode,
+		Fraction:    10,
+		Grapheme:    "1",
+		Template:    "2",
+		Decimal:     "3",
+		Thousand:    "4",
+	}
+	var cs = Currencies{
+		currencyFooCode: curFoo,
+	}
+	const currencyBarCode = "BAR"
+	const currencyBarNumericCode = "4321"
+	curBar := &Currency{
+		Code:        currencyBarCode,
+		NumericCode: currencyBarNumericCode,
+		Fraction:    1,
+		Grapheme:    "2",
+		Template:    "3",
+		Decimal:     "4",
+		Thousand:    "5",
+	}
+	cs = cs.Add(curBar)
+
+	ac, ok := cs.CurrencyByCode(currencyFooCode)
+	if !ok {
+		t.Fatalf("expected to find currency by code %s", currencyFooCode)
+	}
+	if !curFoo.equals(ac) {
+		t.Errorf("unexpected currency returned. expected: %v, got %v", curFoo, ac)
+	}
+
+	ac, ok = cs.CurrencyByNumericCode(currencyFooNumericCode)
+	if !ok {
+		t.Fatalf("expected to find currency by numeric code %s", currencyFooCode)
+	}
+	if !curFoo.equals(ac) {
+		t.Errorf("unexpected currency returned. expected: %v, got %v", curFoo, ac)
+	}
+
+	ac, ok = cs.CurrencyByCode(currencyBarCode)
+	if !ok {
+		t.Fatalf("expected to find currency by code %s", currencyBarCode)
+	}
+	if !curBar.equals(ac) {
+		t.Errorf("unexpected currency returned. expected: %v, got %v", curBar, ac)
+	}
+
+	ac, ok = cs.CurrencyByNumericCode(currencyBarNumericCode)
+	if !ok {
+		t.Fatalf("expected to find currency by numeric code %s", currencyBarCode)
+	}
+	if !curBar.equals(ac) {
+		t.Errorf("unexpected currency returned. expected: %v, got %v", curBar, ac)
+	}
+}
