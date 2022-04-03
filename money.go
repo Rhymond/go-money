@@ -241,7 +241,7 @@ func (m *Money[T]) Split(n T) ([]*Money[T], error) {
 	var p T
 	v := T(1)
 	if a.val < 0 {
-		v = T(-1)
+		v = -1
 	}
 
 	for p = 0; l != T(0); p++ {
