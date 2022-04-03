@@ -653,25 +653,6 @@ func TestDefaultMarshal(t *testing.T) {
 	}
 }
 
-// func TestCustomMarshal(t *testing.T) {
-// 	given := New(12345, IQD)
-// 	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
-// 	MarshalJSON = func(m Money[int]) ([]byte, error) {
-// 		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
-// 		return buff.Bytes(), nil
-// 	}
-//
-// 	b, err := json.Marshal(given)
-//
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-//
-// 	if string(b) != expected {
-// 		t.Errorf("Expected %s got %s", expected, string(b))
-// 	}
-// }
-
 func TestDefaultUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency":"USD"}`
 	expected := "$100.12"

@@ -12,11 +12,6 @@ import (
 //   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
 //   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
-	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
-	// UnmarshalJSON = defaultUnmarshalJSON[int64]
-	// MarshalJSON is injection point of json.Marshaller for money.Money
-	// MarshalJSON = defaultMarshalJSON[int64]
-
 	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
 	ErrCurrencyMismatch = errors.New("currencies don't match")
 
@@ -51,7 +46,7 @@ func defaultUnmarshalJSON[T Numeric](m *Money[T], b []byte) error {
 	if amount == 0 && currency == "" {
 		ref = &Money[T]{}
 	} else {
-		ref = New[T](T(amount), currency)
+		ref = New(T(amount), currency)
 	}
 
 	*m = *ref
@@ -60,7 +55,7 @@ func defaultUnmarshalJSON[T Numeric](m *Money[T], b []byte) error {
 
 func defaultMarshalJSON[T Numeric](m Money[T]) ([]byte, error) {
 	if m == (Money[T]{}) {
-		m = *New[T](0, "")
+		m = *New(T(0), "")
 	}
 
 	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
@@ -73,7 +68,7 @@ type Amount[T Numeric] struct {
 }
 
 type Numeric interface {
-	~int | ~int64
+	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
 // Money represents monetary value information, stores
@@ -244,11 +239,12 @@ func (m *Money[T]) Split(n T) ([]*Money[T], error) {
 	l := m.calc.absolute(r).val
 	// Add leftovers to the first parties.
 	var p T
+	v := T(1)
+	if a.val < 0 {
+		v = T(-1)
+	}
+
 	for p = 0; l != T(0); p++ {
-		v := T(1)
-		if a.val < 0 {
-			v = -1
-		}
 		ms[p].amount = m.calc.add(ms[p].amount, &Amount[T]{v})
 		l--
 	}
