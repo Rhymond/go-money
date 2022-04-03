@@ -2,55 +2,55 @@ package money
 
 import "math"
 
-type calculator struct{}
+type calculator[T Numeric] struct{}
 
-func (c *calculator) add(a, b *Amount) *Amount {
-	return &Amount{a.val + b.val}
+func (c *calculator[T]) add(a, b *Amount[T]) *Amount[T] {
+	return &Amount[T]{a.val + b.val}
 }
 
-func (c *calculator) subtract(a, b *Amount) *Amount {
-	return &Amount{a.val - b.val}
+func (c *calculator[T]) subtract(a, b *Amount[T]) *Amount[T] {
+	return &Amount[T]{a.val - b.val}
 }
 
-func (c *calculator) multiply(a *Amount, m int64) *Amount {
-	return &Amount{a.val * m}
+func (c *calculator[T]) multiply(a *Amount[T], m T) *Amount[T] {
+	return &Amount[T]{a.val * m}
 }
 
-func (c *calculator) divide(a *Amount, d int64) *Amount {
-	return &Amount{a.val / d}
+func (c *calculator[T]) divide(a *Amount[T], d T) *Amount[T] {
+	return &Amount[T]{a.val / d}
 }
 
-func (c *calculator) modulus(a *Amount, d int64) *Amount {
-	return &Amount{a.val % d}
+func (c *calculator[T]) modulus(a *Amount[T], d T) *Amount[T] {
+	return &Amount[T]{a.val % d}
 }
 
-func (c *calculator) allocate(a *Amount, r, s int) *Amount {
-	return &Amount{a.val * int64(r) / int64(s)}
+func (c *calculator[T]) allocate(a *Amount[T], r, s T) *Amount[T] {
+	return &Amount[T]{a.val * r / s}
 }
 
-func (c *calculator) absolute(a *Amount) *Amount {
+func (c *calculator[T]) absolute(a *Amount[T]) *Amount[T] {
 	if a.val < 0 {
-		return &Amount{-a.val}
+		return &Amount[T]{-a.val}
 	}
 
-	return &Amount{a.val}
+	return &Amount[T]{a.val}
 }
 
-func (c *calculator) negative(a *Amount) *Amount {
+func (c *calculator[T]) negative(a *Amount[T]) *Amount[T] {
 	if a.val > 0 {
-		return &Amount{-a.val}
+		return &Amount[T]{-a.val}
 	}
 
-	return &Amount{a.val}
+	return &Amount[T]{a.val}
 }
 
-func (c *calculator) round(a *Amount, e int) *Amount {
+func (c *calculator[T]) round(a *Amount[T], e int) *Amount[T] {
 	if a.val == 0 {
-		return &Amount{0}
+		return &Amount[T]{0}
 	}
 
 	absam := c.absolute(a)
-	exp := int64(math.Pow(10, float64(e)))
+	exp := T(math.Pow(10, float64(e)))
 	m := absam.val % exp
 
 	if m > (exp / 2) {
@@ -65,5 +65,5 @@ func (c *calculator) round(a *Amount, e int) *Amount {
 		a.val = absam.val
 	}
 
-	return &Amount{a.val}
+	return &Amount[T]{a.val}
 }

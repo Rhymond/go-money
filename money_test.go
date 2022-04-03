@@ -1,10 +1,8 @@
 package money
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -60,7 +58,7 @@ func TestMoney_SameCurrency(t *testing.T) {
 func TestMoney_Equals(t *testing.T) {
 	m := New(0, EUR)
 	tcs := []struct {
-		amount   int64
+		amount   int
 		expected bool
 	}{
 		{-1, false},
@@ -94,7 +92,7 @@ func TestMoney_Equals_DifferentCurrencies(t *testing.T) {
 func TestMoney_GreaterThan(t *testing.T) {
 	m := New(0, EUR)
 	tcs := []struct {
-		amount   int64
+		amount   int
 		expected bool
 	}{
 		{-1, true},
@@ -116,7 +114,7 @@ func TestMoney_GreaterThan(t *testing.T) {
 func TestMoney_GreaterThanOrEqual(t *testing.T) {
 	m := New(0, EUR)
 	tcs := []struct {
-		amount   int64
+		amount   int
 		expected bool
 	}{
 		{-1, true},
@@ -138,7 +136,7 @@ func TestMoney_GreaterThanOrEqual(t *testing.T) {
 func TestMoney_LessThan(t *testing.T) {
 	m := New(0, EUR)
 	tcs := []struct {
-		amount   int64
+		amount   int
 		expected bool
 	}{
 		{-1, false},
@@ -160,7 +158,7 @@ func TestMoney_LessThan(t *testing.T) {
 func TestMoney_LessThanOrEqual(t *testing.T) {
 	m := New(0, EUR)
 	tcs := []struct {
-		amount   int64
+		amount   int
 		expected bool
 	}{
 		{-1, false},
@@ -424,19 +422,21 @@ func TestMoney_RoundWithExponential(t *testing.T) {
 
 func TestMoney_Split(t *testing.T) {
 	tcs := []struct {
-		amount   int64
+		amount   int
 		split    int
-		expected []int64
+		expected []int
 	}{
-		{100, 3, []int64{34, 33, 33}},
-		{100, 4, []int64{25, 25, 25, 25}},
-		{5, 3, []int64{2, 2, 1}},
-		{-101, 4, []int64{-26, -25, -25, -25}},
+		{100, 3, []int{34, 33, 33}},
+		{100, 4, []int{25, 25, 25, 25}},
+		{5, 3, []int{2, 2, 1}},
+		{-101, 4, []int{-26, -25, -25, -25}},
+		{-99, 4, []int{-25, -25, -25, -24}},
+		{1, 3, []int{1, 0, 0}},
 	}
 
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
-		var rs []int64
+		var rs []int
 		split, _ := m.Split(tc.split)
 
 		for _, party := range split {
@@ -460,19 +460,19 @@ func TestMoney_Split2(t *testing.T) {
 
 func TestMoney_Allocate(t *testing.T) {
 	tcs := []struct {
-		amount   int64
+		amount   int
 		ratios   []int
-		expected []int64
+		expected []int
 	}{
-		{100, []int{50, 50}, []int64{50, 50}},
-		{100, []int{30, 30, 30}, []int64{34, 33, 33}},
-		{200, []int{25, 25, 50}, []int64{50, 50, 100}},
-		{5, []int{50, 25, 25}, []int64{3, 1, 1}},
+		{100, []int{50, 50}, []int{50, 50}},
+		{100, []int{30, 30, 30}, []int{34, 33, 33}},
+		{200, []int{25, 25, 50}, []int{50, 50, 100}},
+		{5, []int{50, 25, 25}, []int{3, 1, 1}},
 	}
 
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
-		var rs []int64
+		var rs []int
 		split, _ := m.Allocate(tc.ratios...)
 
 		for _, party := range split {
@@ -641,7 +641,7 @@ func TestDefaultMarshal(t *testing.T) {
 		t.Errorf("Expected %s got %s", expected, string(b))
 	}
 
-	given = &Money{}
+	given = &Money[int]{}
 	expected = `{"amount":0,"currency":""}`
 
 	b, err = json.Marshal(given)
@@ -655,29 +655,10 @@ func TestDefaultMarshal(t *testing.T) {
 	}
 }
 
-func TestCustomMarshal(t *testing.T) {
-	given := New(12345, IQD)
-	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
-	MarshalJSON = func(m Money) ([]byte, error) {
-		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
-		return buff.Bytes(), nil
-	}
-
-	b, err := json.Marshal(given)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if string(b) != expected {
-		t.Errorf("Expected %s got %s", expected, string(b))
-	}
-}
-
 func TestDefaultUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency":"USD"}`
 	expected := "$100.12"
-	var m Money
+	var m Money[int]
 	err := json.Unmarshal([]byte(given), &m)
 	if err != nil {
 		t.Error(err)
@@ -693,7 +674,7 @@ func TestDefaultUnmarshal(t *testing.T) {
 		t.Error(err)
 	}
 
-	if m != (Money{}) {
+	if m != (Money[int]{}) {
 		t.Errorf("Expected zero value, got %+v", m)
 	}
 
@@ -703,7 +684,7 @@ func TestDefaultUnmarshal(t *testing.T) {
 		t.Error(err)
 	}
 
-	if m != (Money{}) {
+	if m != (Money[int]{}) {
 		t.Errorf("Expected zero value, got %+v", m)
 	}
 
@@ -720,27 +701,27 @@ func TestDefaultUnmarshal(t *testing.T) {
 	}
 }
 
-func TestCustomUnmarshal(t *testing.T) {
-	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
-	expected := "$100.12"
-	UnmarshalJSON = func(m *Money, b []byte) error {
-		data := make(map[string]interface{})
-		err := json.Unmarshal(b, &data)
-		if err != nil {
-			return err
-		}
-		ref := New(int64(data["amount"].(float64)), data["currency_code"].(string))
-		*m = *ref
-		return nil
-	}
-
-	var m Money
-	err := json.Unmarshal([]byte(given), &m)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if m.Display() != expected {
-		t.Errorf("Expected %s got %s", expected, m.Display())
-	}
-}
+// func TestCustomUnmarshal(t *testing.T) {
+// 	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
+// 	expected := "$100.12"
+// 	UnmarshalJSON = func(m *Money, b []byte) error {
+// 		data := make(map[string]interface{})
+// 		err := json.Unmarshal(b, &data)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		ref := New(int64(data["amount"].(float64)), data["currency_code"].(string))
+// 		*m = *ref
+// 		return nil
+// 	}
+//
+// 	var m Money
+// 	err := json.Unmarshal([]byte(given), &m)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+//
+// 	if m.Display() != expected {
+// 		t.Errorf("Expected %s got %s", expected, m.Display())
+// 	}
+// }
