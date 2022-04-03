@@ -12,10 +12,10 @@ import (
 //   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
 //   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
-	// UnmarshalJSONFunc is injection point of json.Unmarshaller for money.Money
-	UnmarshalJSON = defaultUnmarshalJSON[int64]
-	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
-	MarshalJSON = defaultMarshalJSON[int64]
+	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
+	// UnmarshalJSON = defaultUnmarshalJSON[int64]
+	// MarshalJSON is injection point of json.Marshaller for money.Money
+	// MarshalJSON = defaultMarshalJSON[int64]
 
 	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
 	ErrCurrencyMismatch = errors.New("currencies don't match")
@@ -310,11 +310,11 @@ func (m *Money[T]) AsMajorUnits() float64 {
 }
 
 // UnmarshalJSON is implementation of json.Unmarshaller
-// func (m *Money[T]) UnmarshalJSON(b []byte) error {
-// 	return defaultUnmarshalJSON(m, b)
-// }
-//
-// // MarshalJSON is implementation of json.Marshaller
-// func (m Money) MarshalJSON() ([]byte, error) {
-// 	return MarshalJSON(m)
-// }
+func (m *Money[T]) UnmarshalJSON(b []byte) error {
+	return defaultUnmarshalJSON(m, b)
+}
+
+// MarshalJSON is implementation of json.Marshaller
+func (m Money[T]) MarshalJSON() ([]byte, error) {
+	return defaultMarshalJSON(m)
+}
