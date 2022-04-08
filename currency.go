@@ -15,8 +15,37 @@ type Currency struct {
 	Thousand    string
 }
 
+type Currencies map[string]*Currency
+
+// CurrencyByNumericCode returns the currency given the numeric code defined in ISO-4271.
+func (c Currencies) CurrencyByNumericCode(code string) *Currency {
+	for _, sc := range c {
+		if sc.NumericCode == code {
+			return sc
+		}
+	}
+
+	return nil
+}
+
+// CurrencyByCode returns the currency given the currency code defined as a constant.
+func (c Currencies) CurrencyByCode(code string) *Currency {
+	sc, ok := c[code]
+	if !ok {
+		return nil
+	}
+
+	return sc
+}
+
+// Add updates currencies list by adding a given Currency to it.
+func (c Currencies) Add(currency *Currency) Currencies {
+	c[currency.Code] = currency
+	return c
+}
+
 // currencies represents a collection of currency.
-var currencies = map[string]*Currency{
+var currencies = Currencies{
 	AED: {Decimal: ".", Thousand: ",", Code: AED, Fraction: 2, NumericCode: "784", Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	AFN: {Decimal: ".", Thousand: ",", Code: AFN, Fraction: 2, NumericCode: "971", Grapheme: "\u060b", Template: "1 $"},
 	ALL: {Decimal: ".", Thousand: ",", Code: ALL, Fraction: 2, NumericCode: "008", Grapheme: "L", Template: "$1"},
@@ -190,7 +219,7 @@ var currencies = map[string]*Currency{
 
 // AddCurrency lets you insert or update currency in currencies list.
 func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
-	currencies[code] = &Currency{
+	c := Currency{
 		Code:     code,
 		Grapheme: Grapheme,
 		Template: Template,
@@ -198,8 +227,8 @@ func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction in
 		Thousand: Thousand,
 		Fraction: Fraction,
 	}
-
-	return currencies[code]
+	currencies.Add(&c)
+	return &c
 }
 
 func newCurrency(code string) *Currency {
@@ -208,7 +237,7 @@ func newCurrency(code string) *Currency {
 
 // GetCurrency returns the currency given the code.
 func GetCurrency(code string) *Currency {
-	return currencies[code]
+	return currencies.CurrencyByCode(code)
 }
 
 // Formatter returns currency formatter representing
