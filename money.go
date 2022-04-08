@@ -237,11 +237,12 @@ func (m *Money) Split(n int) ([]*Money, error) {
 	r := mutate.calc.modulus(m.amount, int64(n))
 	l := mutate.calc.absolute(r).val
 	// Add leftovers to the first parties.
+
+	v := int64(1)
+	if m.amount.val < 0 {
+		v = -1
+	}
 	for p := 0; l != 0; p++ {
-		v := int64(1)
-		if a.val < 0 {
-			v = -1
-		}
 		ms[p].amount = mutate.calc.add(ms[p].amount, &Amount{v})
 		l--
 	}
