@@ -4,66 +4,66 @@ import "math"
 
 type calculator struct{}
 
-func (c *calculator) add(a, b *Amount) *Amount {
-	return &Amount{a.val + b.val}
+func (c *calculator) add(a, b Amount) Amount {
+	return a + b
 }
 
-func (c *calculator) subtract(a, b *Amount) *Amount {
-	return &Amount{a.val - b.val}
+func (c *calculator) subtract(a, b Amount) Amount {
+	return a - b
 }
 
-func (c *calculator) multiply(a *Amount, m int64) *Amount {
-	return &Amount{a.val * m}
+func (c *calculator) multiply(a Amount, m int64) Amount {
+	return a * m
 }
 
-func (c *calculator) divide(a *Amount, d int64) *Amount {
-	return &Amount{a.val / d}
+func (c *calculator) divide(a Amount, d int64) Amount {
+	return a / d
 }
 
-func (c *calculator) modulus(a *Amount, d int64) *Amount {
-	return &Amount{a.val % d}
+func (c *calculator) modulus(a Amount, d int64) Amount {
+	return a % d
 }
 
-func (c *calculator) allocate(a *Amount, r, s int) *Amount {
-	return &Amount{a.val * int64(r) / int64(s)}
+func (c *calculator) allocate(a Amount, r, s int) Amount {
+	return a * int64(r) / int64(s)
 }
 
-func (c *calculator) absolute(a *Amount) *Amount {
-	if a.val < 0 {
-		return &Amount{-a.val}
+func (c *calculator) absolute(a Amount) Amount {
+	if a < 0 {
+		return -a
 	}
 
-	return &Amount{a.val}
+	return a
 }
 
-func (c *calculator) negative(a *Amount) *Amount {
-	if a.val > 0 {
-		return &Amount{-a.val}
+func (c *calculator) negative(a Amount) Amount {
+	if a > 0 {
+		return -a
 	}
 
-	return &Amount{a.val}
+	return a
 }
 
-func (c *calculator) round(a *Amount, e int) *Amount {
-	if a.val == 0 {
-		return &Amount{0}
+func (c *calculator) round(a Amount, e int) Amount {
+	if a == 0 {
+		return 0
 	}
 
 	absam := c.absolute(a)
 	exp := int64(math.Pow(10, float64(e)))
-	m := absam.val % exp
+	m := absam % exp
 
 	if m > (exp / 2) {
-		absam.val += exp
+		absam += exp
 	}
 
-	absam.val = (absam.val / exp) * exp
+	absam = (absam / exp) * exp
 
-	if a.val < 0 {
-		a.val = -absam.val
+	if a < 0 {
+		a = -absam
 	} else {
-		a.val = absam.val
+		a = absam
 	}
 
-	return &Amount{a.val}
+	return a
 }
