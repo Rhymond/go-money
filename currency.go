@@ -52,7 +52,7 @@ var currencies = Currencies{
 	AMD: {Decimal: ".", Thousand: ",", Code: AMD, Fraction: 2, NumericCode: "051", Grapheme: "\u0564\u0580.", Template: "1 $"},
 	ANG: {Decimal: ",", Thousand: ".", Code: ANG, Fraction: 2, NumericCode: "532", Grapheme: "\u0192", Template: "$1"},
 	AOA: {Decimal: ".", Thousand: ",", Code: AOA, Fraction: 2, NumericCode: "973", Grapheme: "Kz", Template: "1$"},
-	ARS: {Decimal: ".", Thousand: ",", Code: ARS, Fraction: 2, NumericCode: "032", Grapheme: "$", Template: "$1"},
+	ARS: {Decimal: ",", Thousand: ".", Code: ARS, Fraction: 2, NumericCode: "032", Grapheme: "$", Template: "$1"},
 	AUD: {Decimal: ".", Thousand: ",", Code: AUD, Fraction: 2, NumericCode: "036", Grapheme: "$", Template: "$1"},
 	AWG: {Decimal: ".", Thousand: ",", Code: AWG, Fraction: 2, NumericCode: "533", Grapheme: "\u0192", Template: "1$"},
 	AZN: {Decimal: ".", Thousand: ",", Code: AZN, Fraction: 2, NumericCode: "944", Grapheme: "\u20bc", Template: "$1"},
