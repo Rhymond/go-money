@@ -16,6 +16,12 @@ var (
 	UnmarshalJSON = defaultUnmarshalJSON
 	// MarshalJSONFunc is injection point of json.Marshaller for money.Money
 	MarshalJSON = defaultMarshalJSON
+
+	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
+	ErrCurrencyMismatch = errors.New("currencies don't match")
+
+	// ErrInvalidJSONUnmarshal happens when the default money.UnmarshalJSON fails to unmarshal Money because of invalid data.
+	ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
 )
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
@@ -24,12 +30,39 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 	if err != nil {
 		return err
 	}
-	ref := New(int64(data["amount"].(float64)), data["currency"].(string))
+
+	var amount float64
+	if amountRaw, ok := data["amount"]; ok {
+		amount, ok = amountRaw.(float64)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
+	}
+
+	var currency string
+	if currencyRaw, ok := data["currency"]; ok {
+		currency, ok = currencyRaw.(string)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
+	}
+
+	var ref *Money
+	if amount == 0 && currency == "" {
+		ref = &Money{}
+	} else {
+		ref = New(int64(amount), currency)
+	}
+
 	*m = *ref
 	return nil
 }
 
 func defaultMarshalJSON(m Money) ([]byte, error) {
+	if m == (Money{}) {
+		m = *New(0, "")
+	}
+
 	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
 	return buff.Bytes(), nil
 }
@@ -71,7 +104,7 @@ func (m *Money) SameCurrency(om *Money) bool {
 
 func (m *Money) assertSameCurrency(om *Money) error {
 	if !m.SameCurrency(om) {
-		return errors.New("currencies don't match")
+		return ErrCurrencyMismatch
 	}
 
 	return nil
@@ -201,11 +234,16 @@ func (m *Money) Split(n int) ([]*Money, error) {
 		ms[i] = &Money{amount: a, currency: m.currency}
 	}
 
-	l := mutate.calc.modulus(m.amount, int64(n)).val
-
+	r := mutate.calc.modulus(m.amount, int64(n))
+	l := mutate.calc.absolute(r).val
 	// Add leftovers to the first parties.
+
+	v := int64(1)
+	if m.amount.val < 0 {
+		v = -1
+	}
 	for p := 0; l != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, &Amount{1})
+		ms[p].amount = mutate.calc.add(ms[p].amount, &Amount{v})
 		l--
 	}
 
