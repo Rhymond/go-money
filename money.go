@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 )
 
 // Injection points for backward compatibility.
@@ -83,6 +84,13 @@ func New(amount int64, code string) *Money {
 		amount:   amount,
 		currency: newCurrency(code).get(),
 	}
+}
+
+// NewFromFloat creates and returns new instance of Money from a float64.
+// Always rounding trailing decimals down.
+func NewFromFloat(amount float64, currency string) *Money {
+	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
+	return New(int64(amount*currencyDecimals), currency)
 }
 
 // Currency returns the currency used by Money.
