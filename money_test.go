@@ -647,6 +647,38 @@ func TestNewFromFloat(t *testing.T) {
 	}
 }
 
+func TestNewFromString(t *testing.T) {
+	m, err := NewFromString("12.34", EUR)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m.amount != 1234 {
+		t.Errorf("Expected %d got %d", 1234, m.amount)
+	}
+
+	if m.currency.Code != EUR {
+		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
+	}
+
+	m, err = NewFromString("-1.12345", EUR)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if m.amount != -112 {
+		t.Errorf("Expected %d got %d", -112, m.amount)
+	}
+
+	_, err = NewFromString("invalid_input", EUR)
+
+	if err.Error() != "can't parse 'invalid_input' to money" {
+		t.Error(err)
+	}
+}
+
 func TestDefaultMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency":"IQD"}`
