@@ -206,6 +206,7 @@ func (m *Money) Add(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
 }
 
+// AddMany returns new Money struct with value representing sum of Self and Other Many Money.
 func (m *Money) AddMany(om ...*Money) (*Money, error) {
 	k := New(0, m.currency.Code)
 
@@ -229,6 +230,7 @@ func (m *Money) Subtract(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
 }
 
+// SubtractMany returns new Money struct with value representing difference of Self and Other Many Money.
 func (m *Money) SubtractMany(om ...*Money) (*Money, error) {
 	k := New(0, m.currency.Code)
 
@@ -248,6 +250,7 @@ func (m *Money) Multiply(mul int64) *Money {
 	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
 }
 
+// Multiply returns new Money struct with value representing Self multiplied value by many multipliers.
 func (m *Money) MultiplyMany(mul ...int64) *Money {
 	k := New(1, m.currency.Code)
 

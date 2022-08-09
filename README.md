@@ -139,6 +139,16 @@ twoPounds := money.New(200, money.GBP)
 result, err := pound.Add(twoPounds) // £3.00, nil
 ```
 
+Also, you can perform addition with many values using `AddMany()`
+
+```go
+pound := money.New(100, money.GBP)
+twoPounds := money.New(200, money.GBP)
+threePounds := money.New(300, money.GBP)
+
+result, err := pound.AddMany(twoPounds, threePounds) // £6.00, nil
+```
+
 #### Subtraction
 
 Subtraction can be performed using `Subtract()`.
@@ -150,6 +160,16 @@ twoPounds := money.New(200, money.GBP)
 result, err := pound.Subtract(twoPounds) // -£1.00, nil
 ```
 
+Also, you can perform subtraction with many values using `SubtractMany()`
+
+```go
+pound := money.New(100, money.GBP)
+twoPounds := money.New(200, money.GBP)
+threePounds := money.New(300, money.GBP)
+
+result, err := pound.SubtractMany(twoPounds, threePounds) // -£4.00, nil
+```
+
 #### Multiplication
 
 Multiplication can be performed using `Multiply()`.
@@ -158,6 +178,14 @@ Multiplication can be performed using `Multiply()`.
 pound := money.New(100, money.GBP)
 
 result := pound.Multiply(2) // £2.00
+```
+
+Also, you can perform multiplication with many values using `MultiplyMany()`
+
+```go
+pound := money.New(100, money.GBP)
+
+result := pound.MultiplyMany(2, 3) // £6.00
 ```
 
 #### Absolute
