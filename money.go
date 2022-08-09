@@ -206,6 +206,20 @@ func (m *Money) Add(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
 }
 
+func (m *Money) AddMany(om ...*Money) (*Money, error) {
+	k := New(0, m.currency.Code)
+
+	for i := 0; i < len(om); i++ {
+		if err := m.assertSameCurrency(om[i]); err != nil {
+			return nil, err
+		}
+
+		k.amount = mutate.calc.add(k.amount, om[i].amount)
+	}
+
+	return &Money{amount: mutate.calc.add(m.amount, k.amount), currency: m.currency}, nil
+}
+
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
 func (m *Money) Subtract(om *Money) (*Money, error) {
 	if err := m.assertSameCurrency(om); err != nil {
@@ -215,9 +229,33 @@ func (m *Money) Subtract(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
 }
 
+func (m *Money) SubtractMany(om ...*Money) (*Money, error) {
+	k := New(0, m.currency.Code)
+
+	for i := 0; i < len(om); i++ {
+		if err := m.assertSameCurrency(om[i]); err != nil {
+			return nil, err
+		}
+
+		k.amount = mutate.calc.add(k.amount, om[i].amount)
+	}
+
+	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
+}
+
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
 func (m *Money) Multiply(mul int64) *Money {
 	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
+}
+
+func (m *Money) MultiplyMany(mul ...int64) *Money {
+	k := New(1, m.currency.Code)
+
+	for i := 0; i < len(mul); i++ {
+		k.amount = mutate.calc.multiply(k.amount, mul[i])
+	}
+
+	return &Money{amount: mutate.calc.multiply(m.amount, k.amount), currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
