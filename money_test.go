@@ -340,7 +340,7 @@ func TestMoney_Add2(t *testing.T) {
 	}
 }
 
-func TestMoney_AddMany(t *testing.T) {
+func TestMoney_Add3(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
 		amount2  int64
@@ -357,7 +357,7 @@ func TestMoney_AddMany(t *testing.T) {
 		mon1 := New(tc.amount1, EUR)
 		mon2 := New(tc.amount2, EUR)
 		mon3 := New(tc.amount3, EUR)
-		r, err := mon1.AddMany(mon2, mon3)
+		r, err := mon1.Add(mon2, mon3)
 
 		if err != nil {
 			t.Error(err)
@@ -367,17 +367,6 @@ func TestMoney_AddMany(t *testing.T) {
 			t.Errorf("Expected %d + %d + %d = %d got %d", tc.amount1, tc.amount2, tc.amount3,
 				tc.expected, r.amount)
 		}
-	}
-}
-
-func TestMoney_AddMany2(t *testing.T) {
-	mon1 := New(100, GBP)
-	mon2 := New(100, EUR)
-	mon3 := New(100, GBP)
-	r, err := mon1.AddMany(mon2, mon3)
-
-	if r != nil || err == nil {
-		t.Error("Expected err")
 	}
 }
 
@@ -417,7 +406,7 @@ func TestMoney_Subtract2(t *testing.T) {
 	}
 }
 
-func TestMoney_SubtractMany(t *testing.T) {
+func TestMoney_Subtract3(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
 		amount2  int64
@@ -434,7 +423,7 @@ func TestMoney_SubtractMany(t *testing.T) {
 		mon1 := New(tc.amount1, EUR)
 		mon2 := New(tc.amount2, EUR)
 		mon3 := New(tc.amount3, EUR)
-		r, err := mon1.SubtractMany(mon2, mon3)
+		r, err := mon1.Subtract(mon2, mon3)
 
 		if err != nil {
 			t.Error(err)
@@ -444,17 +433,6 @@ func TestMoney_SubtractMany(t *testing.T) {
 			t.Errorf("Expected (%d) - (%d) - (%d) = %d got %d", tc.amount1, tc.amount2, tc.amount3,
 				tc.expected, r.amount)
 		}
-	}
-}
-
-func TestMoney_SubtractMany2(t *testing.T) {
-	mon1 := New(100, GBP)
-	mon2 := New(100, EUR)
-	mon3 := New(100, GBP)
-	r, err := mon1.SubtractMany(mon2, mon3)
-
-	if r != nil || err == nil {
-		t.Error("Expected err")
 	}
 }
 
@@ -480,7 +458,7 @@ func TestMoney_Multiply(t *testing.T) {
 	}
 }
 
-func TestMoney_MultiplyMany(t *testing.T) {
+func TestMoney_Multiply2(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
 		amount2  int64
@@ -495,7 +473,7 @@ func TestMoney_MultiplyMany(t *testing.T) {
 
 	for _, tc := range tcs {
 		mon1 := New(tc.amount1, EUR)
-		r := mon1.MultiplyMany(tc.amount2, tc.amount3)
+		r := mon1.Multiply(tc.amount2, tc.amount3)
 
 		if r.amount != tc.expected {
 			t.Errorf("Expected %d * %d * %d = %d got %d", tc.amount1, tc.amount2, tc.amount3, tc.expected, r.amount)

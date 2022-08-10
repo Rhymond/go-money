@@ -199,16 +199,11 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money.
-func (m *Money) Add(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Add(om ...*Money) (*Money, error) {
+	if len(om) == 0 {
+		panic("At least one Money is required to add")
 	}
 
-	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
-}
-
-// AddMany returns new Money struct with value representing sum of Self and Other Many Money.
-func (m *Money) AddMany(om ...*Money) (*Money, error) {
 	k := New(0, m.currency.Code)
 
 	for i := 0; i < len(om); i++ {
@@ -223,16 +218,11 @@ func (m *Money) AddMany(om ...*Money) (*Money, error) {
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
-func (m *Money) Subtract(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Subtract(om ...*Money) (*Money, error) {
+	if len(om) == 0 {
+		panic("At least one Money is required to subtract")
 	}
 
-	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
-}
-
-// SubtractMany returns new Money struct with value representing difference of Self and Other Many Money.
-func (m *Money) SubtractMany(om ...*Money) (*Money, error) {
 	k := New(0, m.currency.Code)
 
 	for i := 0; i < len(om); i++ {
@@ -247,12 +237,11 @@ func (m *Money) SubtractMany(om ...*Money) (*Money, error) {
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
-func (m *Money) Multiply(mul int64) *Money {
-	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
-}
+func (m *Money) Multiply(mul ...int64) *Money {
+	if len(mul) == 0 {
+		panic("At least one multiplier is required to multiply")
+	}
 
-// Multiply returns new Money struct with value representing Self multiplied value by many multipliers.
-func (m *Money) MultiplyMany(mul ...int64) *Money {
 	k := New(1, m.currency.Code)
 
 	for i := 0; i < len(mul); i++ {
