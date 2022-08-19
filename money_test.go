@@ -350,6 +350,19 @@ func TestMoney_Add3(t *testing.T) {
 	}
 }
 
+func TestMoney_Add4(t *testing.T) {
+	m := New(100, EUR)
+	r, err := m.Add()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.amount != 100 {
+		t.Error("Expected amount to be 100")
+	}
+}
+
 func TestMoney_Subtract(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
@@ -414,6 +427,19 @@ func TestMoney_Subtract3(t *testing.T) {
 			t.Errorf("Expected (%d) - (%d) - (%d) = %d got %d", tc.amount1, tc.amount2, tc.amount3,
 				tc.expected, r.amount)
 		}
+	}
+}
+
+func TestMoney_Subtract4(t *testing.T) {
+	m := New(100, EUR)
+	r, err := m.Subtract()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.amount != 100 {
+		t.Error("Expected amount to be 100")
 	}
 }
 
