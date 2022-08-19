@@ -199,53 +199,53 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money.
-func (m *Money) Add(om ...*Money) (*Money, error) {
-	if len(om) == 0 {
-		panic("At least one Money is required to add")
+func (m *Money) Add(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
 	k := New(0, m.currency.Code)
 
-	for i := 0; i < len(om); i++ {
-		if err := m.assertSameCurrency(om[i]); err != nil {
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
 			return nil, err
 		}
 
-		k.amount = mutate.calc.add(k.amount, om[i].amount)
+		k.amount = mutate.calc.add(k.amount, m2.amount)
 	}
 
 	return &Money{amount: mutate.calc.add(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
-func (m *Money) Subtract(om ...*Money) (*Money, error) {
-	if len(om) == 0 {
-		panic("At least one Money is required to subtract")
+func (m *Money) Subtract(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
 	k := New(0, m.currency.Code)
 
-	for i := 0; i < len(om); i++ {
-		if err := m.assertSameCurrency(om[i]); err != nil {
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
 			return nil, err
 		}
 
-		k.amount = mutate.calc.add(k.amount, om[i].amount)
+		k.amount = mutate.calc.add(k.amount, m2.amount)
 	}
 
 	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
-func (m *Money) Multiply(mul ...int64) *Money {
-	if len(mul) == 0 {
+func (m *Money) Multiply(muls ...int64) *Money {
+	if len(muls) == 0 {
 		panic("At least one multiplier is required to multiply")
 	}
 
 	k := New(1, m.currency.Code)
 
-	for i := 0; i < len(mul); i++ {
-		k.amount = mutate.calc.multiply(k.amount, mul[i])
+	for _, m2 := range muls {
+		k.amount = mutate.calc.multiply(k.amount, m2)
 	}
 
 	return &Money{amount: mutate.calc.multiply(m.amount, k.amount), currency: m.currency}
