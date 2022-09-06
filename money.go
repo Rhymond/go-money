@@ -24,6 +24,8 @@ var (
 
 	// ErrInvalidJSONUnmarshal happens when the default money.UnmarshalJSON fails to unmarshal Money because of invalid data.
 	ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
+
+	ErrInvalidCurrency = errors.New("invalid currency passed")
 )
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
@@ -46,6 +48,9 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 		currency, ok = currencyRaw.(string)
 		if !ok {
 			return ErrInvalidJSONUnmarshal
+		}
+		if c := GetCurrency(currency); c == nil {
+			return ErrInvalidCurrency
 		}
 	}
 
