@@ -13,7 +13,11 @@ This package provides basic and precise Money operations such as rounding, split
 ```go
 package main
 
-import "github.com/Rhymond/go-money"
+import (
+  "log"
+
+  "github.com/Rhymond/go-money"
+)
 
 func main() {
     pound := money.New(100, money.GBP)
@@ -56,6 +60,10 @@ Initialize Money by using smallest unit value (e.g 100 represents 1 pound). Use 
 ```go
 pound := money.New(100, money.GBP)
 ```
+Or initialize Money using the direct amount.
+```go
+quarterEuro := money.NewFromFloat(0.25, money.EUR)
+```
 Comparison
 -
 **Go-money** provides base compare operations like:
@@ -89,7 +97,7 @@ To assert if Money value is equal to zero use `IsZero()`
 
 ```go
 pound := money.New(100, money.GBP)
-result := pound.IsZero(pound) // false
+result := pound.IsZero() // false
 ```
 
 #### Positive value
@@ -98,7 +106,7 @@ To assert if Money value is more than zero use `IsPositive()`
 
 ```go
 pound := money.New(100, money.GBP)
-pound.IsPositive(pound) // true
+pound.IsPositive() // true
 ```
 
 #### Negative value
@@ -107,7 +115,7 @@ To assert if Money value is less than zero use `IsNegative()`
 
 ```go
 pound := money.New(100, money.GBP)
-pound.IsNegative(pound) // false
+pound.IsNegative() // false
 ```
 
 Operations

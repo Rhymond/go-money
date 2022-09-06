@@ -15,15 +15,44 @@ type Currency struct {
 	Thousand    string
 }
 
+type Currencies map[string]*Currency
+
+// CurrencyByNumericCode returns the currency given the numeric code defined in ISO-4271.
+func (c Currencies) CurrencyByNumericCode(code string) *Currency {
+	for _, sc := range c {
+		if sc.NumericCode == code {
+			return sc
+		}
+	}
+
+	return nil
+}
+
+// CurrencyByCode returns the currency given the currency code defined as a constant.
+func (c Currencies) CurrencyByCode(code string) *Currency {
+	sc, ok := c[code]
+	if !ok {
+		return nil
+	}
+
+	return sc
+}
+
+// Add updates currencies list by adding a given Currency to it.
+func (c Currencies) Add(currency *Currency) Currencies {
+	c[currency.Code] = currency
+	return c
+}
+
 // currencies represents a collection of currency.
-var currencies = map[string]*Currency{
+var currencies = Currencies{
 	AED: {Decimal: ".", Thousand: ",", Code: AED, Fraction: 2, NumericCode: "784", Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	AFN: {Decimal: ".", Thousand: ",", Code: AFN, Fraction: 2, NumericCode: "971", Grapheme: "\u060b", Template: "1 $"},
 	ALL: {Decimal: ".", Thousand: ",", Code: ALL, Fraction: 2, NumericCode: "008", Grapheme: "L", Template: "$1"},
 	AMD: {Decimal: ".", Thousand: ",", Code: AMD, Fraction: 2, NumericCode: "051", Grapheme: "\u0564\u0580.", Template: "1 $"},
 	ANG: {Decimal: ",", Thousand: ".", Code: ANG, Fraction: 2, NumericCode: "532", Grapheme: "\u0192", Template: "$1"},
 	AOA: {Decimal: ".", Thousand: ",", Code: AOA, Fraction: 2, NumericCode: "973", Grapheme: "Kz", Template: "1$"},
-	ARS: {Decimal: ".", Thousand: ",", Code: ARS, Fraction: 2, NumericCode: "032", Grapheme: "$", Template: "$1"},
+	ARS: {Decimal: ",", Thousand: ".", Code: ARS, Fraction: 2, NumericCode: "032", Grapheme: "$", Template: "$1"},
 	AUD: {Decimal: ".", Thousand: ",", Code: AUD, Fraction: 2, NumericCode: "036", Grapheme: "$", Template: "$1"},
 	AWG: {Decimal: ".", Thousand: ",", Code: AWG, Fraction: 2, NumericCode: "533", Grapheme: "\u0192", Template: "1$"},
 	AZN: {Decimal: ".", Thousand: ",", Code: AZN, Fraction: 2, NumericCode: "944", Grapheme: "\u20bc", Template: "$1"},
@@ -80,7 +109,7 @@ var currencies = map[string]*Currency{
 	HNL: {Decimal: ".", Thousand: ",", Code: HNL, Fraction: 2, NumericCode: "340", Grapheme: "L", Template: "$1"},
 	HRK: {Decimal: ",", Thousand: ".", Code: HRK, Fraction: 2, NumericCode: "191", Grapheme: "kn", Template: "1 $"},
 	HTG: {Decimal: ",", Thousand: ".", Code: HTG, Fraction: 2, NumericCode: "332", Grapheme: "G", Template: "1 $"},
-	HUF: {Decimal: ",", Thousand: ".", Code: HUF, Fraction: 0, NumericCode: "348", Grapheme: "Ft", Template: "1 $"},
+	HUF: {Decimal: ",", Thousand: ".", Code: HUF, Fraction: 2, NumericCode: "348", Grapheme: "Ft", Template: "1 $"},
 	IDR: {Decimal: ".", Thousand: ",", Code: IDR, Fraction: 2, NumericCode: "360", Grapheme: "Rp", Template: "$1"},
 	ILS: {Decimal: ".", Thousand: ",", Code: ILS, Fraction: 2, NumericCode: "376", Grapheme: "\u20aa", Template: "$1"},
 	IMP: {Decimal: ".", Thousand: ",", Code: IMP, Fraction: 2, NumericCode: "", Grapheme: "\u00a3", Template: "$1"},
@@ -96,7 +125,7 @@ var currencies = map[string]*Currency{
 	KGS: {Decimal: ".", Thousand: ",", Code: KGS, Fraction: 2, NumericCode: "417", Grapheme: "\u0441\u043e\u043c", Template: "$1"},
 	KHR: {Decimal: ".", Thousand: ",", Code: KHR, Fraction: 2, NumericCode: "116", Grapheme: "\u17db", Template: "$1"},
 	KMF: {Decimal: ".", Thousand: ",", Code: KMF, Fraction: 0, NumericCode: "174", Grapheme: "CF", Template: "$1"},
-	KPW: {Decimal: ".", Thousand: ",", Code: KPW, Fraction: 0, NumericCode: "408", Grapheme: "\u20a9", Template: "$1"},
+	KPW: {Decimal: ".", Thousand: ",", Code: KPW, Fraction: 2, NumericCode: "408", Grapheme: "\u20a9", Template: "$1"},
 	KRW: {Decimal: ".", Thousand: ",", Code: KRW, Fraction: 0, NumericCode: "410", Grapheme: "\u20a9", Template: "$1"},
 	KWD: {Decimal: ".", Thousand: ",", Code: KWD, Fraction: 3, NumericCode: "414", Grapheme: ".\u062f.\u0643", Template: "1 $"},
 	KYD: {Decimal: ".", Thousand: ",", Code: KYD, Fraction: 2, NumericCode: "136", Grapheme: "$", Template: "$1"},
@@ -111,6 +140,7 @@ var currencies = map[string]*Currency{
 	LYD: {Decimal: ".", Thousand: ",", Code: LYD, Fraction: 3, NumericCode: "434", Grapheme: ".\u062f.\u0644", Template: "1 $"},
 	MAD: {Decimal: ".", Thousand: ",", Code: MAD, Fraction: 2, NumericCode: "504", Grapheme: ".\u062f.\u0645", Template: "1 $"},
 	MDL: {Decimal: ".", Thousand: ",", Code: MDL, Fraction: 2, NumericCode: "498", Grapheme: "lei", Template: "1 $"},
+	MGA: {Decimal: ".", Thousand: ",", Code: MGA, Fraction: 2, NumericCode: "969", Grapheme: "Ar", Template: "1$"},
 	MKD: {Decimal: ".", Thousand: ",", Code: MKD, Fraction: 2, NumericCode: "807", Grapheme: "\u0434\u0435\u043d", Template: "$1"},
 	MMK: {Decimal: ".", Thousand: ",", Code: MMK, Fraction: 2, NumericCode: "104", Grapheme: "K", Template: "$1"},
 	MNT: {Decimal: ".", Thousand: ",", Code: MNT, Fraction: 2, NumericCode: "496", Grapheme: "\u20ae", Template: "$1"},
@@ -181,6 +211,7 @@ var currencies = map[string]*Currency{
 	XAU: {Decimal: ".", Thousand: ",", Code: XAU, Fraction: 0, NumericCode: "959", Grapheme: "oz t", Template: "1 $"},
 	XCD: {Decimal: ".", Thousand: ",", Code: XCD, Fraction: 2, NumericCode: "951", Grapheme: "$", Template: "$1"},
 	XDR: {Decimal: ".", Thousand: ",", Code: XDR, Fraction: 0, NumericCode: "960", Grapheme: "SDR", Template: "1 $"},
+	XOF: {Decimal: ".", Thousand: ",", Code: XOF, Fraction: 0, NumericCode: "952", Grapheme: "CFA", Template: "1 $"},
 	XPF: {Decimal: ".", Thousand: ",", Code: XPF, Fraction: 0, NumericCode: "953", Grapheme: "₣", Template: "1 $"},
 	YER: {Decimal: ".", Thousand: ",", Code: YER, Fraction: 2, NumericCode: "886", Grapheme: "\ufdfc", Template: "1 $"},
 	ZAR: {Decimal: ".", Thousand: ",", Code: ZAR, Fraction: 2, NumericCode: "710", Grapheme: "R", Template: "$1"},
@@ -190,7 +221,7 @@ var currencies = map[string]*Currency{
 
 // AddCurrency lets you insert or update currency in currencies list.
 func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
-	currencies[code] = &Currency{
+	c := Currency{
 		Code:     code,
 		Grapheme: Grapheme,
 		Template: Template,
@@ -198,8 +229,8 @@ func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction in
 		Thousand: Thousand,
 		Fraction: Fraction,
 	}
-
-	return currencies[code]
+	currencies.Add(&c)
+	return &c
 }
 
 func newCurrency(code string) *Currency {
@@ -208,7 +239,7 @@ func newCurrency(code string) *Currency {
 
 // GetCurrency returns the currency given the code.
 func GetCurrency(code string) *Currency {
-	return currencies[code]
+	return currencies.CurrencyByCode(code)
 }
 
 // Formatter returns currency formatter representing
