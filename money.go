@@ -10,8 +10,9 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
+//
+//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
 	UnmarshalJSON = defaultUnmarshalJSON
@@ -282,6 +283,12 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 		total += party.amount
 	}
 
+	// if the sum of all ratios is zero, then we just returns zeros and don't do anything
+	// with the leftover
+	if sum == 0 {
+		return ms, nil
+	}
+
 	// Calculate leftover value and divide to first parties.
 	lo := m.amount - total
 	sub := int64(1)
@@ -320,9 +327,11 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//  if m.amount > om.amount returns (1, nil)
-//  if m.amount == om.amount returns (0, nil
-//  if m.amount < om.amount returns (-1, nil)
+//
+//	if m.amount > om.amount returns (1, nil)
+//	if m.amount == om.amount returns (0, nil
+//	if m.amount < om.amount returns (-1, nil)
+//
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {

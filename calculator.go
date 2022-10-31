@@ -25,7 +25,7 @@ func (c *calculator) modulus(a Amount, d int64) Amount {
 }
 
 func (c *calculator) allocate(a Amount, r, s int) Amount {
-	if a == 0 {
+	if a == 0 || s == 0 {
 		return 0
 	}
 
