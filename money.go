@@ -326,9 +326,9 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//   if m.amount > om.amount returns (1, nil)
-//   if m.amount == om.amount returns (0, nil
-//   if m.amount < om.amount returns (-1, nil)
+//  if m.amount > om.amount returns (1, nil)
+//  if m.amount == om.amount returns (0, nil
+//  if m.amount < om.amount returns (-1, nil)
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {
