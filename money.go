@@ -10,8 +10,8 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
+//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
 	UnmarshalJSON = defaultUnmarshalJSON
@@ -326,9 +326,9 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//	if m.amount > om.amount returns (1, nil)
-//	if m.amount == om.amount returns (0, nil
-//	if m.amount < om.amount returns (-1, nil)
+//   if m.amount > om.amount returns (1, nil)
+//   if m.amount == om.amount returns (0, nil
+//   if m.amount < om.amount returns (-1, nil)
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {
