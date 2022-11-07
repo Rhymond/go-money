@@ -265,21 +265,30 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	// Calculate sum of ratios.
-	var sum int
+	var sum uint
 	for _, r := range rs {
-		sum += r
+		if r < 0 {
+			return nil, errors.New("negative ratios not allowed")
+		}
+		sum += uint(r)
 	}
 
 	var total int64
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, r, sum),
+			amount:   mutate.calc.allocate(m.amount, uint(r), sum),
 			currency: m.currency,
 		}
 
 		ms = append(ms, party)
 		total += party.amount
+	}
+
+	// if the sum of all ratios is zero, then we just returns zeros and don't do anything
+	// with the leftover
+	if sum == 0 {
+		return ms, nil
 	}
 
 	// Calculate leftover value and divide to first parties.
