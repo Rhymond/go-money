@@ -474,7 +474,6 @@ func TestMoney_Allocate(t *testing.T) {
 		{0, []int{50, 10}, []int64{0, 0}},
 		{10, []int{0, 100}, []int64{0, 10}},
 		{10, []int{0, 0}, []int64{0, 0}},
-		{-100, []int{-50, -50}, []int64{-50, -50}},
 	}
 
 	for _, tc := range tcs {
