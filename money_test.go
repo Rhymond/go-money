@@ -804,6 +804,16 @@ func TestNewFromFloat(t *testing.T) {
 		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
 	}
 
+	m = NewFromFloat(12.34, "eur")
+
+	if m.amount != 1234 {
+		t.Errorf("Expected %d got %d", 1234, m.amount)
+	}
+
+	if m.currency.Code != EUR {
+		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
+	}
+
 	m = NewFromFloat(-0.125, EUR)
 
 	if m.amount != -12 {

@@ -244,7 +244,7 @@ func newCurrency(code string) *Currency {
 
 // GetCurrency returns the currency given the code.
 func GetCurrency(code string) *Currency {
-	return currencies.CurrencyByCode(code)
+	return currencies.CurrencyByCode(strings.ToUpper(code))
 }
 
 // Formatter returns currency formatter representing
