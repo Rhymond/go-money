@@ -4,6 +4,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 // Formatter stores Money formatting information.
@@ -60,8 +62,8 @@ func (f *Formatter) ToMajorUnits(amount int64) float64 {
 	if f.Fraction == 0 {
 		return float64(amount)
 	}
-
-	return float64(amount) / float64(math.Pow10(f.Fraction))
+	u, _ := decimal.NewFromInt(amount).Div(decimal.NewFromFloat(math.Pow10(f.Fraction))).Float64()
+	return u
 }
 
 // abs return absolute value of given integer.
