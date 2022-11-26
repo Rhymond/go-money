@@ -96,6 +96,7 @@ var currencies = Currencies{
 	FJD: {Decimal: ".", Thousand: ",", Code: FJD, Fraction: 2, NumericCode: "242", Grapheme: "$", Template: "$1"},
 	FKP: {Decimal: ".", Thousand: ",", Code: FKP, Fraction: 2, NumericCode: "238", Grapheme: "\u00a3", Template: "$1"},
 	GBP: {Decimal: ".", Thousand: ",", Code: GBP, Fraction: 2, NumericCode: "826", Grapheme: "\u00a3", Template: "$1"},
+	GBX: {Decimal: ".", Thousand: ",", Code: GBX, Fraction: 0, NumericCode: "", Grapheme: "p", Template: "1$"},
 	GEL: {Decimal: ".", Thousand: ",", Code: GEL, Fraction: 2, NumericCode: "981", Grapheme: "\u10da", Template: "1 $"},
 	GGP: {Decimal: ".", Thousand: ",", Code: GGP, Fraction: 2, NumericCode: "", Grapheme: "\u00a3", Template: "$1"},
 	GHC: {Decimal: ".", Thousand: ",", Code: GHC, Fraction: 2, NumericCode: "", Grapheme: "\u00a2", Template: "$1"},

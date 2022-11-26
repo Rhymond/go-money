@@ -52,6 +52,7 @@ const (
 	FJD = "FJD"
 	FKP = "FKP"
 	GBP = "GBP"
+	GBX = "GBX"
 	GEL = "GEL"
 	GGP = "GGP"
 	GHC = "GHC"
