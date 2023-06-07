@@ -173,4 +173,5 @@ const (
 	ZAR = "ZAR"
 	ZMW = "ZMW"
 	ZWD = "ZWD"
+	ZWL = "ZWL"
 )

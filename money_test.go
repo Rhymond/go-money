@@ -579,6 +579,10 @@ func TestMoney_Allocate(t *testing.T) {
 		{100, []int{30, 30, 30}, []int64{34, 33, 33}},
 		{200, []int{25, 25, 50}, []int64{50, 50, 100}},
 		{5, []int{50, 25, 25}, []int64{3, 1, 1}},
+		{0, []int{0, 0, 0, 0}, []int64{0, 0, 0, 0}},
+		{0, []int{50, 10}, []int64{0, 0}},
+		{10, []int{0, 100}, []int64{0, 10}},
+		{10, []int{0, 0}, []int64{0, 0}},
 	}
 
 	for _, tc := range tcs {
@@ -720,6 +724,27 @@ func TestMoney_Comparison(t *testing.T) {
 	if r, err := pound.GreaterThanOrEqual(twoEuros); err == nil || r {
 		t.Error("Expected err")
 	}
+
+	if r, err := twoPounds.Compare(pound); r != 1 && err != nil {
+		t.Errorf("Expected %d Greater Than %d == %d got %d", pound.amount,
+			twoPounds.amount, 1, r)
+	}
+
+	if r, err := pound.Compare(twoPounds); r != -1 && err != nil {
+		t.Errorf("Expected %d Less Than %d == %d got %d", pound.amount,
+			twoPounds.amount, -1, r)
+	}
+
+	if _, err := pound.Compare(twoEuros); err != ErrCurrencyMismatch {
+		t.Error("Expected err")
+	}
+
+	anotherTwoEuros := New(200, EUR)
+	if r, err := twoEuros.Compare(anotherTwoEuros); r != 0 && err != nil {
+		t.Errorf("Expected %d Equals to %d == %d got %d", anotherTwoEuros.amount,
+			twoEuros.amount, 0, r)
+	}
+
 }
 
 func TestMoney_Currency(t *testing.T) {
