@@ -74,7 +74,7 @@ oneHundredDollars := money.NewFromString("100", money.USD)
 oneHundredDollars.Display() // $100.00
 
 jeffBezosFortune := money.NewFromString("114,000,000,000.99", money.USD)
-jeffBezos.Display() // $114,000,000,000.99
+jeffBezosFortune.Display() // $114,000,000,000.99
 
 ```
 Comparison
