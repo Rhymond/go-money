@@ -95,6 +95,14 @@ func NewFromFloat(amount float64, code string) *Money {
 }
 
 // NewFromString creates and returns new instance of Money from a string.
+// If we compare 'New', which takes integers and works with their minimum fraction,
+// with 'NewFromString', we takes the explicit value, for example:
+//
+// NewFromString("100", money.USD) => $100.00 = one hundred dollars
+// NewFromString("1", money.USD) => $1.00 = one dollar
+//
+// Always rounding trailing decimals down,
+// because NewFromString use NewFromFloat under the hood
 func NewFromString(amount string, code string) *Money {
 	currency := GetCurrency(code)
 	moneyInstance, err := ConvertStringAmount(amount, currency)
