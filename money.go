@@ -90,7 +90,7 @@ func New(amount int64, code string) *Money {
 // Always rounding trailing decimals down.
 func NewFromFloat(amount float64, currency string) *Money {
 	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+	return New(int64(math.Round(amount*currencyDecimals)), currency)
 }
 
 // Currency returns the currency used by Money.
