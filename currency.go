@@ -203,6 +203,7 @@ var currencies = Currencies{
 	UYU: {Decimal: ".", Thousand: ",", Code: UYU, Fraction: 2, NumericCode: "858", Grapheme: "$U", Template: "$1"},
 	UZS: {Decimal: ".", Thousand: ",", Code: UZS, Fraction: 2, NumericCode: "860", Grapheme: "so\u2019m", Template: "$1"},
 	VEF: {Decimal: ".", Thousand: ",", Code: VEF, Fraction: 2, NumericCode: "928", Grapheme: "Bs", Template: "$1"},
+	VES: {Decimal: ".", Thousand: ",", Code: VES, Fraction: 2, NumericCode: "928", Grapheme: "Bs.S", Template: "$1"},
 	VND: {Decimal: ".", Thousand: ",", Code: VND, Fraction: 0, NumericCode: "704", Grapheme: "\u20ab", Template: "1 $"},
 	VUV: {Decimal: ".", Thousand: ",", Code: VUV, Fraction: 0, NumericCode: "548", Grapheme: "Vt", Template: "$1"},
 	WST: {Decimal: ".", Thousand: ",", Code: WST, Fraction: 2, NumericCode: "882", Grapheme: "T", Template: "1 $"},
