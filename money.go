@@ -10,8 +10,9 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
+//
+//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
 	UnmarshalJSON = defaultUnmarshalJSON
@@ -88,9 +89,29 @@ func New(amount int64, code string) *Money {
 
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
-func NewFromFloat(amount float64, currency string) *Money {
-	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+func NewFromFloat(amount float64, code string) *Money {
+	currencyDecimals := math.Pow10(GetCurrency(code).Fraction)
+	return New(int64(amount*currencyDecimals), code)
+}
+
+// NewFromString creates and returns new instance of Money from a string.
+// If we compare 'New', which takes integers and works with their minimum fraction,
+// with 'NewFromString', we takes the explicit value, for example:
+//
+// NewFromString("100", money.USD) => $100.00 = one hundred dollars
+// NewFromString("1", money.USD) => $1.00 = one dollar
+//
+// Always rounding trailing decimals down,
+// because NewFromString use NewFromFloat under the hood
+func NewFromString(amount string, code string) *Money {
+	currency := GetCurrency(code)
+	moneyInstance, err := ConvertStringAmount(amount, currency)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return moneyInstance
 }
 
 // Currency returns the currency used by Money.
@@ -329,9 +350,11 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//  if m.amount > om.amount returns (1, nil)
-//  if m.amount == om.amount returns (0, nil
-//  if m.amount < om.amount returns (-1, nil)
+//
+//	if m.amount > om.amount returns (1, nil)
+//	if m.amount == om.amount returns (0, nil
+//	if m.amount < om.amount returns (-1, nil)
+//
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {

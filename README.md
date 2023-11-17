@@ -64,6 +64,19 @@ Or initialize Money using the direct amount.
 ```go
 quarterEuro := money.NewFromFloat(0.25, money.EUR)
 ```
+Or initialize Money using the plain amount from any data source.
+```go
+
+oneDollar := money.NewFromString("1", money.USD)
+oneDolar.Display() // $1.00
+
+oneHundredDollars := money.NewFromString("100", money.USD)
+oneHundredDollars.Display() // $100.00
+
+jeffBezosFortune := money.NewFromString("114,000,000,000.99", money.USD)
+jeffBezosFortune.Display() // $114,000,000,000.99
+
+```
 Comparison
 -
 **Go-money** provides base compare operations like:
