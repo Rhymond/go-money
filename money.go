@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 )
 
 // Injection points for backward compatibility.
@@ -91,6 +93,34 @@ func New(amount int64, code string) *Money {
 func NewFromFloat(amount float64, currency string) *Money {
 	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
 	return New(int64(amount*currencyDecimals), currency)
+}
+
+// NewFromString creates and returns new instance of Money from a string.
+// Can only parse simple float-like strings, like "1.23" USD or "1,5" ARS, not "1.23 USD", "$1.23" or "1,000" USD.
+func NewFromString(amount string, currencyCode string) (*Money, error) {
+	currency := GetCurrency(currencyCode)
+	fraction := currency.Fraction
+
+	toParse := amount
+	var decimals int
+	if pointIndex := strings.Index(amount, currency.Decimal); pointIndex != -1 {
+		decimals = len(amount) - pointIndex - 1
+		if decimals > fraction {
+			decimals = fraction
+		}
+		toParse = amount[:pointIndex] + amount[pointIndex+1:pointIndex+1+decimals]
+	}
+
+	parsed, err := strconv.ParseInt(toParse, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("can't parse '%s' to money", amount)
+	}
+
+	for d := decimals; d < fraction; d++ {
+		parsed *= 10
+	}
+
+	return New(parsed, currencyCode), nil
 }
 
 // Currency returns the currency used by Money.

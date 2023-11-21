@@ -60,9 +60,10 @@ Initialize Money by using smallest unit value (e.g 100 represents 1 pound). Use 
 ```go
 pound := money.New(100, money.GBP)
 ```
-Or initialize Money using the direct amount.
+Or initialize Money using the direct amount as float or numeric string.
 ```go
 quarterEuro := money.NewFromFloat(0.25, money.EUR)
+twoFiftyDolars := money.NewFromString("2.50", money.USD)
 ```
 Comparison
 -
