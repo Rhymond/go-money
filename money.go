@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+
+	"github.com/shopspring/decimal"
 )
 
 // Injection points for backward compatibility.
@@ -90,7 +92,9 @@ func New(amount int64, code string) *Money {
 // Always rounding trailing decimals down.
 func NewFromFloat(amount float64, currency string) *Money {
 	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+	newCurrencyDecimals := decimal.NewFromFloat(currencyDecimals)
+	newAmount := decimal.NewFromFloat(amount)
+	return New(newAmount.Mul(newCurrencyDecimals).IntPart(), currency)
 }
 
 // Currency returns the currency used by Money.
