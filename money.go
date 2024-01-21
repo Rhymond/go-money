@@ -74,8 +74,8 @@ type Amount = int64
 // Money represents monetary value information, stores
 // currency and amount value.
 type Money struct {
-	amount   Amount
-	currency *Currency
+	amount   Amount    `db:"amount"`
+	currency *Currency `db:"currency"`
 }
 
 // New creates and returns new instance of Money.
