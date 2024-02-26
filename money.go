@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 
 	"github.com/shopspring/decimal"
 )
@@ -92,8 +91,9 @@ func New(amount int64, code string) *Money {
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
 func NewFromFloat(amount float64, currency string) *Money {
-	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+	c := GetCurrency(currency)
+	amt := decimal.NewFromFloat(amount).Mul(decimal.New(1, int32(c.Fraction)))
+	return New(amt.IntPart(), currency)
 }
 
 // Currency returns the currency used by Money.
