@@ -40,6 +40,14 @@ func ExampleNew() {
 	// £1.00
 }
 
+func ExampleNewFromFloat() {
+	amount := 136.98
+	fmt.Println(money.NewFromFloat(amount, "SGD").Display())
+
+	// Output:
+	// $136.98
+}
+
 func ExampleMoney_comparisons() {
 	pound := money.New(100, "GBP")
 	twoPounds := money.New(200, "GBP")
