@@ -159,6 +159,7 @@ const (
 	UYU = "UYU"
 	UZS = "UZS"
 	VEF = "VEF"
+	VES = "VES"
 	VND = "VND"
 	VUV = "VUV"
 	WST = "WST"
