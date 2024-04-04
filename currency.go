@@ -180,7 +180,7 @@ var currencies = Currencies{
 	SGD: {Decimal: ".", Thousand: ",", Code: SGD, Fraction: 2, NumericCode: "702", Grapheme: "$", Template: "$1"},
 	SHP: {Decimal: ".", Thousand: ",", Code: SHP, Fraction: 2, NumericCode: "654", Grapheme: "\u00a3", Template: "$1"},
 	SKK: {Decimal: ".", Thousand: ",", Code: SKK, Fraction: 2, NumericCode: "", Grapheme: "Sk", Template: "$1"},
-	SLE: {Decimal: ".", Thousand: ",", Code: SLE, Fraction: 2, NumericCode: "694", Grapheme: "Le", Template: "1 $"},
+	SLE: {Decimal: ".", Thousand: ",", Code: SLE, Fraction: 2, NumericCode: "925", Grapheme: "Le", Template: "1 $"},
 	SLL: {Decimal: ".", Thousand: ",", Code: SLL, Fraction: 2, NumericCode: "694", Grapheme: "Le", Template: "1 $"},
 	SOS: {Decimal: ".", Thousand: ",", Code: SOS, Fraction: 2, NumericCode: "706", Grapheme: "Sh", Template: "1 $"},
 	SRD: {Decimal: ".", Thousand: ",", Code: SRD, Fraction: 2, NumericCode: "968", Grapheme: "$", Template: "$1"},
