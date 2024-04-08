@@ -29,10 +29,10 @@ func TestNew(t *testing.T) {
 
 func TestNew_WithUnregisteredCurrency(t *testing.T) {
 	const currencyFooCode = "FOO"
-	const expectedAmount = 1234
-	const expectedDisplay = "12.34FOO"
+	const expectedAmount = 100
+	const expectedDisplay = "1.00FOO"
 
-	m := New(1234, currencyFooCode)
+	m := New(100, currencyFooCode)
 
 	if m.amount != expectedAmount {
 		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
