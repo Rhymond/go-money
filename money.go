@@ -88,9 +88,9 @@ func New(amount int64, code string) *Money {
 
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
-func NewFromFloat(amount float64, currency string) *Money {
-	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+func NewFromFloat(amount float64, code string) *Money {
+	currencyDecimals := math.Pow10(newCurrency(code).get().Fraction)
+	return New(int64(amount*currencyDecimals), code)
 }
 
 // Currency returns the currency used by Money.
