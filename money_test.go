@@ -27,6 +27,26 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestNew_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 1234
+	const expectedDisplay = "12.34FOO"
+
+	m := New(1234, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
+	}
+}
+
 func TestCurrency(t *testing.T) {
 	code := "MOCK"
 	decimals := 5
@@ -669,6 +689,26 @@ func TestNewFromFloat(t *testing.T) {
 
 	if m.amount != -12 {
 		t.Errorf("Expected %d got %d", -12, m.amount)
+	}
+}
+
+func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 1234
+	const expectedDisplay = "12.34FOO"
+
+	m := NewFromFloat(12.34, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
 	}
 }
 
