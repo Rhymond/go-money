@@ -122,7 +122,7 @@ var currencies = Currencies{
 	JOD: {Decimal: ".", Thousand: ",", Code: JOD, Fraction: 3, NumericCode: "400", Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	JPY: {Decimal: ".", Thousand: ",", Code: JPY, Fraction: 0, NumericCode: "392", Grapheme: "\u00a5", Template: "$1"},
 	KES: {Decimal: ".", Thousand: ",", Code: KES, Fraction: 2, NumericCode: "404", Grapheme: "KSh", Template: "$1"},
-	KGS: {Decimal: ".", Thousand: ",", Code: KGS, Fraction: 2, NumericCode: "417", Grapheme: "\u0441\u043e\u043c", Template: "$1"},
+	KGS: {Decimal: ".", Thousand: ",", Code: KGS, Fraction: 2, NumericCode: "417", Grapheme: "\u0441\u043e\u043c", Template: "1 $"},
 	KHR: {Decimal: ".", Thousand: ",", Code: KHR, Fraction: 2, NumericCode: "116", Grapheme: "\u17db", Template: "$1"},
 	KMF: {Decimal: ".", Thousand: ",", Code: KMF, Fraction: 0, NumericCode: "174", Grapheme: "CF", Template: "$1"},
 	KPW: {Decimal: ".", Thousand: ",", Code: KPW, Fraction: 2, NumericCode: "408", Grapheme: "\u20a9", Template: "$1"},
