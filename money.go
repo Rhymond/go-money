@@ -10,8 +10,9 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
+//
+//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
 	UnmarshalJSON = defaultUnmarshalJSON
@@ -265,19 +266,22 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	// Calculate sum of ratios.
-	var sum uint
+	var sum int64
 	for _, r := range rs {
 		if r < 0 {
 			return nil, errors.New("negative ratios not allowed")
 		}
-		sum += uint(r)
+		if int64(r) > (math.MaxInt64 - sum) {
+			return nil, errors.New("sum of given ratios exceeds max int")
+		}
+		sum += int64(r)
 	}
 
 	var total int64
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, uint(r), sum),
+			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
 			currency: m.currency,
 		}
 
@@ -329,9 +333,11 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//  if m.amount > om.amount returns (1, nil)
-//  if m.amount == om.amount returns (0, nil
-//  if m.amount < om.amount returns (-1, nil)
+//
+//	if m.amount > om.amount returns (1, nil)
+//	if m.amount == om.amount returns (0, nil
+//	if m.amount < om.amount returns (-1, nil)
+//
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {
