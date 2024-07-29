@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -24,6 +25,26 @@ func TestNew(t *testing.T) {
 
 	if m.amount != -100 {
 		t.Errorf("Expected %d got %d", -100, m.amount)
+	}
+}
+
+func TestNew_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 100
+	const expectedDisplay = "1.00FOO"
+
+	m := New(100, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
 	}
 }
 
@@ -298,7 +319,6 @@ func TestMoney_Add(t *testing.T) {
 		m := New(tc.amount1, EUR)
 		om := New(tc.amount2, EUR)
 		r, err := m.Add(om)
-
 		if err != nil {
 			t.Error(err)
 		}
@@ -320,6 +340,49 @@ func TestMoney_Add2(t *testing.T) {
 	}
 }
 
+func TestMoney_Add3(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		expected int64
+	}{
+		{5, 5, 3, 13},
+		{10, 5, 4, 19},
+		{1, -1, 2, 2},
+		{3, -1, -4, -2},
+	}
+
+	for _, tc := range tcs {
+		mon1 := New(tc.amount1, EUR)
+		mon2 := New(tc.amount2, EUR)
+		mon3 := New(tc.amount3, EUR)
+		r, err := mon1.Add(mon2, mon3)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.Amount() != tc.expected {
+			t.Errorf("Expected %d + %d + %d = %d got %d", tc.amount1, tc.amount2, tc.amount3,
+				tc.expected, r.amount)
+		}
+	}
+}
+
+func TestMoney_Add4(t *testing.T) {
+	m := New(100, EUR)
+	r, err := m.Add()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.amount != 100 {
+		t.Error("Expected amount to be 100")
+	}
+}
+
 func TestMoney_Subtract(t *testing.T) {
 	tcs := []struct {
 		amount1  int64
@@ -335,7 +398,6 @@ func TestMoney_Subtract(t *testing.T) {
 		m := New(tc.amount1, EUR)
 		om := New(tc.amount2, EUR)
 		r, err := m.Subtract(om)
-
 		if err != nil {
 			t.Error(err)
 		}
@@ -357,6 +419,49 @@ func TestMoney_Subtract2(t *testing.T) {
 	}
 }
 
+func TestMoney_Subtract3(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		expected int64
+	}{
+		{5, 5, 3, -3},
+		{10, -5, 4, 11},
+		{1, -1, 2, 0},
+		{7, 1, -4, 10},
+	}
+
+	for _, tc := range tcs {
+		mon1 := New(tc.amount1, EUR)
+		mon2 := New(tc.amount2, EUR)
+		mon3 := New(tc.amount3, EUR)
+		r, err := mon1.Subtract(mon2, mon3)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if r.Amount() != tc.expected {
+			t.Errorf("Expected (%d) - (%d) - (%d) = %d got %d", tc.amount1, tc.amount2, tc.amount3,
+				tc.expected, r.amount)
+		}
+	}
+}
+
+func TestMoney_Subtract4(t *testing.T) {
+	m := New(100, EUR)
+	r, err := m.Subtract()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if r.amount != 100 {
+		t.Error("Expected amount to be 100")
+	}
+}
+
 func TestMoney_Multiply(t *testing.T) {
 	tcs := []struct {
 		amount     int64
@@ -375,6 +480,29 @@ func TestMoney_Multiply(t *testing.T) {
 
 		if r != tc.expected {
 			t.Errorf("Expected %d * %d = %d got %d", tc.amount, tc.multiplier, tc.expected, r)
+		}
+	}
+}
+
+func TestMoney_Multiply2(t *testing.T) {
+	tcs := []struct {
+		amount1  int64
+		amount2  int64
+		amount3  int64
+		expected int64
+	}{
+		{5, 5, 5, 125},
+		{10, 5, -3, -150},
+		{1, -1, 6, -6},
+		{1, 0, 2, 0},
+	}
+
+	for _, tc := range tcs {
+		mon1 := New(tc.amount1, EUR)
+		r := mon1.Multiply(tc.amount2, tc.amount3)
+
+		if r.amount != tc.expected {
+			t.Errorf("Expected %d * %d * %d = %d got %d", tc.amount1, tc.amount2, tc.amount3, tc.expected, r.amount)
 		}
 	}
 }
@@ -501,6 +629,19 @@ func TestMoney_Allocate2(t *testing.T) {
 	}
 }
 
+func TestAllocateOverflow(t *testing.T) {
+	m := New(math.MaxInt64, EUR)
+	_, err := m.Allocate(math.MaxInt, 1)
+	if err == nil {
+		t.Fatalf("expected an error, but got nil")
+	}
+
+	expectedErrorMessage := "sum of given ratios exceeds max int"
+	if err.Error() != expectedErrorMessage {
+		t.Fatalf("expected error message %q, but got %q", expectedErrorMessage, err.Error())
+	}
+}
+
 func TestMoney_Format(t *testing.T) {
 	tcs := []struct {
 		amount   int64
@@ -563,7 +704,6 @@ func TestMoney_AsMajorUnits(t *testing.T) {
 func TestMoney_Allocate3(t *testing.T) {
 	pound := New(100, GBP)
 	parties, err := pound.Allocate(33, 33, 33)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -635,7 +775,6 @@ func TestMoney_Comparison(t *testing.T) {
 		t.Errorf("Expected %d Equals to %d == %d got %d", anotherTwoEuros.amount,
 			twoEuros.amount, 0, r)
 	}
-
 }
 
 func TestMoney_Currency(t *testing.T) {
@@ -682,12 +821,31 @@ func TestNewFromFloat(t *testing.T) {
 	}
 }
 
+func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 1234
+	const expectedDisplay = "12.34FOO"
+
+	m := NewFromFloat(12.34, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
+	}
+}
+
 func TestDefaultMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency":"IQD"}`
 
 	b, err := json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -700,7 +858,6 @@ func TestDefaultMarshal(t *testing.T) {
 	expected = `{"amount":0,"currency":""}`
 
 	b, err = json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -719,7 +876,6 @@ func TestCustomMarshal(t *testing.T) {
 	}
 
 	b, err := json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
