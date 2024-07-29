@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -24,6 +25,26 @@ func TestNew(t *testing.T) {
 
 	if m.amount != -100 {
 		t.Errorf("Expected %d got %d", -100, m.amount)
+	}
+}
+
+func TestNew_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 100
+	const expectedDisplay = "1.00FOO"
+
+	m := New(100, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
 	}
 }
 
@@ -298,7 +319,6 @@ func TestMoney_Add(t *testing.T) {
 		m := New(tc.amount1, EUR)
 		om := New(tc.amount2, EUR)
 		r, err := m.Add(om)
-
 		if err != nil {
 			t.Error(err)
 		}
@@ -378,7 +398,6 @@ func TestMoney_Subtract(t *testing.T) {
 		m := New(tc.amount1, EUR)
 		om := New(tc.amount2, EUR)
 		r, err := m.Subtract(om)
-
 		if err != nil {
 			t.Error(err)
 		}
@@ -610,6 +629,19 @@ func TestMoney_Allocate2(t *testing.T) {
 	}
 }
 
+func TestAllocateOverflow(t *testing.T) {
+	m := New(math.MaxInt64, EUR)
+	_, err := m.Allocate(math.MaxInt, 1)
+	if err == nil {
+		t.Fatalf("expected an error, but got nil")
+	}
+
+	expectedErrorMessage := "sum of given ratios exceeds max int"
+	if err.Error() != expectedErrorMessage {
+		t.Fatalf("expected error message %q, but got %q", expectedErrorMessage, err.Error())
+	}
+}
+
 func TestMoney_Format(t *testing.T) {
 	tcs := []struct {
 		amount   int64
@@ -672,7 +704,6 @@ func TestMoney_AsMajorUnits(t *testing.T) {
 func TestMoney_Allocate3(t *testing.T) {
 	pound := New(100, GBP)
 	parties, err := pound.Allocate(33, 33, 33)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -744,7 +775,6 @@ func TestMoney_Comparison(t *testing.T) {
 		t.Errorf("Expected %d Equals to %d == %d got %d", anotherTwoEuros.amount,
 			twoEuros.amount, 0, r)
 	}
-
 }
 
 func TestMoney_Currency(t *testing.T) {
@@ -781,12 +811,31 @@ func TestNewFromFloat(t *testing.T) {
 	}
 }
 
+func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 1234
+	const expectedDisplay = "12.34FOO"
+
+	m := NewFromFloat(12.34, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
+	}
+}
+
 func TestDefaultMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency":"IQD"}`
 
 	b, err := json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -799,7 +848,6 @@ func TestDefaultMarshal(t *testing.T) {
 	expected = `{"amount":0,"currency":""}`
 
 	b, err = json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -818,7 +866,6 @@ func TestCustomMarshal(t *testing.T) {
 	}
 
 	b, err := json.Marshal(given)
-
 	if err != nil {
 		t.Error(err)
 	}
