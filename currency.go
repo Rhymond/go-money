@@ -149,7 +149,7 @@ var currencies = Currencies{
 	MUR: {Decimal: ".", Thousand: ",", Code: MUR, Fraction: 2, NumericCode: "480", Grapheme: "\u20a8", Template: "$1"},
 	MVR: {Decimal: ".", Thousand: ",", Code: MVR, Fraction: 2, NumericCode: "462", Grapheme: "MVR", Template: "1 $"},
 	MWK: {Decimal: ".", Thousand: ",", Code: MWK, Fraction: 2, NumericCode: "454", Grapheme: "MK", Template: "$1"},
-	MXN: {Decimal: ".", Thousand: ",", Code: MXN, Fraction: 2, NumericCode: "484", Grapheme: "$", Template: "$1"},
+	MXN: {Decimal: ".", Thousand: ",", Code: MXN, Fraction: 4, NumericCode: "484", Grapheme: "$", Template: "$1"},
 	MYR: {Decimal: ".", Thousand: ",", Code: MYR, Fraction: 2, NumericCode: "458", Grapheme: "RM", Template: "$1"},
 	MZN: {Decimal: ".", Thousand: ",", Code: MZN, Fraction: 2, NumericCode: "943", Grapheme: "MT", Template: "$1"},
 	NAD: {Decimal: ".", Thousand: ",", Code: NAD, Fraction: 2, NumericCode: "516", Grapheme: "$", Template: "$1"},
