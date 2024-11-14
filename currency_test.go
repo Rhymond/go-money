@@ -147,3 +147,10 @@ func TestCurrency_GetCurrencyByNumericCode(t *testing.T) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", expected, got)
 	}
 }
+
+func TestCurrency_GetCurrencyByNumericCodeNonExistingCurrency(t *testing.T) {
+	currency := GetCurrencyByNumericCode("I*am*Not*a*Valid*Numeric*Code")
+	if currency != nil {
+		t.Errorf("Unexpected currency returned %+v", currency)
+	}
+}
