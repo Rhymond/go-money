@@ -2,7 +2,6 @@ package money
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -81,8 +80,8 @@ type Amount = int64
 // Money represents monetary value information, stores
 // currency and amount value.
 type Money struct {
-	Amount_   Amount    `json:"amount" swaggertype:"primitive,integer" db:"amount"`
-	Currency_ *Currency `json:"currency" swaggertype:"primitive,string" db:"currency"`
+	Amount_   Amount    `json:"amount" swaggertype:"primitive,integer"`
+	Currency_ *Currency `json:"currency" swaggertype:"primitive,string"`
 }
 
 // New creates and returns new instance of Money.
@@ -210,7 +209,7 @@ func (m *Money) Add(ms ...*Money) (*Money, error) {
 		return m, nil
 	}
 
-	k := New(0, m.currency.Code)
+	k := New(0, m.Currency_.Code)
 
 	for _, m2 := range ms {
 		if err := m.assertSameCurrency(m2); err != nil {
@@ -220,7 +219,7 @@ func (m *Money) Add(ms ...*Money) (*Money, error) {
 		k.Amount_ = mutate.calc.add(k.Amount_, m2.Amount_)
 	}
 
-	return &Money{Amount_: mutate.calc.add(m.Amount_, k.Amount_), currency: m.currency}, nil
+	return &Money{Amount_: mutate.calc.add(m.Amount_, k.Amount_), Currency_: m.Currency_}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
@@ -229,7 +228,7 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 		return m, nil
 	}
 
-	k := New(0, m.currency.Code)
+	k := New(0, m.Currency_.Code)
 
 	for _, m2 := range ms {
 		if err := m.assertSameCurrency(m2); err != nil {
@@ -239,7 +238,7 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 		k.Amount_ = mutate.calc.add(k.Amount_, m2.Amount_)
 	}
 
-	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
+	return &Money{Amount_: mutate.calc.subtract(m.Amount_, k.Amount_), Currency_: m.Currency_}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
@@ -248,13 +247,13 @@ func (m *Money) Multiply(muls ...int64) *Money {
 		panic("At least one multiplier is required to multiply")
 	}
 
-	k := New(1, m.currency.Code)
+	k := New(1, m.Currency_.Code)
 
 	for _, m2 := range muls {
-		k.amount = mutate.calc.multiply(k.amount, m2)
+		k.Amount_ = mutate.calc.multiply(k.Amount_, m2)
 	}
 
-	return &Money{amount: mutate.calc.multiply(m.amount, k.amount), currency: m.currency}
+	return &Money{Amount_: mutate.calc.multiply(m.Amount_, k.Amount_), Currency_: m.Currency_}
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
@@ -317,8 +316,8 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
-			currency: m.currency,
+			Amount_:   mutate.calc.allocate(m.Amount_, int64(r), sum),
+			Currency_: m.Currency_,
 		}
 
 		ms = append(ms, party)
@@ -368,42 +367,6 @@ func (m Money) MarshalJSON() ([]byte, error) {
 	return MarshalJSON(m)
 }
 
-// Scan is an implementation the database/sql scanner interface
-func (c *Currency) Scan(value interface{}) error {
-	if value == nil {
-		return nil
-	}
-	data, ok := value.(string)
-	if !ok {
-		return errors.New("Type assertion .(string) failed.")
-	}
-	*c = *newCurrency(data).get()
-	return nil
-}
-
-// Value is an implementation of driver.Value
-func (c Currency) Value() (driver.Value, error) {
-	return c.Code, nil
-}
-
-// Scan is an implementation the database/sql scanner interface
-func (m *Money) Scan(value interface{}) error {
-	if value == nil {
-		m = nil
-		return nil
-	}
-	data, ok := value.([]byte)
-	if !ok {
-		return errors.New("Type assertion .([]byte) failed.")
-	}
-	return json.Unmarshal(data, &m)
-}
-
-// Value is an implementation of driver.Value
-func (m Money) Value() (driver.Value, error) {
-	return json.Marshal(m)
-}
-
 // Compare function compares two money of the same type
 //
 //	if m.amount > om.amount returns (1, nil)
@@ -413,7 +376,7 @@ func (m Money) Value() (driver.Value, error) {
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {
-		return int(m.amount), err
+		return int(m.Amount_), err
 	}
 
 	return m.compare(om), nil

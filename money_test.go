@@ -35,12 +35,12 @@ func TestNew_WithUnregisteredCurrency(t *testing.T) {
 
 	m := New(100, currencyFooCode)
 
-	if m.amount != expectedAmount {
-		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	if m.Amount_ != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.Amount_)
 	}
 
-	if m.currency.Code != currencyFooCode {
-		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	if m.Currency_.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.Currency_.Code)
 	}
 
 	if m.Display() != expectedDisplay {
@@ -365,7 +365,7 @@ func TestMoney_Add3(t *testing.T) {
 
 		if r.Amount() != tc.expected {
 			t.Errorf("Expected %d + %d + %d = %d got %d", tc.amount1, tc.amount2, tc.amount3,
-				tc.expected, r.amount)
+				tc.expected, r.Amount_)
 		}
 	}
 }
@@ -378,7 +378,7 @@ func TestMoney_Add4(t *testing.T) {
 		t.Error(err)
 	}
 
-	if r.amount != 100 {
+	if r.Amount_ != 100 {
 		t.Error("Expected amount to be 100")
 	}
 }
@@ -444,7 +444,7 @@ func TestMoney_Subtract3(t *testing.T) {
 
 		if r.Amount() != tc.expected {
 			t.Errorf("Expected (%d) - (%d) - (%d) = %d got %d", tc.amount1, tc.amount2, tc.amount3,
-				tc.expected, r.amount)
+				tc.expected, r.Amount_)
 		}
 	}
 }
@@ -457,7 +457,7 @@ func TestMoney_Subtract4(t *testing.T) {
 		t.Error(err)
 	}
 
-	if r.amount != 100 {
+	if r.Amount_ != 100 {
 		t.Error("Expected amount to be 100")
 	}
 }
@@ -501,8 +501,8 @@ func TestMoney_Multiply2(t *testing.T) {
 		mon1 := New(tc.amount1, EUR)
 		r := mon1.Multiply(tc.amount2, tc.amount3)
 
-		if r.amount != tc.expected {
-			t.Errorf("Expected %d * %d * %d = %d got %d", tc.amount1, tc.amount2, tc.amount3, tc.expected, r.amount)
+		if r.Amount_ != tc.expected {
+			t.Errorf("Expected %d * %d * %d = %d got %d", tc.amount1, tc.amount2, tc.amount3, tc.expected, r.Amount_)
 		}
 	}
 }
@@ -757,13 +757,13 @@ func TestMoney_Comparison(t *testing.T) {
 	}
 
 	if r, err := twoPounds.Compare(pound); r != 1 && err != nil {
-		t.Errorf("Expected %d Greater Than %d == %d got %d", pound.amount,
-			twoPounds.amount, 1, r)
+		t.Errorf("Expected %d Greater Than %d == %d got %d", pound.Amount_,
+			twoPounds.Amount_, 1, r)
 	}
 
 	if r, err := pound.Compare(twoPounds); r != -1 && err != nil {
-		t.Errorf("Expected %d Less Than %d == %d got %d", pound.amount,
-			twoPounds.amount, -1, r)
+		t.Errorf("Expected %d Less Than %d == %d got %d", pound.Amount_,
+			twoPounds.Amount_, -1, r)
 	}
 
 	if _, err := pound.Compare(twoEuros); err != ErrCurrencyMismatch {
@@ -772,8 +772,8 @@ func TestMoney_Comparison(t *testing.T) {
 
 	anotherTwoEuros := New(200, EUR)
 	if r, err := twoEuros.Compare(anotherTwoEuros); r != 0 && err != nil {
-		t.Errorf("Expected %d Equals to %d == %d got %d", anotherTwoEuros.amount,
-			twoEuros.amount, 0, r)
+		t.Errorf("Expected %d Equals to %d == %d got %d", anotherTwoEuros.Amount_,
+			twoEuros.Amount_, 0, r)
 	}
 }
 
@@ -806,12 +806,12 @@ func TestNewFromFloat(t *testing.T) {
 
 	m = NewFromFloat(12.34, "eur")
 
-	if m.amount != 1234 {
-		t.Errorf("Expected %d got %d", 1234, m.amount)
+	if m.Amount_ != 1234 {
+		t.Errorf("Expected %d got %d", 1234, m.Amount_)
 	}
 
-	if m.currency.Code != EUR {
-		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
+	if m.Currency_.Code != EUR {
+		t.Errorf("Expected currency %s got %s", EUR, m.Currency_.Code)
 	}
 
 	m = NewFromFloat(-0.125, EUR)
@@ -828,12 +828,12 @@ func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
 
 	m := NewFromFloat(12.34, currencyFooCode)
 
-	if m.amount != expectedAmount {
-		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	if m.Amount_ != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.Amount_)
 	}
 
-	if m.currency.Code != currencyFooCode {
-		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	if m.Currency_.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.Currency_.Code)
 	}
 
 	if m.Display() != expectedDisplay {

@@ -9,33 +9,29 @@ import (
 
 func TestMoney_Value(t *testing.T) {
 	tests := []struct {
-		have      *Money
-		separator string
-		want      string
-		wantErr   bool
+		have    *Money
+		want    []byte
+		wantErr bool
 	}{
 		{
-			have:      New(10, CAD),
-			separator: "|",
-			want:      "10|CAD",
+			have: New(10, CAD),
+			want: []byte(`{"amount":10,"currency":"CAD"}`),
 		},
 		{
-			have:      New(-10, USD),
-			separator: "+-+",
-			want:      "-10+-+USD",
+			have: New(-10, USD),
+			want: []byte(`{"amount":-10,"currency":"USD"}`),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%#v", tt.have), func(t *testing.T) {
 			want := driver.Value(tt.want)
-			DBMoneyValueSeparator = tt.separator
 			got, err := tt.have.Value()
 			if err != nil {
 				t.Errorf("Value() error = %v", err)
 				return
 			}
 			if !reflect.DeepEqual(got, want) {
-				t.Errorf("Value() got = %v, want %v", got, want)
+				t.Errorf("Value() got = %v, want %v", string((got).([]byte)), string((want).([]byte)))
 			}
 		})
 	}
@@ -43,60 +39,55 @@ func TestMoney_Value(t *testing.T) {
 
 func TestMoney_Scan(t *testing.T) {
 	tests := []struct {
-		src       interface{}
-		separator string
-		want      *Money
-		wantErr   bool
+		name    string
+		src     interface{}
+		want    *Money
+		wantErr bool
 	}{
 		{
-			src:  "10|CAD",
+			name: "10 cad",
+			src:  []byte(`{"amount":10,"currency":"CAD"}`),
 			want: New(10, CAD),
 		},
 		{
-			src:  "20|USD",
+			name: "20 usd",
+			src:  []byte(`{"amount":20,"currency":"USD"}`),
 			want: New(20, USD),
 		},
 		{
-			src:       "30000,IDR",
-			separator: ",",
-			want:      New(30000, IDR),
+			name: "30.00 IDR",
+			src:  []byte(`{"amount":30000,"currency":"IDR"}`),
+			want: New(30000, IDR),
 		},
 		{
-			src:     "10|",
+			name:    "empty currency",
+			src:     []byte(`{"amount":10,"currency":""}`),
 			wantErr: true,
 		},
 		{
-			src:     "|SAR",
+			name:    "missing amount, parse error",
+			src:     []byte(`{"amount":,"currency":"SAR"}`),
 			wantErr: true,
 		},
 		{
-			src:     "10",
+			name:    "missing currency",
+			src:     []byte(`{"amount":10}`),
 			wantErr: true,
 		},
 		{
-			src:     "USD",
-			wantErr: true,
+			name: "missing amount",
+			src:  []byte(`{"currency":"USD"}`),
+			// unfortunately, this is not an error
+			want: New(0, USD),
 		},
 		{
-			src:     "USD|10",
-			wantErr: true,
-		},
-		{
-			src:     "",
-			wantErr: true,
-		},
-		{
-			src:     "a|b|c",
+			name:    "empty",
+			src:     "{}",
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%#v", tt.src), func(t *testing.T) {
-			if tt.separator != "" {
-				DBMoneyValueSeparator = tt.separator
-			} else {
-				DBMoneyValueSeparator = DefaultDBMoneyValueSeparator
-			}
+		t.Run(tt.name, func(t *testing.T) {
 			got := &Money{}
 			if err := got.Scan(tt.src); (err != nil) != tt.wantErr {
 				t.Errorf("Scan() error = %v, wantErr %v", err, tt.wantErr)
@@ -106,7 +97,7 @@ func TestMoney_Scan(t *testing.T) {
 				return
 			}
 			if got == nil {
-				t.Errorf("money.Scan() result was <nil>")
+				t.Errorf("money.Scan() result was <nil> %v", tt.want)
 				return
 			}
 			eq, err := tt.want.Equals(got)
