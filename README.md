@@ -73,6 +73,7 @@ Comparison
 * GreaterThanOrEqual
 * LessThan
 * LessThanOrEqual
+* Compare
 
 Comparisons must be made between the same currency units.
 
@@ -84,6 +85,10 @@ twoEuros := money.New(200, money.EUR)
 pound.GreaterThan(twoPounds) // false, nil
 pound.LessThan(twoPounds) // true, nil
 twoPounds.Equals(twoEuros) // false, error: Currencies don't match
+twoPounds.Compare(pound) // 1, nil
+pound.Compare(twoPounds) // -1, nil
+pound.Compare(pound) // 0, nil
+pound.Compare(twoEuros) // pound.amount, ErrCurrencyMismatch
 ```
 Asserts
 -

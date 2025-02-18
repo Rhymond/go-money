@@ -81,8 +81,8 @@ type Amount = int64
 // Money represents monetary value information, stores
 // currency and amount value.
 type Money struct {
-	Amount_   Amount    `json:"amount" swaggertype:"primitive,integer"`
-	Currency_ *Currency `json:"currency" swaggertype:"primitive,string"`
+	Amount_   Amount    `json:"amount" swaggertype:"primitive,integer" db:"amount"`
+	Currency_ *Currency `json:"currency" swaggertype:"primitive,string" db:"currency"`
 }
 
 // New creates and returns new instance of Money.
@@ -95,9 +95,9 @@ func New(amount int64, code string) *Money {
 
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
-func NewFromFloat(amount float64, currency string) *Money {
-	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+func NewFromFloat(amount float64, code string) *Money {
+	currencyDecimals := math.Pow10(newCurrency(code).get().Fraction)
+	return New(int64(amount*currencyDecimals), code)
 }
 
 // Currency returns the currency used by Money.
@@ -205,26 +205,56 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money.
-func (m *Money) Add(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Add(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
-	return &Money{Amount_: mutate.calc.add(m.Amount_, om.Amount_), Currency_: m.Currency_}, nil
+	k := New(0, m.currency.Code)
+
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
+			return nil, err
+		}
+
+		k.Amount_ = mutate.calc.add(k.Amount_, m2.Amount_)
+	}
+
+	return &Money{Amount_: mutate.calc.add(m.Amount_, k.Amount_), currency: m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
-func (m *Money) Subtract(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Subtract(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
-	return &Money{Amount_: mutate.calc.subtract(m.Amount_, om.Amount_), Currency_: m.Currency_}, nil
+	k := New(0, m.currency.Code)
+
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
+			return nil, err
+		}
+
+		k.Amount_ = mutate.calc.add(k.Amount_, m2.Amount_)
+	}
+
+	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
-func (m *Money) Multiply(mul int64) *Money {
-	return &Money{Amount_: mutate.calc.multiply(m.Amount_, mul), Currency_: m.Currency_}
+func (m *Money) Multiply(muls ...int64) *Money {
+	if len(muls) == 0 {
+		panic("At least one multiplier is required to multiply")
+	}
+
+	k := New(1, m.currency.Code)
+
+	for _, m2 := range muls {
+		k.amount = mutate.calc.multiply(k.amount, m2)
+	}
+
+	return &Money{amount: mutate.calc.multiply(m.amount, k.amount), currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
@@ -272,21 +302,33 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	// Calculate sum of ratios.
-	var sum int
+	var sum int64
 	for _, r := range rs {
-		sum += r
+		if r < 0 {
+			return nil, errors.New("negative ratios not allowed")
+		}
+		if int64(r) > (math.MaxInt64 - sum) {
+			return nil, errors.New("sum of given ratios exceeds max int")
+		}
+		sum += int64(r)
 	}
 
 	var total int64
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			Amount_:   mutate.calc.allocate(m.Amount_, r, sum),
-			Currency_: m.Currency_,
+			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
+			currency: m.currency,
 		}
 
 		ms = append(ms, party)
 		total += party.Amount_
+	}
+
+	// if the sum of all ratios is zero, then we just returns zeros and don't do anything
+	// with the leftover
+	if sum == 0 {
+		return ms, nil
 	}
 
 	// Calculate leftover value and divide to first parties.
@@ -360,4 +402,19 @@ func (m *Money) Scan(value interface{}) error {
 // Value is an implementation of driver.Value
 func (m Money) Value() (driver.Value, error) {
 	return json.Marshal(m)
+}
+
+// Compare function compares two money of the same type
+//
+//	if m.amount > om.amount returns (1, nil)
+//	if m.amount == om.amount returns (0, nil
+//	if m.amount < om.amount returns (-1, nil)
+//
+// If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
+func (m *Money) Compare(om *Money) (int, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return int(m.amount), err
+	}
+
+	return m.compare(om), nil
 }

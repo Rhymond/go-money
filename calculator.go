@@ -24,8 +24,12 @@ func (c *calculator) modulus(a Amount, d int64) Amount {
 	return a % d
 }
 
-func (c *calculator) allocate(a Amount, r, s int) Amount {
-	return a * int64(r) / int64(s)
+func (c *calculator) allocate(a Amount, r, s int64) Amount {
+	if a == 0 || s == 0 {
+		return 0
+	}
+
+	return a * r / s
 }
 
 func (c *calculator) absolute(a Amount) Amount {
