@@ -709,12 +709,11 @@ func TestDefaultUnmarshal(t *testing.T) {
 
 	given = `{"amount": 0, "currency":""}`
 	err = json.Unmarshal([]byte(given), &m)
-	if err != nil {
-		t.Error(err)
+	if err == nil {
+		t.Error("expected error")
 	}
-
-	if m != (Money{}) {
-		t.Errorf("Expected zero value, got %+v", m)
+	if err != ErrInvalidCurrency {
+		t.Errorf("Exepcted :%v", ErrInvalidCurrency)
 	}
 
 	given = `{}`
@@ -739,6 +738,7 @@ func TestDefaultUnmarshal(t *testing.T) {
 		t.Errorf("Expected ErrInvalidJSONUnmarshal, got %+v", err)
 	}
 }
+
 func TestDefaultUnmarshal_InvalidCurrency(t *testing.T) {
 	given := `{"amount": 10012, "currency":"USD "}`
 	var m Money
