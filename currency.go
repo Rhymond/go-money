@@ -199,7 +199,7 @@ var currencies = Currencies{
 	TRY: {Decimal: ".", Thousand: ",", Code: TRY, Fraction: 2, NumericCode: "949", Grapheme: "\u20ba", Template: "$1"},
 	TTD: {Decimal: ".", Thousand: ",", Code: TTD, Fraction: 2, NumericCode: "780", Grapheme: "TT$", Template: "$1"},
 	TWD: {Decimal: ".", Thousand: ",", Code: TWD, Fraction: 2, NumericCode: "901", Grapheme: "NT$", Template: "$1"},
-	TZS: {Decimal: ".", Thousand: ",", Code: TZS, Fraction: 0, NumericCode: "834", Grapheme: "TSh", Template: "$1"},
+	TZS: {Decimal: ".", Thousand: ",", Code: TZS, Fraction: 2, NumericCode: "834", Grapheme: "TSh", Template: "$1"},
 	UAH: {Decimal: ".", Thousand: ",", Code: UAH, Fraction: 2, NumericCode: "980", Grapheme: "\u20b4", Template: "1 $"},
 	UGX: {Decimal: ".", Thousand: ",", Code: UGX, Fraction: 0, NumericCode: "800", Grapheme: "USh", Template: "1 $"},
 	USD: {Decimal: ".", Thousand: ",", Code: USD, Fraction: 2, NumericCode: "840", Grapheme: "$", Template: "$1"},
