@@ -137,3 +137,20 @@ func TestCurrencies(t *testing.T) {
 		t.Errorf("unexpected currency returned. expected: %v, got %v", curBar, ac)
 	}
 }
+
+func TestCurrency_GetCurrencyByNumericCode(t *testing.T) {
+	code := "986"
+	expected := GetCurrency(BRL)
+	got := GetCurrencyByNumericCode(code)
+
+	if !expected.equals(got) {
+		t.Errorf("unexpected currency returned. expected: %v, got %v", expected, got)
+	}
+}
+
+func TestCurrency_GetCurrencyByNumericCodeNonExistingCurrency(t *testing.T) {
+	currency := GetCurrencyByNumericCode("I*am*Not*a*Valid*Numeric*Code")
+	if currency != nil {
+		t.Errorf("Unexpected currency returned %+v", currency)
+	}
+}

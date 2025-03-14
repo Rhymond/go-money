@@ -247,6 +247,13 @@ func GetCurrency(code string) *Currency {
 	return currencies.CurrencyByCode(strings.ToUpper(code))
 }
 
+// GetCurrencyByNumericCode returns the currency given the numeric code.
+// The code parameter should be a string representing a 3-digit numeric code
+// as defined in the ISO-4217 standard. For example, "840" for USD or "978" for EUR.
+func GetCurrencyByNumericCode(code string) *Currency {
+	return currencies.CurrencyByNumericCode(code)
+}
+
 // Formatter returns currency formatter representing
 // used currency structure.
 func (c *Currency) Formatter() *Formatter {
