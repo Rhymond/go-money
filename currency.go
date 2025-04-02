@@ -214,6 +214,7 @@ var currencies = Currencies{
 	XAG: {Decimal: ".", Thousand: ",", Code: XAG, Fraction: 0, NumericCode: "961", Grapheme: "oz t", Template: "1 $"},
 	XAU: {Decimal: ".", Thousand: ",", Code: XAU, Fraction: 0, NumericCode: "959", Grapheme: "oz t", Template: "1 $"},
 	XCD: {Decimal: ".", Thousand: ",", Code: XCD, Fraction: 2, NumericCode: "951", Grapheme: "$", Template: "$1"},
+	XCG: {Decimal: ",", Thousand: ".", Code: XCG, Fraction: 2, NumericCode: "532", Grapheme: "Cg", Template: "$1"},
 	XDR: {Decimal: ".", Thousand: ",", Code: XDR, Fraction: 0, NumericCode: "960", Grapheme: "SDR", Template: "1 $"},
 	XOF: {Decimal: ".", Thousand: ",", Code: XOF, Fraction: 0, NumericCode: "952", Grapheme: "CFA", Template: "1 $"},
 	XPF: {Decimal: ".", Thousand: ",", Code: XPF, Fraction: 0, NumericCode: "953", Grapheme: "₣", Template: "1 $"},
