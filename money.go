@@ -10,8 +10,9 @@ import (
 
 // Injection points for backward compatibility.
 // If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//   money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//   money.MarshalJSON = func (m Money) ([]byte, error) { ... }
+//
+//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
+//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
 var (
 	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
 	UnmarshalJSON = defaultUnmarshalJSON
@@ -74,8 +75,8 @@ type Amount = int64
 // Money represents monetary value information, stores
 // currency and amount value.
 type Money struct {
-	amount   Amount
-	currency *Currency
+	amount   Amount    `db:"amount"`
+	currency *Currency `db:"currency"`
 }
 
 // New creates and returns new instance of Money.
@@ -88,9 +89,9 @@ func New(amount int64, code string) *Money {
 
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
-func NewFromFloat(amount float64, currency string) *Money {
-	currencyDecimals := math.Pow10(GetCurrency(currency).Fraction)
-	return New(int64(amount*currencyDecimals), currency)
+func NewFromFloat(amount float64, code string) *Money {
+	currencyDecimals := math.Pow10(newCurrency(code).get().Fraction)
+	return New(int64(amount*currencyDecimals), code)
 }
 
 // Currency returns the currency used by Money.
@@ -198,26 +199,56 @@ func (m *Money) Negative() *Money {
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money.
-func (m *Money) Add(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Add(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
-	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
+	k := New(0, m.currency.Code)
+
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
+			return nil, err
+		}
+
+		k.amount = mutate.calc.add(k.amount, m2.amount)
+	}
+
+	return &Money{amount: mutate.calc.add(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
-func (m *Money) Subtract(om *Money) (*Money, error) {
-	if err := m.assertSameCurrency(om); err != nil {
-		return nil, err
+func (m *Money) Subtract(ms ...*Money) (*Money, error) {
+	if len(ms) == 0 {
+		return m, nil
 	}
 
-	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
+	k := New(0, m.currency.Code)
+
+	for _, m2 := range ms {
+		if err := m.assertSameCurrency(m2); err != nil {
+			return nil, err
+		}
+
+		k.amount = mutate.calc.add(k.amount, m2.amount)
+	}
+
+	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
 // Multiply returns new Money struct with value representing Self multiplied value by multiplier.
-func (m *Money) Multiply(mul int64) *Money {
-	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
+func (m *Money) Multiply(muls ...int64) *Money {
+	if len(muls) == 0 {
+		panic("At least one multiplier is required to multiply")
+	}
+
+	k := New(1, m.currency.Code)
+
+	for _, m2 := range muls {
+		k.amount = mutate.calc.multiply(k.amount, m2)
+	}
+
+	return &Money{amount: mutate.calc.multiply(m.amount, k.amount), currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
@@ -265,19 +296,22 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	}
 
 	// Calculate sum of ratios.
-	var sum uint
+	var sum int64
 	for _, r := range rs {
 		if r < 0 {
 			return nil, errors.New("negative ratios not allowed")
 		}
-		sum += uint(r)
+		if int64(r) > (math.MaxInt64 - sum) {
+			return nil, errors.New("sum of given ratios exceeds max int")
+		}
+		sum += int64(r)
 	}
 
 	var total int64
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, uint(r), sum),
+			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
 			currency: m.currency,
 		}
 
@@ -329,9 +363,11 @@ func (m Money) MarshalJSON() ([]byte, error) {
 }
 
 // Compare function compares two money of the same type
-//  if m.amount > om.amount returns (1, nil)
-//  if m.amount == om.amount returns (0, nil
-//  if m.amount < om.amount returns (-1, nil)
+//
+//	if m.amount > om.amount returns (1, nil)
+//	if m.amount == om.amount returns (0, nil
+//	if m.amount < om.amount returns (-1, nil)
+//
 // If compare moneys from distinct currency, return (m.amount, ErrCurrencyMismatch)
 func (m *Money) Compare(om *Money) (int, error) {
 	if err := m.assertSameCurrency(om); err != nil {

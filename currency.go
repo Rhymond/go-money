@@ -122,7 +122,7 @@ var currencies = Currencies{
 	JOD: {Decimal: ".", Thousand: ",", Code: JOD, Fraction: 3, NumericCode: "400", Grapheme: ".\u062f.\u0625", Template: "1 $"},
 	JPY: {Decimal: ".", Thousand: ",", Code: JPY, Fraction: 0, NumericCode: "392", Grapheme: "\u00a5", Template: "$1"},
 	KES: {Decimal: ".", Thousand: ",", Code: KES, Fraction: 2, NumericCode: "404", Grapheme: "KSh", Template: "$1"},
-	KGS: {Decimal: ".", Thousand: ",", Code: KGS, Fraction: 2, NumericCode: "417", Grapheme: "\u0441\u043e\u043c", Template: "$1"},
+	KGS: {Decimal: ".", Thousand: ",", Code: KGS, Fraction: 2, NumericCode: "417", Grapheme: "\u0441\u043e\u043c", Template: "1 $"},
 	KHR: {Decimal: ".", Thousand: ",", Code: KHR, Fraction: 2, NumericCode: "116", Grapheme: "\u17db", Template: "$1"},
 	KMF: {Decimal: ".", Thousand: ",", Code: KMF, Fraction: 0, NumericCode: "174", Grapheme: "CF", Template: "$1"},
 	KPW: {Decimal: ".", Thousand: ",", Code: KPW, Fraction: 2, NumericCode: "408", Grapheme: "\u20a9", Template: "$1"},
@@ -145,6 +145,7 @@ var currencies = Currencies{
 	MMK: {Decimal: ".", Thousand: ",", Code: MMK, Fraction: 2, NumericCode: "104", Grapheme: "K", Template: "$1"},
 	MNT: {Decimal: ".", Thousand: ",", Code: MNT, Fraction: 2, NumericCode: "496", Grapheme: "\u20ae", Template: "$1"},
 	MOP: {Decimal: ".", Thousand: ",", Code: MOP, Fraction: 2, NumericCode: "446", Grapheme: "P", Template: "1 $"},
+	MRU: {Decimal: ".", Thousand: ",", Code: MRU, Fraction: 2, NumericCode: "929", Grapheme: "UM", Template: "$1"},
 	MUR: {Decimal: ".", Thousand: ",", Code: MUR, Fraction: 2, NumericCode: "480", Grapheme: "\u20a8", Template: "$1"},
 	MVR: {Decimal: ".", Thousand: ",", Code: MVR, Fraction: 2, NumericCode: "462", Grapheme: "MVR", Template: "1 $"},
 	MWK: {Decimal: ".", Thousand: ",", Code: MWK, Fraction: 2, NumericCode: "454", Grapheme: "MK", Template: "$1"},
@@ -179,11 +180,13 @@ var currencies = Currencies{
 	SGD: {Decimal: ".", Thousand: ",", Code: SGD, Fraction: 2, NumericCode: "702", Grapheme: "S$", Template: "$1"},
 	SHP: {Decimal: ".", Thousand: ",", Code: SHP, Fraction: 2, NumericCode: "654", Grapheme: "\u00a3", Template: "$1"},
 	SKK: {Decimal: ".", Thousand: ",", Code: SKK, Fraction: 2, NumericCode: "", Grapheme: "Sk", Template: "$1"},
+	SLE: {Decimal: ".", Thousand: ",", Code: SLE, Fraction: 2, NumericCode: "925", Grapheme: "Le", Template: "1 $"},
 	SLL: {Decimal: ".", Thousand: ",", Code: SLL, Fraction: 2, NumericCode: "694", Grapheme: "Le", Template: "1 $"},
 	SOS: {Decimal: ".", Thousand: ",", Code: SOS, Fraction: 2, NumericCode: "706", Grapheme: "Sh", Template: "1 $"},
 	SRD: {Decimal: ".", Thousand: ",", Code: SRD, Fraction: 2, NumericCode: "968", Grapheme: "$", Template: "$1"},
 	SSP: {Decimal: ".", Thousand: ",", Code: SSP, Fraction: 2, NumericCode: "728", Grapheme: "\u00a3", Template: "1 $"},
 	STD: {Decimal: ".", Thousand: ",", Code: STD, Fraction: 2, NumericCode: "", Grapheme: "Db", Template: "1 $"},
+	STN: {Decimal: ".", Thousand: ",", Code: STN, Fraction: 2, NumericCode: "930", Grapheme: "Db", Template: "1 $"},
 	SVC: {Decimal: ".", Thousand: ",", Code: SVC, Fraction: 2, NumericCode: "222", Grapheme: "\u20a1", Template: "$1"},
 	SYP: {Decimal: ".", Thousand: ",", Code: SYP, Fraction: 2, NumericCode: "760", Grapheme: "\u00a3", Template: "1 $"},
 	SZL: {Decimal: ".", Thousand: ",", Code: SZL, Fraction: 2, NumericCode: "748", Grapheme: "\u00a3", Template: "$1"},
@@ -196,7 +199,7 @@ var currencies = Currencies{
 	TRY: {Decimal: ".", Thousand: ",", Code: TRY, Fraction: 2, NumericCode: "949", Grapheme: "\u20ba", Template: "$1"},
 	TTD: {Decimal: ".", Thousand: ",", Code: TTD, Fraction: 2, NumericCode: "780", Grapheme: "TT$", Template: "$1"},
 	TWD: {Decimal: ".", Thousand: ",", Code: TWD, Fraction: 2, NumericCode: "901", Grapheme: "NT$", Template: "$1"},
-	TZS: {Decimal: ".", Thousand: ",", Code: TZS, Fraction: 0, NumericCode: "834", Grapheme: "TSh", Template: "$1"},
+	TZS: {Decimal: ".", Thousand: ",", Code: TZS, Fraction: 2, NumericCode: "834", Grapheme: "TSh", Template: "$1"},
 	UAH: {Decimal: ".", Thousand: ",", Code: UAH, Fraction: 2, NumericCode: "980", Grapheme: "\u20b4", Template: "1 $"},
 	UGX: {Decimal: ".", Thousand: ",", Code: UGX, Fraction: 0, NumericCode: "800", Grapheme: "USh", Template: "1 $"},
 	USD: {Decimal: ".", Thousand: ",", Code: USD, Fraction: 2, NumericCode: "840", Grapheme: "$", Template: "$1"},
@@ -211,6 +214,7 @@ var currencies = Currencies{
 	XAG: {Decimal: ".", Thousand: ",", Code: XAG, Fraction: 0, NumericCode: "961", Grapheme: "oz t", Template: "1 $"},
 	XAU: {Decimal: ".", Thousand: ",", Code: XAU, Fraction: 0, NumericCode: "959", Grapheme: "oz t", Template: "1 $"},
 	XCD: {Decimal: ".", Thousand: ",", Code: XCD, Fraction: 2, NumericCode: "951", Grapheme: "$", Template: "$1"},
+	XCG: {Decimal: ",", Thousand: ".", Code: XCG, Fraction: 2, NumericCode: "532", Grapheme: "Cg", Template: "$1"},
 	XDR: {Decimal: ".", Thousand: ",", Code: XDR, Fraction: 0, NumericCode: "960", Grapheme: "SDR", Template: "1 $"},
 	XOF: {Decimal: ".", Thousand: ",", Code: XOF, Fraction: 0, NumericCode: "952", Grapheme: "CFA", Template: "1 $"},
 	XPF: {Decimal: ".", Thousand: ",", Code: XPF, Fraction: 0, NumericCode: "953", Grapheme: "₣", Template: "1 $"},
@@ -241,7 +245,7 @@ func newCurrency(code string) *Currency {
 
 // GetCurrency returns the currency given the code.
 func GetCurrency(code string) *Currency {
-	return currencies.CurrencyByCode(code)
+	return currencies.CurrencyByCode(strings.ToUpper(code))
 }
 
 // Formatter returns currency formatter representing
