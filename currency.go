@@ -59,7 +59,7 @@ var currencies = Currencies{
 	BAM: {Decimal: ".", Thousand: ",", Code: BAM, Fraction: 2, NumericCode: "977", Grapheme: "KM", Template: "$1"},
 	BBD: {Decimal: ".", Thousand: ",", Code: BBD, Fraction: 2, NumericCode: "052", Grapheme: "$", Template: "$1"},
 	BDT: {Decimal: ".", Thousand: ",", Code: BDT, Fraction: 2, NumericCode: "050", Grapheme: "\u09f3", Template: "$1"},
-	BGN: {Decimal: ".", Thousand: ",", Code: BGN, Fraction: 2, NumericCode: "975", Grapheme: "\u043b\u0432", Template: "$1"},
+	BGN: {Decimal: ".", Thousand: ",", Code: BGN, Fraction: 2, NumericCode: "975", Grapheme: "\u043b\u0432", Template: "1 $."},
 	BHD: {Decimal: ".", Thousand: ",", Code: BHD, Fraction: 3, NumericCode: "048", Grapheme: ".\u062f.\u0628", Template: "1 $"},
 	BIF: {Decimal: ".", Thousand: ",", Code: BIF, Fraction: 0, NumericCode: "108", Grapheme: "Fr", Template: "1$"},
 	BMD: {Decimal: ".", Thousand: ",", Code: BMD, Fraction: 2, NumericCode: "060", Grapheme: "$", Template: "$1"},
