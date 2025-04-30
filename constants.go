@@ -170,6 +170,7 @@ const (
 	XAG = "XAG"
 	XAU = "XAU"
 	XCD = "XCD"
+	XCG = "XCG"
 	XDR = "XDR"
 	XOF = "XOF"
 	XPF = "XPF"
