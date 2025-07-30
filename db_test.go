@@ -89,6 +89,18 @@ func TestMoney_Scan(t *testing.T) {
 			src:     "a|b|c",
 			wantErr: true,
 		},
+		{
+			src:  `{"amount": 10, "currency": "CAD"}`,
+			want: New(10, CAD),
+		},
+		{
+			src:  []byte(`{"amount": 10, "currency": "USD"}`),
+			want: New(10, USD),
+		},
+		{
+			src:  "{}",
+			want: &Money{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%#v", tt.src), func(t *testing.T) {
@@ -105,13 +117,12 @@ func TestMoney_Scan(t *testing.T) {
 			if tt.wantErr {
 				return
 			}
-			if got == nil {
-				t.Errorf("money.Scan() result was <nil>")
+			if *tt.want == *got {
 				return
 			}
 			eq, err := tt.want.Equals(got)
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Error(err)
 			}
 			if !eq {
 				t.Errorf("Value() got = %s %s, want %s %s", got.Display(), got.Currency().Code, tt.want.Display(), tt.want.Currency().Code)
