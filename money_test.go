@@ -819,6 +819,12 @@ func TestNewFromFloat(t *testing.T) {
 	if m.amount != -12 {
 		t.Errorf("Expected %d got %d", -12, m.amount)
 	}
+
+	m = NewFromFloat(147.23, BRL)
+
+	if m.amount != 14722 {
+		t.Errorf("Expected %d got %d", 14722, m.amount)
+	}
 }
 
 func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
@@ -827,6 +833,77 @@ func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
 	const expectedDisplay = "12.34FOO"
 
 	m := NewFromFloat(12.34, currencyFooCode)
+
+	if m.amount != expectedAmount {
+		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)
+	}
+
+	if m.currency.Code != currencyFooCode {
+		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
+	}
+
+	if m.Display() != expectedDisplay {
+		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
+	}
+}
+
+func TestNewFromFloatWithRound(t *testing.T) {
+	m := NewFromFloatWithRound(12.34, EUR)
+
+	if m.amount != 1234 {
+		t.Errorf("Expected %d got %d", 1234, m.amount)
+	}
+
+	if m.currency.Code != EUR {
+		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
+	}
+
+	m = NewFromFloatWithRound(12.34, "eur")
+
+	if m.amount != 1234 {
+		t.Errorf("Expected %d got %d", 1234, m.amount)
+	}
+
+	if m.currency.Code != EUR {
+		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
+	}
+
+	m = NewFromFloatWithRound(-0.125, EUR)
+
+	if m.amount != -13 {
+		t.Errorf("Expected %d got %d", -13, m.amount)
+	}
+
+	m = NewFromFloatWithRound(147.23, BRL)
+
+	if m.amount != 14723 {
+		t.Errorf("Expected %d got %d", 14723, m.amount)
+	}
+
+	m = NewFromFloatWithRound(0.125, EUR)
+	if m.amount != 13 {
+		t.Errorf("Expected %d got %d", 13, m.amount)
+	}
+
+	m = NewFromFloatWithRound(0.125, JPY)
+
+	if m.amount != 0 {
+		t.Errorf("Expected %d got %d", 0, m.amount)
+	}
+
+	m = NewFromFloatWithRound(0.125, IQD)
+
+	if m.amount != 125 {
+		t.Errorf("Expected %d got %d", 125, m.amount)
+	}
+}
+
+func TestNewFromFloatWithRound_WithUnregisteredCurrency(t *testing.T) {
+	const currencyFooCode = "FOO"
+	const expectedAmount = 1234
+	const expectedDisplay = "12.34FOO"
+
+	m := NewFromFloatWithRound(12.34, currencyFooCode)
 
 	if m.amount != expectedAmount {
 		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount)

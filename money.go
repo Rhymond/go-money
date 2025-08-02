@@ -94,6 +94,17 @@ func NewFromFloat(amount float64, code string) *Money {
 	return New(int64(amount*currencyDecimals), code)
 }
 
+// NewFromFloatWithRound creates and returns new instance of Money from a float64.
+// It rounds trailing decimals to the nearest integer as math.Round does.
+func NewFromFloatWithRound(amount float64, code string) *Money {
+	currency := newCurrency(code).get()
+	currencyDecimals := math.Pow10(currency.Fraction)
+	return &Money{
+		amount:   int64(math.Round(amount * currencyDecimals)),
+		currency: currency,
+	}
+}
+
 // Currency returns the currency used by Money.
 func (m *Money) Currency() *Currency {
 	return m.currency
