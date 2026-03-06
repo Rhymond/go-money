@@ -87,6 +87,15 @@ func New(amount int64, code string) *Money {
 	}
 }
 
+// NewWithCurrency creates and returns a new instance of Money with a pre-resolved Currency,
+// skipping the currency lookup. The caller must ensure currency is non-nil.
+func NewWithCurrency(amount int64, currency *Currency) *Money {
+	return &Money{
+		amount:   amount,
+		currency: currency,
+	}
+}
+
 // NewFromFloat creates and returns new instance of Money from a float64.
 // Always rounding trailing decimals down.
 func NewFromFloat(amount float64, code string) *Money {
