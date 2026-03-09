@@ -48,6 +48,17 @@ func TestNew_WithUnregisteredCurrency(t *testing.T) {
 	}
 }
 
+func TestNewWithCurrency(t *testing.T) {
+	m := New(1, EUR)
+
+	om := NewWithCurrency(1, m.Currency())
+
+	r, err := m.Equals(om)
+	if err != nil || !r {
+		t.Errorf("Expected %d (%s) Equals %d (%s)", m.amount, m.currency.Code, om.amount, om.currency.Code)
+	}
+}
+
 func TestCurrency(t *testing.T) {
 	code := "MOCK"
 	decimals := 5
