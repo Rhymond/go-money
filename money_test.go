@@ -55,8 +55,7 @@ func TestNewWithCurrency(t *testing.T) {
 
 	r, err := m.Equals(om)
 	if err != nil || !r {
-		t.Errorf("Expected %d Equals %d", m.amount,
-			om.amount)
+		t.Errorf("Expected %d (%s) Equals %d (%s)", m.amount, m.currency.Code, om.amount, om.currency.Code)
 	}
 }
 
