@@ -59,6 +59,18 @@ func TestRoundWithMode(t *testing.T) {
 	}
 }
 
+func TestRoundWithMode_Default(t *testing.T) {
+	// An unknown RoundingMode value falls back to RoundHalfUp behaviour.
+	m := New(150, "EUR") // remainder == half → RoundHalfUp rounds up to 200
+	if r := m.RoundWithMode(RoundingMode(99)); r.Amount() != 200 {
+		t.Errorf("default mode: expected 200 got %d", r.Amount())
+	}
+	m2 := New(120, "EUR") // remainder < half → stays 100
+	if r := m2.RoundWithMode(RoundingMode(99)); r.Amount() != 100 {
+		t.Errorf("default mode: expected 100 got %d", r.Amount())
+	}
+}
+
 func TestRoundWithMode_NoFraction(t *testing.T) {
 	// JPY has Fraction=0 — rounding should be a no-op
 	m := New(100, "JPY")

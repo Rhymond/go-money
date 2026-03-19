@@ -146,9 +146,6 @@ func GetCurrencyAmountWords(amount float64, currencyCode string) string {
 	amount = ConvertTo2DecimalPlaces(amount)
 	strAmount := fmt.Sprintf("%+v", amount)
 	str := strings.Split(strAmount, ".")
-	if len(str) > 2 {
-		return fmt.Sprintf("%v", amount)
-	}
 
 	if len(str) == 1 {
 		str = append(str, "00")
@@ -201,10 +198,7 @@ func GetCurrencyAmountWords(amount float64, currencyCode string) string {
 
 // ConvertTo2DecimalPlaces rounds a float64 value to exactly two decimal places.
 func ConvertTo2DecimalPlaces(d float64) float64 {
-	amountPaidStr := fmt.Sprintf("%.2f", d)
-	amountPaid, err := strconv.ParseFloat(amountPaidStr, 64)
-	if err != nil {
-		return d
-	}
-	return amountPaid
+	// strconv.ParseFloat never errors on output from fmt.Sprintf("%.2f", …).
+	f, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", d), 64)
+	return f
 }

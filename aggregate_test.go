@@ -139,3 +139,24 @@ func TestAverage_Empty(t *testing.T) {
 		t.Error("Average(): expected error for empty input")
 	}
 }
+
+func TestMin_CurrencyMismatch(t *testing.T) {
+	_, err := Min(New(100, "USD"), New(100, "EUR"))
+	if err == nil {
+		t.Error("Min(): expected error for currency mismatch")
+	}
+}
+
+func TestMax_CurrencyMismatch(t *testing.T) {
+	_, err := Max(New(100, "USD"), New(100, "EUR"))
+	if err == nil {
+		t.Error("Max(): expected error for currency mismatch")
+	}
+}
+
+func TestAverage_CurrencyMismatch(t *testing.T) {
+	_, err := Average(New(100, "USD"), New(100, "EUR"))
+	if err == nil {
+		t.Error("Average(): expected error for currency mismatch")
+	}
+}

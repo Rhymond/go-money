@@ -40,6 +40,16 @@ jobs:
       - name: Run tests with coverage
         run: go test -coverprofile=coverage.out -covermode=atomic ./...
 
+      - name: Enforce 100% coverage
+        run: |
+          total=$(go tool cover -func=coverage.out | awk '/^total:/ {print $3}')
+          echo "Total coverage: $total"
+          if [ "$total" != "100.0%" ]; then
+            echo "Coverage is below 100%: $total"
+            go tool cover -func=coverage.out | grep -v "100.0%"
+            exit 1
+          fi
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         with:

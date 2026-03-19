@@ -493,6 +493,31 @@ func TestMoney_Allocate(t *testing.T) {
 	}
 }
 
+// TestMoney_Allocate_NegativeLeftover exercises the lo<0 branch inside Allocate.
+// A negative amount with ratios that don't sum evenly causes truncation in the
+// "wrong" direction (toward zero), so the allocated total is less negative than
+// the original, producing a negative leftover.
+func TestMoney_Allocate_NegativeLeftover(t *testing.T) {
+	// -10 / ratios [33,33,33] → each party gets -3 (truncated toward 0)
+	// total = -9, leftover = -10 - (-9) = -1 → first party gets -4
+	m := New(-10, "EUR")
+	parts, err := m.Allocate(33, 33, 33)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var total int64
+	for _, p := range parts {
+		total += p.Amount()
+	}
+	if total != m.Amount() {
+		t.Errorf("Allocate negative: total %d != original %d", total, m.Amount())
+	}
+	// First party absorbs the extra penny
+	if parts[0].Amount() != -4 {
+		t.Errorf("Allocate negative: expected first party -4, got %d", parts[0].Amount())
+	}
+}
+
 func TestMoney_Allocate2(t *testing.T) {
 	m := New(100, "EUR")
 	r, err := m.Allocate()
@@ -762,6 +787,15 @@ func TestMoney_UnmarshalJSON(t *testing.T) {
 	}
 	if m.Currency().Code != "EUR" {
 		t.Errorf("UnmarshalJSON: expected currency EUR got %s", m.Currency().Code)
+	}
+}
+
+func TestMoney_UnmarshalJSON_Error(t *testing.T) {
+	var m Money
+	// A JSON array is syntactically valid but cannot unmarshal into the moneyJSON struct,
+	// so json.Unmarshal calls UnmarshalJSON which then returns the internal error.
+	if err := m.UnmarshalJSON([]byte(`[]`)); err == nil {
+		t.Error("UnmarshalJSON: expected error for wrong-type JSON — got nil")
 	}
 }
 

@@ -93,6 +93,23 @@ func TestConvert(t *testing.T) {
 	}
 }
 
+func TestConvert_Negative(t *testing.T) {
+	tcs := []struct {
+		number int
+		want   string
+	}{
+		{-1, "minus one"},
+		{-5, "minus five"},
+		{-123, "minus one hundred twenty-three"},
+		{-1000, "minus one thousand"},
+	}
+	for _, tt := range tcs {
+		if got := Convert(tt.number); got != tt.want {
+			t.Errorf("Convert(%d) = %q, want %q", tt.number, got, tt.want)
+		}
+	}
+}
+
 func TestConvertAnd(t *testing.T) {
 	type args struct {
 		number int
