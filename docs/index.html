@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>go-money — Precise monetary arithmetic for Go</title>
+  <meta name="description" content="go-money is a zero-dependency Go library for precise monetary value arithmetic. No floating-point errors." />
+  <style>
+    :root {
+      --green:  #16a34a;
+      --green-l:#dcfce7;
+      --dark:   #0f172a;
+      --text:   #1e293b;
+      --muted:  #64748b;
+      --border: #e2e8f0;
+      --bg:     #f8fafc;
+      --card:   #ffffff;
+      --code-bg:#1e293b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--dark);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav .logo { color: #fff; font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
+    nav .logo span { color: var(--green); }
+    nav .nav-links { display: flex; gap: 1.5rem; }
+    nav .nav-links a { color: #cbd5e1; font-size: 0.9rem; }
+    nav .nav-links a:hover { color: #fff; text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, #1e3a5f 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+    }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.03em; }
+    .hero h1 span { color: #4ade80; }
+    .hero p { margin-top: 1rem; font-size: 1.2rem; color: #94a3b8; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .badges { margin-top: 1.5rem; display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+    .badges img { height: 20px; }
+    .hero-cta { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: .75rem 1.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; text-decoration: none; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-outline { background: transparent; color: #fff; border: 2px solid #475569; }
+
+    /* ── Install banner ── */
+    .install-bar {
+      background: var(--dark);
+      color: #4ade80;
+      text-align: center;
+      padding: .75rem 1rem;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .95rem;
+      letter-spacing: .03em;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+    section { padding: 4rem 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h2 { font-size: 1.75rem; font-weight: 700; color: var(--dark); margin-bottom: .5rem; }
+    h3 { font-size: 1.15rem; font-weight: 600; margin: 1.5rem 0 .5rem; color: var(--dark); }
+    p  { color: var(--muted); margin: .5rem 0 1rem; }
+
+    /* ── Features grid ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .feature-card .icon { font-size: 2rem; margin-bottom: .75rem; }
+    .feature-card h3 { margin-top: 0; }
+    .feature-card p  { margin-bottom: 0; font-size: .9rem; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--code-bg);
+      color: #e2e8f0;
+      padding: 1.25rem 1.5rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .875rem;
+      line-height: 1.7;
+      margin: 1rem 0;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .85em;
+      background: var(--green-l);
+      color: var(--green);
+      padding: .1em .35em;
+      border-radius: 4px;
+    }
+    pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+    .kw  { color: #7dd3fc; }
+    .fn  { color: #a5f3fc; }
+    .str { color: #86efac; }
+    .cmt { color: #64748b; }
+    .num { color: #fde68a; }
+
+    /* ── API table ── */
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+    th { background: var(--dark); color: #fff; padding: .6rem 1rem; text-align: left; }
+    td { padding: .6rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--green-l); }
+
+    /* ── Currency table ── */
+    .currency-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+    .currency-pill {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .4rem .8rem;
+      font-size: .85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .currency-pill .code { font-weight: 700; color: var(--dark); }
+    .currency-pill .sym  { color: var(--muted); font-size: .8rem; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--dark);
+      color: #64748b;
+      text-align: center;
+      padding: 2rem;
+      font-size: .875rem;
+    }
+    footer a { color: #94a3b8; }
+
+    @media (max-width: 600px) {
+      nav .nav-links { gap: .75rem; }
+      .hero { padding: 3rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav>
+  <span class="logo">go<span>-money</span></span>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#api">API</a>
+    <a href="#currencies">Currencies</a>
+    <a href="https://github.com/im-adarsh/go-money" target="_blank">GitHub</a>
+    <a href="https://pkg.go.dev/github.com/im-adarsh/go-money" target="_blank">GoDoc</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <h1>Precise money<br>arithmetic for <span>Go</span></h1>
+  <p>Zero-dependency library for working with monetary values — no floating-point surprises, ever.</p>
+  <div class="badges">
+    <img src="https://github.com/im-adarsh/go-money/actions/workflows/ci.yml/badge.svg" alt="CI" />
+    <img src="https://goreportcard.com/badge/github.com/im-adarsh/go-money" alt="Go Report Card" />
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" />
+    <img src="https://pkg.go.dev/badge/github.com/im-adarsh/go-money.svg" alt="Go Reference" />
+  </div>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="#quickstart">Get Started</a>
+    <a class="btn btn-outline" href="https://github.com/im-adarsh/go-money" target="_blank">View on GitHub</a>
+  </div>
+</section>
+
+<!-- ── Install bar ── -->
+<div class="install-bar">$ go get github.com/im-adarsh/go-money</div>
+
+<!-- ── Features ── -->
+<section id="features">
+  <div class="container">
+    <h2>Why go-money?</h2>
+    <p>Financial applications demand exactness. go-money gives you that — and a clean API to boot.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">🔢</div>
+        <h3>Integer arithmetic</h3>
+        <p>Amounts are stored as <code>int64</code> in the smallest currency unit (cents, pence, paise…), so rounding errors simply cannot occur.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🌍</div>
+        <h3>150+ currencies</h3>
+        <p>Full ISO 4217 coverage with correct symbols, decimal separators, and thousands separators out of the box.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⚖️</div>
+        <h3>Penny-perfect allocation</h3>
+        <p><code>Split</code> and <code>Allocate</code> distribute amounts without ever losing a single cent.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📝</div>
+        <h3>Words conversion</h3>
+        <p>Convert any amount to human-readable English words for cheques, invoices, or legal documents.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔄</div>
+        <h3>JSON serialization</h3>
+        <p>Built-in <code>MarshalJSON</code> / <code>UnmarshalJSON</code> for seamless REST API and database integration.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📦</div>
+        <h3>Zero dependencies</h3>
+        <p>Pure Go standard-library implementation. No transitive dependencies to audit or update.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🔒</div>
+        <h3>Immutable values</h3>
+        <p>Every operation returns a new <code>Money</code> instance. Safe to use concurrently without locks.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🧮</div>
+        <h3>Percentage support</h3>
+        <p>Calculate tax, discounts, and tips with <code>Percentage(p)</code> — results are always rounded correctly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Quick Start ── -->
+<section id="quickstart">
+  <div class="container">
+    <h2>Quick Start</h2>
+    <p>Install, import, and start writing financial logic in minutes.</p>
+
+    <h3>Installation</h3>
+    <pre><code><span class="cmt"># Requires Go 1.21+</span>
+go get github.com/im-adarsh/go-money</code></pre>
+
+    <h3>Basic arithmetic</h3>
+    <pre><code><span class="kw">import</span> money <span class="str">"github.com/im-adarsh/go-money"</span>
+
+<span class="cmt">// Amounts are in the currency's smallest unit.</span>
+<span class="cmt">// 1000 cents = $10.00</span>
+price := money.New(<span class="num">1000</span>, <span class="str">"USD"</span>)
+tax   := price.Percentage(<span class="num">8.5</span>)       <span class="cmt">// $0.85</span>
+
+total, _ := price.Add(tax)           <span class="cmt">// $10.85</span>
+fmt.Println(total.Display())         <span class="cmt">// "$10.85"</span></code></pre>
+
+    <h3>Penny-perfect splitting</h3>
+    <pre><code>bill := money.New(<span class="num">10085</span>, <span class="str">"USD"</span>)   <span class="cmt">// $100.85</span>
+shares, _ := bill.Split(<span class="num">3</span>)
+
+<span class="kw">for</span> _, s := <span class="kw">range</span> shares {
+    fmt.Println(s.Display())
+}
+<span class="cmt">// $33.62</span>
+<span class="cmt">// $33.62</span>
+<span class="cmt">// $33.61   ← leftover penny goes first</span></code></pre>
+
+    <h3>Ratio allocation</h3>
+    <pre><code>profit := money.New(<span class="num">10000</span>, <span class="str">"USD"</span>)  <span class="cmt">// $100.00</span>
+parts, _ := profit.Allocate(<span class="num">60</span>, <span class="num">30</span>, <span class="num">10</span>)
+
+parts[<span class="num">0</span>].Display()  <span class="cmt">// "$60.00"</span>
+parts[<span class="num">1</span>].Display()  <span class="cmt">// "$30.00"</span>
+parts[<span class="num">2</span>].Display()  <span class="cmt">// "$10.00"</span></code></pre>
+
+    <h3>JSON serialization</h3>
+    <pre><code>m := money.New(<span class="num">1234</span>, <span class="str">"EUR"</span>)
+b, _ := json.Marshal(m)
+<span class="cmt">// {"amount":1234,"currency":"EUR"}</span>
+
+<span class="kw">var</span> r money.Money
+json.Unmarshal(b, &r)
+r.Display()  <span class="cmt">// "€12.34"</span></code></pre>
+
+    <h3>Money in words</h3>
+    <pre><code>money.New(<span class="num">15050</span>, <span class="str">"USD"</span>).ToWords()
+<span class="cmt">// "one hundred fifty dollar and fifty cents only"</span>
+
+money.New(<span class="num">100</span>, <span class="str">"GBP"</span>).ToWords()
+<span class="cmt">// "one pound only"</span>
+
+money.New(<span class="num">100</span>, <span class="str">"JPY"</span>).ToWords()
+<span class="cmt">// "one hundred yen only"</span></code></pre>
+  </div>
+</section>
+
+<!-- ── API Reference ── -->
+<section id="api">
+  <div class="container">
+    <h2>API Reference</h2>
+    <p>Every method returns a new <code>Money</code> instance and leaves the receiver unchanged.</p>
+
+    <h3>Construction</h3>
+    <table>
+      <tr><th>Function</th><th>Description</th></tr>
+      <tr><td><code>New(amount int64, code string) *Money</code></td><td>Create a new Money value. <code>amount</code> is in smallest currency unit; <code>code</code> is ISO 4217.</td></tr>
+    </table>
+
+    <h3>Accessors</h3>
+    <table>
+      <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
+      <tr><td><code>Amount() int64</code></td><td><code>int64</code></td><td>Raw value in smallest unit (e.g. cents).</td></tr>
+      <tr><td><code>Currency() *Currency</code></td><td><code>*Currency</code></td><td>Currency metadata (Code, Fraction, Grapheme…).</td></tr>
+      <tr><td><code>AsParts() (int64, int64)</code></td><td>whole, frac</td><td>Splits amount into whole-unit and fractional-unit parts.</td></tr>
+      <tr><td><code>Display() string</code></td><td><code>string</code></td><td>Human-readable formatted string (e.g. <code>"$12.34"</code>).</td></tr>
+      <tr><td><code>ToWords() string</code></td><td><code>string</code></td><td>English words (e.g. <code>"twelve dollars and thirty-four cents only"</code>).</td></tr>
+    </table>
+
+    <h3>Comparisons <small>(require same currency)</small></h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>Equals(om *Money) (bool, error)</code></td><td>m == om</td></tr>
+      <tr><td><code>GreaterThan(om *Money) (bool, error)</code></td><td>m &gt; om</td></tr>
+      <tr><td><code>GreaterThanOrEqual(om *Money) (bool, error)</code></td><td>m &ge; om</td></tr>
+      <tr><td><code>LessThan(om *Money) (bool, error)</code></td><td>m &lt; om</td></tr>
+      <tr><td><code>LessThanOrEqual(om *Money) (bool, error)</code></td><td>m &le; om</td></tr>
+      <tr><td><code>Compare(om *Money) (int, error)</code></td><td>Returns −1, 0, or +1.</td></tr>
+      <tr><td><code>SameCurrency(om *Money) bool</code></td><td>Reports whether currencies match.</td></tr>
+    </table>
+
+    <h3>Assertions</h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>IsZero() bool</code></td><td>Amount == 0</td></tr>
+      <tr><td><code>IsPositive() bool</code></td><td>Amount &gt; 0</td></tr>
+      <tr><td><code>IsNegative() bool</code></td><td>Amount &lt; 0</td></tr>
+    </table>
+
+    <h3>Arithmetic</h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>Add(om *Money) (*Money, error)</code></td><td>m + om. Requires same currency.</td></tr>
+      <tr><td><code>Subtract(om *Money) (*Money, error)</code></td><td>m − om. Requires same currency.</td></tr>
+      <tr><td><code>Multiply(mul int64) *Money</code></td><td>m × mul.</td></tr>
+      <tr><td><code>Divide(div int64) *Money</code></td><td>m ÷ div (integer division — may lose pennies).</td></tr>
+      <tr><td><code>Percentage(p float64) *Money</code></td><td>p% of m, rounded to nearest smallest unit.</td></tr>
+      <tr><td><code>Absolute() *Money</code></td><td>|m|</td></tr>
+      <tr><td><code>Negative() *Money</code></td><td>−|m|</td></tr>
+      <tr><td><code>Round() *Money</code></td><td>Round to nearest whole currency unit.</td></tr>
+    </table>
+
+    <h3>Allocation (lossless)</h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>Split(n int) ([]*Money, error)</code></td><td>Divide into n equal parts; leftover distributed round-robin.</td></tr>
+      <tr><td><code>Allocate(rs ...int) ([]*Money, error)</code></td><td>Distribute by ratio; leftover distributed round-robin.</td></tr>
+    </table>
+
+    <h3>Serialization</h3>
+    <table>
+      <tr><th>Method</th><th>Description</th></tr>
+      <tr><td><code>MarshalJSON() ([]byte, error)</code></td><td>Encodes as <code>{"amount":N,"currency":"XYZ"}</code>.</td></tr>
+      <tr><td><code>UnmarshalJSON([]byte) error</code></td><td>Decodes from <code>{"amount":N,"currency":"XYZ"}</code>.</td></tr>
+    </table>
+
+    <h3>Currency management</h3>
+    <table>
+      <tr><th>Function</th><th>Description</th></tr>
+      <tr><td><code>GetCurrency(code string) *Currency</code></td><td>Look up a currency by code.</td></tr>
+      <tr><td><code>AddCurrency(code, grapheme, template, decimal, thousand string, fraction int) *Currency</code></td><td>Register or override a currency.</td></tr>
+      <tr><td><code>AddCurrencyMeta(code, mainWord, subWord string)</code></td><td>Register English word names for ToWords().</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ── Currencies ── -->
+<section id="currencies">
+  <div class="container">
+    <h2>Supported Currencies</h2>
+    <p>150+ ISO 4217 currencies with built-in formatting. <code>ToWords()</code> supports 80+ currencies across the globe.</p>
+
+    <h3>Popular currencies</h3>
+    <div class="currency-grid">
+      <div class="currency-pill"><span class="code">USD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">EUR</span><span class="sym">€</span></div>
+      <div class="currency-pill"><span class="code">GBP</span><span class="sym">£</span></div>
+      <div class="currency-pill"><span class="code">JPY</span><span class="sym">¥</span></div>
+      <div class="currency-pill"><span class="code">CNY</span><span class="sym">元</span></div>
+      <div class="currency-pill"><span class="code">INR</span><span class="sym">₹</span></div>
+      <div class="currency-pill"><span class="code">KRW</span><span class="sym">₩</span></div>
+      <div class="currency-pill"><span class="code">AUD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">CAD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">CHF</span><span class="sym">CHF</span></div>
+      <div class="currency-pill"><span class="code">HKD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">SGD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">MXN</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">BRL</span><span class="sym">R$</span></div>
+      <div class="currency-pill"><span class="code">RUB</span><span class="sym">₽</span></div>
+      <div class="currency-pill"><span class="code">ZAR</span><span class="sym">R</span></div>
+      <div class="currency-pill"><span class="code">TRY</span><span class="sym">₺</span></div>
+      <div class="currency-pill"><span class="code">SEK</span><span class="sym">kr</span></div>
+      <div class="currency-pill"><span class="code">NOK</span><span class="sym">kr</span></div>
+      <div class="currency-pill"><span class="code">DKK</span><span class="sym">kr</span></div>
+      <div class="currency-pill"><span class="code">NZD</span><span class="sym">$</span></div>
+      <div class="currency-pill"><span class="code">NGN</span><span class="sym">₦</span></div>
+      <div class="currency-pill"><span class="code">PHP</span><span class="sym">₱</span></div>
+      <div class="currency-pill"><span class="code">THB</span><span class="sym">฿</span></div>
+      <div class="currency-pill"><span class="code">MYR</span><span class="sym">RM</span></div>
+      <div class="currency-pill"><span class="code">IDR</span><span class="sym">Rp</span></div>
+      <div class="currency-pill"><span class="code">VND</span><span class="sym">₫</span></div>
+      <div class="currency-pill"><span class="code">AED</span><span class="sym">.د.إ</span></div>
+      <div class="currency-pill"><span class="code">SAR</span><span class="sym">﷼</span></div>
+      <div class="currency-pill"><span class="code">KWD</span><span class="sym">.د.ك</span></div>
+      <div class="currency-pill"><span class="code">EGP</span><span class="sym">£</span></div>
+      <div class="currency-pill"><span class="code">PLN</span><span class="sym">zł</span></div>
+      <div class="currency-pill"><span class="code">UAH</span><span class="sym">₴</span></div>
+      <div class="currency-pill"><span class="code">ILS</span><span class="sym">₪</span></div>
+      <div class="currency-pill"><span class="code">PKR</span><span class="sym">₨</span></div>
+      <div class="currency-pill"><span class="code">KES</span><span class="sym">KSh</span></div>
+    </div>
+    <p style="margin-top:1rem">…and 100+ more. See <a href="https://github.com/im-adarsh/go-money/blob/master/currency.go" target="_blank"><code>currency.go</code></a> for the complete list.</p>
+  </div>
+</section>
+
+<!-- ── Contributing ── -->
+<section id="contributing">
+  <div class="container">
+    <h2>Contributing</h2>
+    <p>Contributions are welcome! Please read <a href="https://github.com/im-adarsh/go-money/blob/master/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a> for guidelines. Report bugs and request features via <a href="https://github.com/im-adarsh/go-money/issues" target="_blank">GitHub Issues</a>.</p>
+    <pre><code><span class="cmt"># Clone and run tests</span>
+git clone https://github.com/im-adarsh/go-money
+cd go-money
+go test -race ./...</code></pre>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>Released under the <a href="https://github.com/im-adarsh/go-money/blob/master/LICENSE" target="_blank">MIT License</a>.
+  Built with ♥ in Go.</p>
+</footer>
+
+</body>
+</html>

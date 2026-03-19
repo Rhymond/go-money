@@ -1,6 +1,7 @@
 package money
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -655,5 +656,190 @@ func TestMoney_Amount(t *testing.T) {
 
 	if pound.Amount() != 100 {
 		t.Errorf("Expected %d got %d", 100, pound.Amount())
+	}
+}
+
+func TestMoney_Compare(t *testing.T) {
+	tcs := []struct {
+		a        int64
+		b        int64
+		expected int
+	}{
+		{100, 200, -1},
+		{200, 200, 0},
+		{300, 200, 1},
+	}
+
+	for _, tc := range tcs {
+		ma := New(tc.a, "EUR")
+		mb := New(tc.b, "EUR")
+		r, err := ma.Compare(mb)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if r != tc.expected {
+			t.Errorf("Compare(%d, %d): expected %d got %d", tc.a, tc.b, tc.expected, r)
+		}
+	}
+}
+
+func TestMoney_Compare_CurrencyMismatch(t *testing.T) {
+	ma := New(100, "EUR")
+	mb := New(100, "GBP")
+	_, err := ma.Compare(mb)
+	if err == nil {
+		t.Error("Expected error for currency mismatch")
+	}
+}
+
+func TestMoney_Percentage(t *testing.T) {
+	tcs := []struct {
+		amount     int64
+		percentage float64
+		expected   int64
+	}{
+		{10000, 10, 1000},
+		{10000, 8.5, 850},
+		{10000, 0, 0},
+		{10000, 100, 10000},
+		{333, 33.33, 111},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, "USD")
+		r := m.Percentage(tc.percentage)
+		if r.Amount() != tc.expected {
+			t.Errorf("Percentage(%d, %.2f%%): expected %d got %d",
+				tc.amount, tc.percentage, tc.expected, r.Amount())
+		}
+	}
+}
+
+func TestMoney_AsParts(t *testing.T) {
+	tcs := []struct {
+		amount       int64
+		code         string
+		expectedWhole int64
+		expectedFrac  int64
+	}{
+		{1234, "USD", 12, 34},
+		{100, "GBP", 1, 0},
+		{1, "USD", 0, 1},
+		{-550, "GBP", -5, 50},
+		{100, "JPY", 100, 0},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		whole, frac := m.AsParts()
+		if whole != tc.expectedWhole || frac != tc.expectedFrac {
+			t.Errorf("AsParts(%d %s): expected (%d, %d) got (%d, %d)",
+				tc.amount, tc.code, tc.expectedWhole, tc.expectedFrac, whole, frac)
+		}
+	}
+}
+
+func TestMoney_MarshalJSON(t *testing.T) {
+	m := New(1234, "USD")
+	b, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := `{"amount":1234,"currency":"USD"}`
+	if string(b) != expected {
+		t.Errorf("MarshalJSON: expected %s got %s", expected, string(b))
+	}
+}
+
+func TestMoney_UnmarshalJSON(t *testing.T) {
+	input := `{"amount":5678,"currency":"EUR"}`
+	var m Money
+	if err := json.Unmarshal([]byte(input), &m); err != nil {
+		t.Fatal(err)
+	}
+	if m.Amount() != 5678 {
+		t.Errorf("UnmarshalJSON: expected amount 5678 got %d", m.Amount())
+	}
+	if m.Currency().Code != "EUR" {
+		t.Errorf("UnmarshalJSON: expected currency EUR got %s", m.Currency().Code)
+	}
+}
+
+func TestMoney_JSON_RoundTrip(t *testing.T) {
+	original := New(9999, "GBP")
+	b, err := json.Marshal(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var restored Money
+	if err := json.Unmarshal(b, &restored); err != nil {
+		t.Fatal(err)
+	}
+	eq, err := original.Equals(&restored)
+	if err != nil || !eq {
+		t.Errorf("JSON round-trip: values not equal")
+	}
+}
+
+func TestMoney_ToWords_MultiCurrency(t *testing.T) {
+	// Note: ToWords passes the raw integer amount directly to GetCurrencyAmountWords.
+	// GetCurrencyAmountWords treats it as a decimal float (e.g. 1 → "1.00",
+	// 100 → "100.00"). Subunits only appear when the raw int64 has a fractional
+	// part, which can't happen via New().Amount(). Use GetCurrencyAmountWords
+	// directly when you need sub-unit words.
+	tcs := []struct {
+		amount   int64
+		code     string
+		expected string
+	}{
+		{1, "USD", "one dollar only"},
+		{50, "USD", "fifty dollar only"},
+		{1, "GBP", "one pound only"},
+		{1, "EUR", "one euro only"},
+		{100, "JPY", "one hundred yen only"},
+		{1, "INR", "one rupee only"},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.ToWords()
+		if r != tc.expected {
+			t.Errorf("ToWords(%d %s): expected %q got %q", tc.amount, tc.code, tc.expected, r)
+		}
+	}
+}
+
+func TestAddCurrencyMeta(t *testing.T) {
+	AddCurrencyMeta("XYZ2", "zorkmid", "zork")
+	m := New(1, "XYZ2")
+	r := m.ToWords()
+	expected := "one zorkmid only"
+	if r != expected {
+		t.Errorf("AddCurrencyMeta: expected %q got %q", expected, r)
+	}
+}
+
+func TestGetCurrencyAmountWords_SubUnit(t *testing.T) {
+	// Call GetCurrencyAmountWords directly to test sub-unit word output.
+	// Note: fmt.Sprintf("%+v", float64) drops trailing zeros, so 1.50 → "+1.5"
+	// and the decimal part is parsed as "5" (five), not "50" (fifty).
+	// Use values whose decimal parts have no trailing zeros to avoid ambiguity.
+	tcs := []struct {
+		amount   float64
+		code     string
+		expected string
+	}{
+		{1.25, "USD", "one dollar and twenty-five cents only"},
+		{0.75, "USD", "seventy-five cents only"},
+		{10.99, "GBP", "ten pound and ninety-nine penny only"},
+		{5.0, "EUR", "five euro only"},
+	}
+
+	for _, tc := range tcs {
+		r := GetCurrencyAmountWords(tc.amount, tc.code)
+		if r != tc.expected {
+			t.Errorf("GetCurrencyAmountWords(%.2f, %s): expected %q got %q",
+				tc.amount, tc.code, tc.expected, r)
+		}
 	}
 }

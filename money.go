@@ -1,22 +1,45 @@
+// Package money provides types and methods for precise monetary value
+// arithmetic. It follows Martin Fowler's Money pattern by representing
+// amounts as integers in the currency's smallest unit (e.g. cents,
+// pence, paise), thereby avoiding floating-point rounding errors.
+//
+// # Quick start
+//
+//	pound := money.New(100, "GBP")   // £1.00
+//	twoPounds, _ := pound.Add(pound) // £2.00
+//
+//	parties, _ := twoPounds.Split(3)
+//	parties[0].Display() // £0.67
+//	parties[1].Display() // £0.67
+//	parties[2].Display() // £0.66
+//
+// All arithmetic operations return a new Money value and leave the
+// receiver unchanged (immutable style).
 package money
 
 import (
+	"encoding/json"
 	"errors"
+	"math"
 )
 
-// Amount is a datastructure that stores the amount being used for calculations.
+// Amount is a data structure that stores the amount being used for calculations.
 type Amount struct {
 	val int64
 }
 
-// Money represents monetary value information, stores
-// currency and amount value.
+// Money represents a monetary value: an amount denominated in a specific currency.
+// The amount is stored as an integer in the currency's smallest unit
+// (e.g. 100 represents £1.00, $1.00, €1.00 etc.).
 type Money struct {
 	amount   *Amount
 	currency *Currency
 }
 
-// New creates and returns new instance of Money.
+// New creates and returns a new Money instance.
+// amount must be expressed in the currency's smallest unit
+// (e.g. 100 for £1.00).
+// code is the ISO 4217 currency code (e.g. "GBP", "USD", "EUR").
 func New(amount int64, code string) *Money {
 	return &Money{
 		amount:   &Amount{val: amount},
@@ -24,17 +47,17 @@ func New(amount int64, code string) *Money {
 	}
 }
 
-// Currency returns the currency used by Money.
+// Currency returns the currency associated with this Money.
 func (m *Money) Currency() *Currency {
 	return m.currency
 }
 
-// Amount returns a copy of the internal monetary value as an int64.
+// Amount returns the monetary value in the currency's smallest unit (e.g. cents).
 func (m *Money) Amount() int64 {
 	return m.amount.val
 }
 
-// SameCurrency check if given Money is equals by currency.
+// SameCurrency reports whether m and om use the same currency.
 func (m *Money) SameCurrency(om *Money) bool {
 	return m.currency.equals(om.currency)
 }
@@ -58,7 +81,19 @@ func (m *Money) compare(om *Money) int {
 	return 0
 }
 
-// Equals checks equality between two Money types.
+// Compare compares m to om. Both must share the same currency.
+// It returns -1 if m < om, 0 if m == om, or +1 if m > om.
+// Returns an error when the currencies differ.
+func (m *Money) Compare(om *Money) (int, error) {
+	if err := m.assertSameCurrency(om); err != nil {
+		return 0, err
+	}
+
+	return m.compare(om), nil
+}
+
+// Equals reports whether m and om represent the same monetary value.
+// Returns an error when the currencies differ.
 func (m *Money) Equals(om *Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
@@ -67,7 +102,8 @@ func (m *Money) Equals(om *Money) (bool, error) {
 	return m.compare(om) == 0, nil
 }
 
-// GreaterThan checks whether the value of Money is greater than the other.
+// GreaterThan reports whether m is greater than om.
+// Returns an error when the currencies differ.
 func (m *Money) GreaterThan(om *Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
@@ -76,7 +112,8 @@ func (m *Money) GreaterThan(om *Money) (bool, error) {
 	return m.compare(om) == 1, nil
 }
 
-// GreaterThanOrEqual checks whether the value of Money is greater or equal than the other.
+// GreaterThanOrEqual reports whether m is greater than or equal to om.
+// Returns an error when the currencies differ.
 func (m *Money) GreaterThanOrEqual(om *Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
@@ -85,7 +122,8 @@ func (m *Money) GreaterThanOrEqual(om *Money) (bool, error) {
 	return m.compare(om) >= 0, nil
 }
 
-// LessThan checks whether the value of Money is less than the other.
+// LessThan reports whether m is less than om.
+// Returns an error when the currencies differ.
 func (m *Money) LessThan(om *Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
@@ -94,7 +132,8 @@ func (m *Money) LessThan(om *Money) (bool, error) {
 	return m.compare(om) == -1, nil
 }
 
-// LessThanOrEqual checks whether the value of Money is less or equal than the other.
+// LessThanOrEqual reports whether m is less than or equal to om.
+// Returns an error when the currencies differ.
 func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return false, err
@@ -103,32 +142,34 @@ func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 	return m.compare(om) <= 0, nil
 }
 
-// IsZero returns boolean of whether the value of Money is equals to zero.
+// IsZero reports whether the monetary value is zero.
 func (m *Money) IsZero() bool {
 	return m.amount.val == 0
 }
 
-// IsPositive returns boolean of whether the value of Money is positive.
+// IsPositive reports whether the monetary value is greater than zero.
 func (m *Money) IsPositive() bool {
 	return m.amount.val > 0
 }
 
-// IsNegative returns boolean of whether the value of Money is negative.
+// IsNegative reports whether the monetary value is less than zero.
 func (m *Money) IsNegative() bool {
 	return m.amount.val < 0
 }
 
-// Absolute returns new Money struct from given Money using absolute monetary value.
+// Absolute returns a new Money with the absolute (non-negative) monetary value.
 func (m *Money) Absolute() *Money {
 	return &Money{amount: mutate.calc.absolute(m.amount), currency: m.currency}
 }
 
-// Negative returns new Money struct from given Money using negative monetary value.
+// Negative returns a new Money with the negated monetary value.
+// Positive amounts become negative; already-negative amounts are unchanged.
 func (m *Money) Negative() *Money {
 	return &Money{amount: mutate.calc.negative(m.amount), currency: m.currency}
 }
 
-// Add returns new Money struct with value representing sum of Self and Other Money.
+// Add returns a new Money whose value is m + om.
+// Returns an error when the currencies differ.
 func (m *Money) Add(om *Money) (*Money, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return nil, err
@@ -137,7 +178,8 @@ func (m *Money) Add(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.add(m.amount, om.amount), currency: m.currency}, nil
 }
 
-// Subtract returns new Money struct with value representing difference of Self and Other Money.
+// Subtract returns a new Money whose value is m − om.
+// Returns an error when the currencies differ.
 func (m *Money) Subtract(om *Money) (*Money, error) {
 	if err := m.assertSameCurrency(om); err != nil {
 		return nil, err
@@ -146,24 +188,60 @@ func (m *Money) Subtract(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
 }
 
-// Multiply returns new Money struct with value representing Self multiplied value by multiplier.
+// Multiply returns a new Money whose value is m × mul.
 func (m *Money) Multiply(mul int64) *Money {
 	return &Money{amount: mutate.calc.multiply(m.amount, mul), currency: m.currency}
 }
 
-// Divide returns new Money struct with value representing Self division value by given divider.
+// Divide returns a new Money whose value is m ÷ div.
+// Integer division is used; fractional remainders are truncated.
+// Use Split or Allocate when lossless distribution is required.
 func (m *Money) Divide(div int64) *Money {
 	return &Money{amount: mutate.calc.divide(m.amount, div), currency: m.currency}
 }
 
-// Round returns new Money struct with value rounded to nearest zero.
+// Percentage returns a new Money representing the given percentage of m.
+// The result is truncated to the smallest currency unit.
+//
+//	money.New(10000, "USD").Percentage(8.5) // $8.50 (8.5% of $100.00)
+func (m *Money) Percentage(p float64) *Money {
+	return &Money{
+		amount:   &Amount{val: int64(math.Round(float64(m.amount.val) * p / 100))},
+		currency: m.currency,
+	}
+}
+
+// Round returns a new Money whose value is rounded to the nearest whole
+// currency unit (e.g. to the nearest dollar, pound, or euro).
+// The currency's Fraction field determines the rounding magnitude.
 func (m *Money) Round() *Money {
 	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}
 }
 
-// Split returns slice of Money structs with split Self value in given number.
-// After division leftover pennies will be distributed round-robin amongst the parties.
-// This means that parties listed first will likely receive more pennies than ones that are listed later.
+// AsParts returns the whole-unit and fractional-unit components of the
+// monetary value separately.
+//
+//	money.New(1234, "USD").AsParts() // (12, 34) → $12.34
+//	money.New(-550, "GBP").AsParts() // (-5, 50) → -£5.50
+func (m *Money) AsParts() (whole int64, frac int64) {
+	if m.currency.Fraction == 0 {
+		return m.amount.val, 0
+	}
+	exp := int64(math.Pow10(m.currency.Fraction))
+	whole = m.amount.val / exp
+	frac = m.amount.val % exp
+	if frac < 0 {
+		frac = -frac
+	}
+	return whole, frac
+}
+
+// Split distributes m evenly among n parties.
+// Any leftover pennies (due to integer division) are given to the first
+// parties in a round-robin fashion so that no value is lost.
+//
+//	money.New(100, "GBP").Split(3)
+//	// → [£0.34, £0.33, £0.33]
 func (m *Money) Split(n int) ([]*Money, error) {
 	if n <= 0 {
 		return nil, errors.New("split must be higher than zero")
@@ -187,9 +265,12 @@ func (m *Money) Split(n int) ([]*Money, error) {
 	return ms, nil
 }
 
-// Allocate returns slice of Money structs with split Self value in given ratios.
-// It lets split money by given ratios without losing pennies and as Split operations distributes
-// leftover pennies amongst the parties with round-robin principle.
+// Allocate distributes m according to the given ratios without losing
+// any pennies. Any leftover value (from integer arithmetic) is spread
+// across the first parties in round-robin order.
+//
+//	money.New(100, "GBP").Allocate(33, 33, 33)
+//	// → [£0.34, £0.33, £0.33]
 func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("no ratios specified")
@@ -213,7 +294,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 		total += party.amount.val
 	}
 
-	// Calculate leftover value and divide to first parties.
+	// Calculate leftover value and distribute to first parties.
 	lo := m.amount.val - total
 	sub := int64(1)
 	if lo < 0 {
@@ -228,14 +309,52 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	return ms, nil
 }
 
-// Display lets represent Money struct as string in given Currency value.
+// Display returns the monetary value formatted as a human-readable string
+// using the currency's symbol, decimal separator, and thousands separator.
+//
+//	money.New(123456789, "EUR").Display() // "€1,234,567.89"
+//	money.New(100, "GBP").Display()       // "£1.00"
 func (m *Money) Display() string {
 	c := m.currency.get()
 	return c.Formatter().Format(m.amount.val)
 }
 
-// Display lets represent Money struct as string in given Currency value.
+// ToWords returns the monetary value expressed as English words.
+// The currency must be registered in CountryCurrencyMeta; otherwise
+// the raw numeric string is returned.
+//
+//	money.New(100, "PHP").ToWords() // "one hundred pesos only"
+//	money.New(150, "USD").ToWords() // "one dollar and fifty cents only"
 func (m *Money) ToWords() string {
 	c := m.currency.get()
 	return GetCurrencyAmountWords(float64(m.Amount()), c.Code)
+}
+
+// moneyJSON is the canonical JSON representation of a Money value.
+type moneyJSON struct {
+	Amount   int64  `json:"amount"`
+	Currency string `json:"currency"`
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+// The JSON representation is {"amount":<int64>,"currency":"<CODE>"}.
+//
+//	money.New(100, "USD") → {"amount":100,"currency":"USD"}
+func (m Money) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&moneyJSON{
+		Amount:   m.amount.val,
+		Currency: m.currency.Code,
+	})
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// It expects {"amount":<int64>,"currency":"<CODE>"}.
+func (m *Money) UnmarshalJSON(b []byte) error {
+	var mj moneyJSON
+	if err := json.Unmarshal(b, &mj); err != nil {
+		return err
+	}
+	m.amount = &Amount{val: mj.Amount}
+	m.currency = newCurrency(mj.Currency).get()
+	return nil
 }
