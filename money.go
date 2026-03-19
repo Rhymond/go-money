@@ -47,6 +47,22 @@ func New(amount int64, code string) *Money {
 	}
 }
 
+// NewFromFloat creates a Money value from a float64 amount expressed in the
+// currency's main unit (e.g. 1.25 for $1.25 USD).
+// The float is multiplied by 10^Fraction and rounded to the nearest integer.
+//
+//	money.NewFromFloat(1.25, "USD")  // 125 cents  → $1.25
+//	money.NewFromFloat(9.999, "USD") // 1000 cents → $10.00 (rounded)
+//	money.NewFromFloat(100, "JPY")   // 100 yen    → ¥100
+func NewFromFloat(amount float64, code string) *Money {
+	c := newCurrency(code).get()
+	exp := math.Pow10(c.Fraction)
+	return &Money{
+		amount:   &Amount{val: int64(math.Round(amount * exp))},
+		currency: c,
+	}
+}
+
 // Currency returns the currency associated with this Money.
 func (m *Money) Currency() *Currency {
 	return m.currency
@@ -317,6 +333,29 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 func (m *Money) Display() string {
 	c := m.currency.get()
 	return c.Formatter().Format(m.amount.val)
+}
+
+// String implements the fmt.Stringer interface and returns the same value as
+// Display, making Money usable directly in fmt.Print / fmt.Sprintf.
+func (m *Money) String() string {
+	return m.Display()
+}
+
+// AsFloat64 returns the monetary value as a float64 in the currency's main
+// unit (e.g. 125 cents → 1.25 for USD).
+//
+// WARNING: float64 cannot represent all decimal fractions exactly. This method
+// is provided for display/logging purposes only. Never use the result in further
+// monetary calculations — use the integer Amount() instead.
+//
+//	money.New(1234, "USD").AsFloat64() // 12.34
+//	money.New(100,  "JPY").AsFloat64() // 100.0
+func (m *Money) AsFloat64() float64 {
+	if m.currency.Fraction == 0 {
+		return float64(m.amount.val)
+	}
+	exp := math.Pow10(m.currency.Fraction)
+	return float64(m.amount.val) / exp
 }
 
 // ToWords returns the monetary value expressed as English words.

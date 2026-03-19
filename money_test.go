@@ -843,3 +843,79 @@ func TestGetCurrencyAmountWords_SubUnit(t *testing.T) {
 		}
 	}
 }
+
+func TestNewFromFloat(t *testing.T) {
+	tcs := []struct {
+		amount   float64
+		code     string
+		expected int64
+	}{
+		{1.25, "USD", 125},
+		{0.01, "USD", 1},
+		{100.0, "JPY", 100}, // JPY has Fraction=0
+		{1.006, "USD", 101}, // rounded up
+		{-1.25, "EUR", -125},
+		{9.999, "USD", 1000},
+	}
+
+	for _, tc := range tcs {
+		m := NewFromFloat(tc.amount, tc.code)
+		if m.Amount() != tc.expected {
+			t.Errorf("NewFromFloat(%v, %s): expected %d got %d",
+				tc.amount, tc.code, tc.expected, m.Amount())
+		}
+	}
+}
+
+func TestMoney_AsFloat64(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		code     string
+		expected float64
+	}{
+		{125, "USD", 1.25},
+		{100, "JPY", 100.0},
+		{-150, "EUR", -1.50},
+		{1, "USD", 0.01},
+		{0, "GBP", 0.0},
+	}
+
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		r := m.AsFloat64()
+		if r != tc.expected {
+			t.Errorf("AsFloat64(%d %s): expected %v got %v", tc.amount, tc.code, tc.expected, r)
+		}
+	}
+}
+
+func TestMoney_String(t *testing.T) {
+	m := New(1234, "USD")
+	if m.String() != m.Display() {
+		t.Errorf("String() != Display(): %q != %q", m.String(), m.Display())
+	}
+}
+
+func TestCurrencyConstants(t *testing.T) {
+	// Verify a sample of the constants resolve to known currencies.
+	tcs := []struct {
+		code    string
+		grapheme string
+	}{
+		{USD, "$"},
+		{EUR, "€"},
+		{GBP, "£"},
+		{JPY, "¥"},
+		{INR, "₹"},
+	}
+	for _, tc := range tcs {
+		c := GetCurrency(tc.code)
+		if c == nil {
+			t.Errorf("GetCurrency(%s): returned nil", tc.code)
+			continue
+		}
+		if c.Grapheme != tc.grapheme {
+			t.Errorf("GetCurrency(%s).Grapheme: expected %s got %s", tc.code, tc.grapheme, c.Grapheme)
+		}
+	}
+}
