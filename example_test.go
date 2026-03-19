@@ -222,3 +222,61 @@ func ExampleMoney_Display() {
 	fmt.Println(money.New(123456789, "EUR").Display())
 	// Output: €1,234,567.89
 }
+
+func ExampleMoney_LocaleFormat() {
+	m := money.New(123456, "EUR") // €1,234.56
+
+	fmt.Println(m.LocaleFormat("en-US")) // symbol before, dot decimal
+	fmt.Println(m.LocaleFormat("de-DE")) // symbol after, comma decimal, dot thousand
+	// Output:
+	// €1,234.56
+	// 1.234,56 €
+}
+
+func ExampleMoney_AccountingFormat() {
+	profit := money.New(123456, "USD")
+	loss := money.New(-123456, "USD")
+
+	fmt.Println(profit.AccountingFormat("en-US"))
+	fmt.Println(loss.AccountingFormat("en-US"))
+	// Output:
+	// $1,234.56
+	// ($1,234.56)
+}
+
+func ExampleMoney_Sign() {
+	fmt.Println(money.New(100, "USD").Sign())
+	fmt.Println(money.New(0, "USD").Sign())
+	fmt.Println(money.New(-100, "USD").Sign())
+	// Output:
+	// 1
+	// 0
+	// -1
+}
+
+func ExampleMoney_MarshalBinary() {
+	m := money.New(1234, "USD")
+	b, _ := m.MarshalBinary()
+	fmt.Println(len(b)) // 8 bytes int64 + 3 bytes "USD"
+	// Output: 11
+}
+
+func ExampleMoney_MarshalText() {
+	m := money.New(1234, "USD")
+	b, _ := m.MarshalText()
+	fmt.Println(string(b))
+	// Output: 1234 USD
+}
+
+func ExampleNullMoney() {
+	// Valid NullMoney
+	n := money.NewNullMoney(money.New(100, "USD"))
+	fmt.Println(n.Valid, n.Money.Display())
+
+	// Null
+	var empty money.NullMoney
+	fmt.Println(empty.Valid)
+	// Output:
+	// true $1.00
+	// false
+}

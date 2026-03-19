@@ -168,6 +168,22 @@ func (m *Money) IsPositive() bool {
 	return m.amount.val > 0
 }
 
+// Sign returns the sign of the monetary value:
+//
+//	-1 if m < 0
+//	 0 if m == 0
+//	+1 if m > 0
+func (m *Money) Sign() int {
+	switch {
+	case m.amount.val > 0:
+		return 1
+	case m.amount.val < 0:
+		return -1
+	default:
+		return 0
+	}
+}
+
 // IsNegative reports whether the monetary value is less than zero.
 func (m *Money) IsNegative() bool {
 	return m.amount.val < 0

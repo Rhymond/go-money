@@ -158,6 +158,10 @@
       <div class="feature-card"><div class="icon">🌐</div><h3>Country → Currency</h3><p>180+ countries mapped to their primary currency via ISO 3166-1 alpha-2 code.</p></div>
       <div class="feature-card"><div class="icon">✖️</div><h3>Float multiply</h3><p><code>MultiplyFloat</code> and <code>DivideWithRounding</code> for VAT factors, interest rates, and precise division.</p></div>
       <div class="feature-card"><div class="icon">📐</div><h3>Range clamping</h3><p><code>Clamp(min, max)</code> constrains a value to a closed interval — great for discount/surcharge caps.</p></div>
+      <div class="feature-card"><div class="icon">🌏</div><h3>Locale formatting (60+ locales)</h3><p><code>LocaleFormat("de-DE")</code> and <code>AccountingFormat</code> — locale-specific separators and symbol placement.</p></div>
+      <div class="feature-card"><div class="icon">📦</div><h3>All serialization formats</h3><p>JSON, SQL, Binary (BSON/MongoDB), Text, and <strong>XML</strong> — the only Go money library with all five.</p></div>
+      <div class="feature-card"><div class="icon">❓</div><h3>Nullable Money</h3><p><code>NullMoney</code> for SQL NULL columns and absent JSON fields — mirrors <code>sql.NullString</code>.</p></div>
+      <div class="feature-card"><div class="icon">🔬</div><h3>Fuzz &amp; benchmark tested</h3><p>Fuzz tests for Add, Split, Allocate, Scan — and benchmarks for every hot path.</p></div>
       <div class="feature-card"><div class="icon">✅</div><h3>100% test coverage</h3><p>Every line is tested and coverage is enforced in CI — no silent regressions.</p></div>
     </div>
   </div>
@@ -199,6 +203,36 @@ shares, _ := bill.Split(<span class="num">3</span>)
 <span class="cmt">// Ratio allocation: investor A 60%, B 30%, C 10%</span>
 parts, _ := bill.Allocate(<span class="num">60</span>, <span class="num">30</span>, <span class="num">10</span>)
 <span class="cmt">// $60.51, $30.26, $10.08  (total = $100.85 ✓)</span></code></pre>
+
+    <h3>Locale-aware &amp; accounting format</h3>
+    <pre><code>m := money.NewFromFloat(<span class="num">1234.56</span>, <span class="str">"EUR"</span>)
+
+m.LocaleFormat(<span class="str">"en-US"</span>)  <span class="cmt">// "€1,234.56"</span>
+m.LocaleFormat(<span class="str">"de-DE"</span>)  <span class="cmt">// "1.234,56 €"</span>
+m.LocaleFormat(<span class="str">"fr-FR"</span>)  <span class="cmt">// "1 234,56 €" (narrow NBSP)</span>
+m.LocaleFormat(<span class="str">"ja-JP"</span>)  <span class="cmt">// "€1,234.56"</span>
+
+<span class="cmt">// Accounting style — negatives in parentheses</span>
+money.New(<span class="num">-123456</span>, <span class="str">"USD"</span>).AccountingFormat(<span class="str">"en-US"</span>) <span class="cmt">// "($1,234.56)"</span>
+money.New(<span class="num">-100</span>, <span class="str">"EUR"</span>).AccountingFormat(<span class="str">"de-DE"</span>)    <span class="cmt">// "(1,00 €)"</span></code></pre>
+
+    <h3>All serialization formats</h3>
+    <pre><code><span class="cmt">// Binary — also used by MongoDB BSON driver automatically</span>
+b, _ := m.MarshalBinary()
+m.UnmarshalBinary(b)
+
+<span class="cmt">// Text</span>
+t, _ := m.MarshalText()  <span class="cmt">// "123456 EUR"</span>
+m.UnmarshalText(t)
+
+<span class="cmt">// XML</span>
+xml.Marshal(m)
+<span class="cmt">// &lt;Money&gt;&lt;amount&gt;123456&lt;/amount&gt;&lt;currency&gt;EUR&lt;/currency&gt;&lt;/Money&gt;</span>
+
+<span class="cmt">// Nullable (SQL NULL / JSON null)</span>
+n := money.NewNullMoney(&amp;m)   <span class="cmt">// Valid=true</span>
+json.Marshal(n)               <span class="cmt">// {"amount":123456,"currency":"EUR"}</span>
+json.Marshal(money.NullMoney{}) <span class="cmt">// null</span></code></pre>
 
     <h3>Float multiply &amp; country mapping</h3>
     <pre><code><span class="cmt">// Multiply by float (VAT, FX factor)</span>
@@ -523,7 +557,15 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
       <tr><td>Currency constants</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
       <tr><td>fmt.Stringer</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
       <tr><td>Locale-aware CLDR formatting</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>Zero dependencies</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Locale-aware formatting</td><td class="check">✓ 60+ locales</td><td class="check">✓ CLDR 370+</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Accounting format</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Binary marshaling (BSON/MongoDB)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td></tr>
+      <tr><td>Text marshaling</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+      <tr><td><strong>XML marshaling</strong></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Nullable type (NullMoney)</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓ NullCurrency</td><td class="cross">—</td></tr>
+      <tr><td>Fuzz tests</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+      <tr><td>Benchmarks</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td></tr>
+      <tr><td>Zero dependencies</td><td class="check">✓</td><td class="cross">uses cockroachdb/apd</td><td class="check">✓</td><td class="check">✓</td></tr>
       <tr><td><strong>100% test coverage (CI enforced)</strong></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
       <tr><td>Min. Go version</td><td>1.21</td><td>1.18</td><td><strong>1.22</strong></td><td>1.11</td></tr>
     </table></div>
