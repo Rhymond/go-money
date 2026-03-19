@@ -155,6 +155,10 @@
       <div class="feature-card"><div class="icon">🔒</div><h3>Immutable</h3><p>Every operation returns a new value — safe to use across goroutines.</p></div>
       <div class="feature-card"><div class="icon">🧮</div><h3>Allocation</h3><p><code>Split</code> and <code>Allocate</code> distribute amounts without ever losing a penny.</p></div>
       <div class="feature-card"><div class="icon">🔤</div><h3>Currency constants</h3><p>80+ package-level constants (<code>money.USD</code>, <code>money.EUR</code>…) for type-safe code.</p></div>
+      <div class="feature-card"><div class="icon">🌐</div><h3>Country → Currency</h3><p>180+ countries mapped to their primary currency via ISO 3166-1 alpha-2 code.</p></div>
+      <div class="feature-card"><div class="icon">✖️</div><h3>Float multiply</h3><p><code>MultiplyFloat</code> and <code>DivideWithRounding</code> for VAT factors, interest rates, and precise division.</p></div>
+      <div class="feature-card"><div class="icon">📐</div><h3>Range clamping</h3><p><code>Clamp(min, max)</code> constrains a value to a closed interval — great for discount/surcharge caps.</p></div>
+      <div class="feature-card"><div class="icon">✅</div><h3>100% test coverage</h3><p>Every line is tested and coverage is enforced in CI — no silent regressions.</p></div>
     </div>
   </div>
 </section>
@@ -195,6 +199,22 @@ shares, _ := bill.Split(<span class="num">3</span>)
 <span class="cmt">// Ratio allocation: investor A 60%, B 30%, C 10%</span>
 parts, _ := bill.Allocate(<span class="num">60</span>, <span class="num">30</span>, <span class="num">10</span>)
 <span class="cmt">// $60.51, $30.26, $10.08  (total = $100.85 ✓)</span></code></pre>
+
+    <h3>Float multiply &amp; country mapping</h3>
+    <pre><code><span class="cmt">// Multiply by float (VAT, FX factor)</span>
+price := money.NewFromFloat(<span class="num">100.00</span>, <span class="str">"USD"</span>)
+withVAT := price.MultiplyFloat(<span class="num">1.21</span>)    <span class="cmt">// $121.00</span>
+
+<span class="cmt">// Clamp to a range</span>
+min := money.New(<span class="num">500</span>, <span class="str">"USD"</span>)
+max := money.New(<span class="num">5000</span>, <span class="str">"USD"</span>)
+fee, _ := price.Clamp(min, max)           <span class="cmt">// $5.00 (clamped to min)</span>
+
+<span class="cmt">// Create from country code</span>
+m, _ := money.NewForCountry(<span class="num">1000</span>, <span class="str">"JP"</span>)  <span class="cmt">// ¥1000 JPY</span>
+m, _ = money.NewForCountry(<span class="num">500</span>, <span class="str">"DE"</span>)    <span class="cmt">// €5.00 EUR</span>
+
+code, _ := money.CurrencyForCountry(<span class="str">"GB"</span>) <span class="cmt">// "GBP"</span></code></pre>
 
     <h3>Aggregates</h3>
     <pre><code>items := []*money.Money{
@@ -326,6 +346,8 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
       <tr><th>Function</th><th>Description</th></tr>
       <tr><td><code>New(amount int64, code string) *Money</code></td><td>Create from smallest unit.</td></tr>
       <tr><td><code>NewFromFloat(amount float64, code string) *Money</code></td><td>Create from main unit (e.g. 1.25 USD).</td></tr>
+      <tr><td><code>NewForCountry(amount int64, countryCode string) (*Money, error)</code></td><td>Create for ISO 3166-1 country code (e.g. "US", "JP").</td></tr>
+      <tr><td><code>m.WithAmount(amount int64) *Money</code></td><td>Clone with new amount, same currency.</td></tr>
     </table></div>
 
     <h3>Accessors</h3>
@@ -338,6 +360,7 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
       <tr><td><code>Display()</code></td><td><code>string</code></td><td>Formatted string (e.g. "$12.34").</td></tr>
       <tr><td><code>String()</code></td><td><code>string</code></td><td>Same as Display; implements Stringer.</td></tr>
       <tr><td><code>ToWords()</code></td><td><code>string</code></td><td>English words for the amount.</td></tr>
+      <tr><td><code>IsWhole()</code></td><td><code>bool</code></td><td>True if no fractional sub-unit remainder.</td></tr>
     </table></div>
 
     <h3>Comparisons <small>(same currency required)</small></h3>
@@ -357,11 +380,14 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
       <tr><th>Method</th><th>Description</th></tr>
       <tr><td><code>Add(om)</code></td><td>m + om</td></tr>
       <tr><td><code>Subtract(om)</code></td><td>m − om</td></tr>
-      <tr><td><code>Multiply(int64)</code></td><td>m × n</td></tr>
-      <tr><td><code>Divide(int64)</code></td><td>m ÷ n (integer — may lose pennies)</td></tr>
+      <tr><td><code>Multiply(int64)</code></td><td>m × n (integer multiplier)</td></tr>
+      <tr><td><code>MultiplyFloat(float64)</code></td><td>m × f (float — rounded to nearest cent)</td></tr>
+      <tr><td><code>Divide(int64)</code></td><td>m ÷ n (integer — truncated)</td></tr>
+      <tr><td><code>DivideWithRounding(int64, RoundingMode)</code></td><td>m ÷ n with configurable rounding</td></tr>
       <tr><td><code>Percentage(float64)</code></td><td>p% of m</td></tr>
       <tr><td><code>Absolute()</code></td><td>|m|</td></tr>
-      <tr><td><code>Negative()</code></td><td>−|m|</td></tr>
+      <tr><td><code>Negative()</code></td><td>−m</td></tr>
+      <tr><td><code>Clamp(min, max *Money)</code></td><td>Constrain to [min, max] interval</td></tr>
     </table></div>
 
     <h3>Rounding</h3>
@@ -408,9 +434,17 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
     <h3>Currency management</h3>
     <div class="table-wrap"><table>
       <tr><th>Function</th><th>Description</th></tr>
-      <tr><td><code>GetCurrency(code)</code></td><td>Look up a currency.</td></tr>
-      <tr><td><code>AddCurrency(code, grapheme, template, decimal, thousand, fraction)</code></td><td>Register / override.</td></tr>
-      <tr><td><code>AddCurrencyMeta(code, mainWord, subWord)</code></td><td>Register word names for ToWords.</td></tr>
+      <tr><td><code>GetCurrency(code)</code></td><td>Look up a currency by code.</td></tr>
+      <tr><td><code>AddCurrency(code, grapheme, template, decimal, thousand, fraction)</code></td><td>Register or override a currency.</td></tr>
+      <tr><td><code>AddCurrencyMeta(code, mainWord, subWord)</code></td><td>Register English word names for ToWords.</td></tr>
+    </table></div>
+
+    <h3>Country mapping</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Function</th><th>Description</th></tr>
+      <tr><td><code>CurrencyForCountry(countryCode string) (string, bool)</code></td><td>ISO 3166-1 alpha-2 → ISO 4217 currency code.</td></tr>
+      <tr><td><code>NewForCountry(amount int64, countryCode string) (*Money, error)</code></td><td>Create Money for a country's primary currency.</td></tr>
+      <tr><td><code>CountryToCurrency</code></td><td>Raw map for direct lookup — 180+ entries.</td></tr>
     </table></div>
   </div>
 </section>
@@ -472,20 +506,26 @@ price.Display() <span class="cmt">// "$12.34"</span></code></pre>
         <th>go-money</th>
         <th>bojanz/currency</th>
         <th>govalues/money</th>
+        <th>Rhymond/go-money</th>
       </tr>
-      <tr><td>Integer precision</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>150+ currencies</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td></tr>
-      <tr><td>Exchange rate type</td><td class="check">✓</td><td>Partial</td><td class="check">✓</td></tr>
-      <tr><td>5 rounding modes</td><td class="check">✓</td><td class="check">✓</td><td>Banker's only</td></tr>
-      <tr><td>JSON marshaling</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>SQL Scanner/Valuer</td><td class="check">✓</td><td class="check">✓</td><td class="cross">—</td></tr>
-      <tr><td>Money in words (80+ currencies)</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>NewFromFloat</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>Aggregates (Sum/Min/Max/Avg)</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>Penny-perfect allocation</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
-      <tr><td>Currency constants</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>fmt.Stringer</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
-      <tr><td>Zero dependencies</td><td class="check">✓</td><td class="cross">CLDR data</td><td class="cross">apd</td></tr>
+      <tr><td>Integer precision</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>150+ currencies</td><td class="check">✓</td><td class="check">✓ (CLDR)</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Exchange rate type</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+      <tr><td>5 rounding modes</td><td class="check">✓</td><td>basic</td><td>banker's only</td><td>basic</td></tr>
+      <tr><td>JSON marshaling</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>SQL Scanner/Valuer</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Money in words (80+ currencies)</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Country → Currency (180+ countries)</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Aggregates (Sum/Min/Max/Avg)</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Penny-perfect allocation</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>Float multiply &amp; divide-with-rounding</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Range clamping</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Currency constants</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+      <tr><td>fmt.Stringer</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Locale-aware CLDR formatting</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Zero dependencies</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td><strong>100% test coverage (CI enforced)</strong></td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+      <tr><td>Min. Go version</td><td>1.21</td><td>1.18</td><td><strong>1.22</strong></td><td>1.11</td></tr>
     </table></div>
   </div>
 </section>

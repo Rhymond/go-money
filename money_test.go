@@ -953,3 +953,161 @@ func TestCurrencyConstants(t *testing.T) {
 		}
 	}
 }
+
+func TestMoney_MultiplyFloat(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		factor   float64
+		expected int64
+	}{
+		{1000, 1.21, 1210},  // $10 × 1.21 = $12.10
+		{1000, 0.1, 100},    // $10 × 0.1  = $1.00
+		{0, 5.0, 0},
+		{-1000, 2.0, -2000},
+		{333, 3.0, 999},
+		{1000, 0.075, 75}, // 7.5%
+	}
+	for _, tc := range tcs {
+		m := New(tc.amount, "USD")
+		r := m.MultiplyFloat(tc.factor)
+		if r.Amount() != tc.expected {
+			t.Errorf("MultiplyFloat(%d, %v): expected %d got %d",
+				tc.amount, tc.factor, tc.expected, r.Amount())
+		}
+	}
+}
+
+func TestMoney_IsWhole(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		code     string
+		expected bool
+	}{
+		{100, "USD", true},
+		{150, "USD", false},
+		{0, "USD", true},
+		{-200, "USD", true},
+		{-150, "USD", false},
+		{100, "JPY", true}, // Fraction=0
+		{1, "JPY", true},   // Fraction=0, always whole
+	}
+	for _, tc := range tcs {
+		m := New(tc.amount, tc.code)
+		if got := m.IsWhole(); got != tc.expected {
+			t.Errorf("IsWhole(%d %s): expected %v got %v",
+				tc.amount, tc.code, tc.expected, got)
+		}
+	}
+}
+
+func TestMoney_Clamp(t *testing.T) {
+	min := New(100, "USD")
+	max := New(500, "USD")
+
+	// below min → min
+	r, err := New(50, "USD").Clamp(min, max)
+	if err != nil || r.Amount() != 100 {
+		t.Errorf("Clamp below min: expected 100 got %v (err %v)", r, err)
+	}
+	// within range → unchanged
+	r, err = New(300, "USD").Clamp(min, max)
+	if err != nil || r.Amount() != 300 {
+		t.Errorf("Clamp within: expected 300 got %v (err %v)", r, err)
+	}
+	// above max → max
+	r, err = New(600, "USD").Clamp(min, max)
+	if err != nil || r.Amount() != 500 {
+		t.Errorf("Clamp above max: expected 500 got %v (err %v)", r, err)
+	}
+	// at exactly min
+	r, err = New(100, "USD").Clamp(min, max)
+	if err != nil || r.Amount() != 100 {
+		t.Errorf("Clamp at min: expected 100 got %v (err %v)", r, err)
+	}
+	// at exactly max
+	r, err = New(500, "USD").Clamp(min, max)
+	if err != nil || r.Amount() != 500 {
+		t.Errorf("Clamp at max: expected 500 got %v (err %v)", r, err)
+	}
+	// currency mismatch on min
+	_, err = New(300, "USD").Clamp(New(100, "EUR"), max)
+	if err == nil {
+		t.Error("Clamp: expected error for min currency mismatch")
+	}
+	// currency mismatch on max
+	_, err = New(300, "USD").Clamp(min, New(500, "EUR"))
+	if err == nil {
+		t.Error("Clamp: expected error for max currency mismatch")
+	}
+	// min > max
+	_, err = New(300, "USD").Clamp(New(500, "USD"), New(100, "USD"))
+	if err == nil {
+		t.Error("Clamp: expected error for min > max")
+	}
+}
+
+func TestMoney_DivideWithRounding(t *testing.T) {
+	tcs := []struct {
+		amount   int64
+		div      int64
+		mode     RoundingMode
+		expected int64
+	}{
+		// exact division
+		{10, 2, RoundHalfUp, 5},
+		// HalfUp: 11/2=5.5 → 6
+		{11, 2, RoundHalfUp, 6},
+		// HalfDown: 11/2=5.5 → 5 (tie rounds down)
+		{11, 2, RoundHalfDown, 5},
+		// HalfDown: 15/4=3.75, above half → rounds up
+		{15, 4, RoundHalfDown, 4},
+		// HalfEven: 11/2=5.5, quotient=5 odd → round to 6
+		{11, 2, RoundHalfEven, 6},
+		// HalfEven: 13/2=6.5, quotient=6 even → stays 6
+		{13, 2, RoundHalfEven, 6},
+		// HalfEven: above half
+		{15, 4, RoundHalfEven, 4}, // 15/4=3.75 → 4
+		// HalfEven: below half (remainder*2 < divisor) → truncate
+		{9, 4, RoundHalfEven, 2}, // 9/4=2.25 → 2
+		// RoundUp: any remainder rounds away from zero; exact division stays
+		{11, 2, RoundUp, 6},
+		{10, 3, RoundUp, 4},  // 10/3=3.33 → 4
+		{10, 2, RoundUp, 5},  // exact → no rounding
+		// RoundDown: truncate
+		{11, 2, RoundDown, 5},
+		{10, 3, RoundDown, 3},
+		// negative amount
+		{-11, 2, RoundHalfUp, -6},
+		{-10, 3, RoundHalfUp, -3},
+		// negative divisor
+		{10, -3, RoundHalfUp, -3},
+	}
+	for _, tc := range tcs {
+		m := New(tc.amount, "USD")
+		r := m.DivideWithRounding(tc.div, tc.mode)
+		if r.Amount() != tc.expected {
+			t.Errorf("DivideWithRounding(%d/%d, %v): expected %d got %d",
+				tc.amount, tc.div, tc.mode, tc.expected, r.Amount())
+		}
+	}
+	// default mode fallback
+	r := New(11, "USD").DivideWithRounding(2, RoundingMode(99))
+	if r.Amount() != 6 {
+		t.Errorf("DivideWithRounding default: expected 6 got %d", r.Amount())
+	}
+	r2 := New(10, "USD").DivideWithRounding(3, RoundingMode(99))
+	if r2.Amount() != 3 {
+		t.Errorf("DivideWithRounding default (below half): expected 3 got %d", r2.Amount())
+	}
+}
+
+func TestMoney_WithAmount(t *testing.T) {
+	base := New(0, "EUR")
+	fee := base.WithAmount(250)
+	if fee.Amount() != 250 {
+		t.Errorf("WithAmount: expected 250 got %d", fee.Amount())
+	}
+	if fee.Currency().Code != "EUR" {
+		t.Errorf("WithAmount: expected EUR got %s", fee.Currency().Code)
+	}
+}

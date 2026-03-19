@@ -369,6 +369,142 @@ func (m *Money) ToWords() string {
 	return GetCurrencyAmountWords(float64(m.Amount()), c.Code)
 }
 
+// MultiplyFloat returns a new Money whose value is m × f, rounded to the
+// nearest smallest currency unit using RoundHalfUp.
+//
+// Use Percentage for percentage calculations; use this for arbitrary float
+// multipliers such as VAT factors or interest rates.
+//
+//	money.New(1000, "USD").MultiplyFloat(1.21)  // 1210 cents → $12.10
+//	money.New(1000, "GBP").MultiplyFloat(0.075) //   75 pence → £0.75
+func (m *Money) MultiplyFloat(f float64) *Money {
+	return &Money{
+		amount:   &Amount{val: int64(math.Round(float64(m.amount.val) * f))},
+		currency: m.currency,
+	}
+}
+
+// IsWhole reports whether the monetary value is a whole currency unit with no
+// fractional sub-unit remainder (e.g. exactly $1.00, not $1.01).
+//
+//	money.New(100, "USD").IsWhole() // true  ($1.00)
+//	money.New(150, "USD").IsWhole() // false ($1.50)
+//	money.New(100, "JPY").IsWhole() // true  (¥100, Fraction=0)
+func (m *Money) IsWhole() bool {
+	if m.currency.Fraction == 0 {
+		return true
+	}
+	exp := int64(math.Pow10(m.currency.Fraction))
+	return m.amount.val%exp == 0
+}
+
+// Clamp returns a new Money whose value is constrained to the closed interval
+// [min, max]. All three values must share the same currency.
+// Returns an error if the currencies differ or if min > max.
+//
+//	money.New(50, "USD").Clamp(New(100, "USD"), New(500, "USD"))  // $1.00 (clamped up)
+//	money.New(300, "USD").Clamp(New(100, "USD"), New(500, "USD")) // $3.00 (unchanged)
+//	money.New(600, "USD").Clamp(New(100, "USD"), New(500, "USD")) // $5.00 (clamped down)
+func (m *Money) Clamp(min, max *Money) (*Money, error) {
+	if err := m.assertSameCurrency(min); err != nil {
+		return nil, err
+	}
+	if err := m.assertSameCurrency(max); err != nil {
+		return nil, err
+	}
+	if min.amount.val > max.amount.val {
+		return nil, errors.New("min must be less than or equal to max")
+	}
+	if m.amount.val < min.amount.val {
+		return &Money{amount: &Amount{val: min.amount.val}, currency: m.currency}, nil
+	}
+	if m.amount.val > max.amount.val {
+		return &Money{amount: &Amount{val: max.amount.val}, currency: m.currency}, nil
+	}
+	return &Money{amount: &Amount{val: m.amount.val}, currency: m.currency}, nil
+}
+
+// DivideWithRounding returns a new Money whose value is m ÷ div, rounded
+// according to the specified RoundingMode rather than truncated.
+//
+//	money.New(11, "USD").DivideWithRounding(2, money.RoundHalfUp)   // 6 cents ($0.06)
+//	money.New(11, "USD").DivideWithRounding(2, money.RoundHalfDown) // 5 cents ($0.05)
+//	money.New(11, "USD").DivideWithRounding(2, money.RoundDown)     // 5 cents ($0.05)
+func (m *Money) DivideWithRounding(div int64, mode RoundingMode) *Money {
+	a := m.amount.val
+
+	sign := int64(1)
+	if (a < 0) != (div < 0) {
+		sign = -1
+	}
+
+	absA := a
+	if absA < 0 {
+		absA = -absA
+	}
+	absDiv := div
+	if absDiv < 0 {
+		absDiv = -absDiv
+	}
+
+	quotient := absA / absDiv
+	remainder := absA % absDiv
+
+	var rounded int64
+	switch mode {
+	case RoundHalfUp:
+		if remainder*2 >= absDiv {
+			rounded = quotient + 1
+		} else {
+			rounded = quotient
+		}
+	case RoundHalfDown:
+		if remainder*2 > absDiv {
+			rounded = quotient + 1
+		} else {
+			rounded = quotient
+		}
+	case RoundHalfEven:
+		doubled := remainder * 2
+		if doubled > absDiv {
+			rounded = quotient + 1
+		} else if doubled == absDiv {
+			if quotient%2 == 0 {
+				rounded = quotient
+			} else {
+				rounded = quotient + 1
+			}
+		} else {
+			rounded = quotient
+		}
+	case RoundUp:
+		if remainder > 0 {
+			rounded = quotient + 1
+		} else {
+			rounded = quotient
+		}
+	case RoundDown:
+		rounded = quotient
+	default:
+		if remainder*2 >= absDiv {
+			rounded = quotient + 1
+		} else {
+			rounded = quotient
+		}
+	}
+
+	return &Money{amount: &Amount{val: sign * rounded}, currency: m.currency}
+}
+
+// WithAmount returns a new Money with the given raw amount in the currency's
+// smallest unit, keeping the same currency as m.
+//
+//	base := money.New(0, "EUR")
+//	fee  := base.WithAmount(250) // €2.50, same currency binding
+func (m *Money) WithAmount(amount int64) *Money {
+	return &Money{amount: &Amount{val: amount}, currency: m.currency}
+}
+
 // moneyJSON is the canonical JSON representation of a Money value.
 type moneyJSON struct {
 	Amount   int64  `json:"amount"`

@@ -3,21 +3,17 @@
 [![CI](https://github.com/im-adarsh/go-money/actions/workflows/ci.yml/badge.svg)](https://github.com/im-adarsh/go-money/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/im-adarsh/go-money.svg)](https://pkg.go.dev/github.com/im-adarsh/go-money)
 [![Go Report Card](https://goreportcard.com/badge/github.com/im-adarsh/go-money)](https://goreportcard.com/report/github.com/im-adarsh/go-money)
+[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/im-adarsh/go-money/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**go-money** is a zero-dependency Go library for precise monetary value
-arithmetic. It implements [Martin Fowler's Money
-pattern](https://martinfowler.com/eaaCatalog/money.html) by storing every
-amount as an integer in the currency's **smallest unit** (cents, pence,
-paise…), eliminating the floating-point rounding errors that plague `float64`
-approaches.
+**go-money** is a zero-dependency Go library for precise monetary value arithmetic. It implements [Martin Fowler's Money pattern](https://martinfowler.com/eaaCatalog/money.html) by storing every amount as an integer in the currency's **smallest unit** (cents, pence, paise…), eliminating the floating-point rounding errors that plague `float64` approaches.
 
 ```go
-import "github.com/im-adarsh/go-money"
+import money "github.com/im-adarsh/go-money"
 
-price  := money.NewFromFloat(10.99, money.USD)  // $10.99
-tax    := price.Percentage(8.5)                  // $0.93
-total, _ := price.Add(tax)                       // $11.92
+price  := money.NewFromFloat(10.99, money.USD) // $10.99
+tax    := price.Percentage(8.5)                // $0.93
+total, _ := price.Add(tax)                    // $11.92
 
 // Split three ways — no penny lost
 shares, _ := total.Split(3)
@@ -26,7 +22,7 @@ shares, _ := total.Split(3)
 // Convert to euros
 rate, _ := money.NewExchangeRate("USD", "EUR", 0.92)
 euros, _ := rate.Convert(total)
-fmt.Println(euros.Display())                     // "€10.97"
+fmt.Println(euros.Display()) // "€10.97"
 ```
 
 ---
@@ -42,8 +38,10 @@ fmt.Println(euros.Display())                     // "€10.97"
   - [Comparisons](#comparisons)
   - [Assertions](#assertions)
   - [Arithmetic Operations](#arithmetic-operations)
+  - [Float Multiplication & Division](#float-multiplication--division)
   - [Percentage](#percentage)
   - [Rounding Modes](#rounding-modes)
+  - [Range Clamping](#range-clamping)
   - [Allocation](#allocation)
   - [Exchange Rates & Conversion](#exchange-rates--conversion)
   - [Aggregates](#aggregates)
@@ -52,6 +50,7 @@ fmt.Println(euros.Display())                     // "€10.97"
   - [JSON Serialization](#json-serialization)
   - [SQL / Database Integration](#sql--database-integration)
   - [Money in Words](#money-in-words)
+  - [Country to Currency Mapping](#country-to-currency-mapping)
   - [Custom Currencies](#custom-currencies)
   - [Currency Code Constants](#currency-code-constants)
 - [Supported Currencies](#supported-currencies)
@@ -64,12 +63,11 @@ fmt.Println(euros.Display())                     // "€10.97"
 ## Why integer arithmetic?
 
 ```go
-fmt.Println(0.1 + 0.2)          // 0.30000000000000004
-fmt.Println(0.1 + 0.2 == 0.3)   // false
+fmt.Println(0.1 + 0.2)        // 0.30000000000000004
+fmt.Println(0.1 + 0.2 == 0.3) // false
 ```
 
-**go-money** stores `£1.00` as the integer `100` (pence). All operations are
-performed on integers — the result is always exact.
+**go-money** stores £1.00 as the integer `100` (pence). All operations are performed on integers — the result is always exact.
 
 ---
 
@@ -90,8 +88,6 @@ package main
 
 import (
     "fmt"
-    "log"
-
     money "github.com/im-adarsh/go-money"
 )
 
@@ -99,27 +95,34 @@ func main() {
     // Create from float (human-friendly)
     price := money.NewFromFloat(99.99, money.USD) // $99.99
 
-    // Or from integer smallest unit (precise)
-    tax := money.New(850, money.USD) // $8.50
+    // Arithmetic
+    tax := price.Percentage(7.5)
+    total, _ := price.Add(tax)
+    fmt.Println(total.Display()) // "$107.49"
 
-    total, err := price.Add(tax)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Println(total.Display())    // "$108.49"
-    fmt.Println(total.AsFloat64())  // 108.49
-
-    // Penny-perfect split
-    shares, _ := total.Split(3)
+    // Penny-perfect allocation
+    shares, _ := total.Allocate(50, 30, 20)
     for _, s := range shares {
-        fmt.Println(s.Display()) // $36.17, $36.16, $36.16
+        fmt.Println(s.Display())
     }
+    // $53.75
+    // $32.25
+    // $21.49
 
-    // Currency conversion
+    // Exchange rate
     rate, _ := money.NewExchangeRate(money.USD, money.EUR, 0.92)
     euros, _ := rate.Convert(total)
-    fmt.Println(euros.Display()) // "€99.81"
+    fmt.Println(euros.Display()) // "€98.89"
+
+    // Aggregates
+    prices := []*money.Money{
+        money.NewFromFloat(10.00, money.USD),
+        money.NewFromFloat(25.50, money.USD),
+        money.NewFromFloat(7.99, money.USD),
+    }
+    sum, _ := money.Sum(prices...)
+    avg, _ := money.Average(prices...)
+    fmt.Println(sum.Display(), avg.Display()) // "$43.49" "$14.49"
 }
 ```
 
@@ -130,365 +133,359 @@ func main() {
 ### Creating Money
 
 ```go
-// From integer (smallest unit): 100 = $1.00
-m := money.New(100, "USD")
-m := money.New(100, money.USD)  // using constants
+// From smallest unit (cents, pence, paise…)
+m := money.New(1099, "USD")           // $10.99
+m := money.New(100, money.GBP)        // £1.00 (using constant)
 
-// From float: 1.25 = $1.25 → stored as 125 cents
-m := money.NewFromFloat(1.25, "USD")
-m := money.NewFromFloat(100.0, "JPY") // JPY has no subunit
+// From main unit float — multiplied by 10^Fraction, rounded
+m := money.NewFromFloat(10.99, "USD") // $10.99 → 1099 cents
+m := money.NewFromFloat(1.005, "USD") // rounds  → $1.01
 
-// Negative values are supported
-m := money.New(-100, "EUR")   // -€1.00
+// For a country code (ISO 3166-1 alpha-2)
+m, err := money.NewForCountry(1000, "JP") // ¥1000
+m, err := money.NewForCountry(500, "DE")  // €5.00
+
+// Clone with a new raw amount (keeps currency)
+fee := money.New(0, "EUR").WithAmount(250) // €2.50
 ```
 
 ### Accessing Values
 
-```go
-m := money.New(1234, "USD")
-
-m.Amount()           // int64: 1234   (raw smallest-unit integer)
-m.AsFloat64()        // float64: 12.34 (main unit — for display only)
-m.Currency()         // *Currency{Code:"USD", Fraction:2, Grapheme:"$", ...}
-m.Currency().Code    // "USD"
-m.Display()          // "$12.34"
-m.String()           // "$12.34" (same as Display; implements fmt.Stringer)
-whole, frac := m.AsParts() // (12, 34)
-```
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `Amount()` | `int64` | Raw amount in smallest unit (e.g. 1099 for $10.99) |
+| `AsFloat64()` | `float64` | Main-unit float — display only, never use in calculations |
+| `Currency()` | `*Currency` | Associated currency |
+| `AsParts()` | `(int64, int64)` | Whole and fractional parts — (10, 99) for $10.99 |
+| `Display()` | `string` | Formatted string e.g. `"$10.99"` |
+| `String()` | `string` | Same as `Display()`, implements `fmt.Stringer` |
+| `ToWords()` | `string` | English words e.g. `"ten dollar only"` |
+| `IsWhole()` | `bool` | `true` if no fractional sub-unit remainder |
 
 ### Comparisons
 
-All comparison methods require identical currencies and return an error otherwise.
-
 ```go
-a := money.New(100, "USD")
-b := money.New(200, "USD")
-
-a.Equals(b)              // false, nil
-a.GreaterThan(b)         // false, nil
-a.GreaterThanOrEqual(b)  // false, nil
-a.LessThan(b)            // true, nil
-a.LessThanOrEqual(b)     // true, nil
-a.Compare(b)             // -1, nil  (-1 / 0 / +1 like strings.Compare)
-a.SameCurrency(b)        // true (no error — pure boolean)
-
-// Cross-currency returns an error:
-c := money.New(100, "EUR")
-a.Equals(c)              // false, error("currencies don't match")
+m.Equals(om)             (bool, error)
+m.GreaterThan(om)        (bool, error)
+m.GreaterThanOrEqual(om) (bool, error)
+m.LessThan(om)           (bool, error)
+m.LessThanOrEqual(om)    (bool, error)
+m.Compare(om)            (int, error)  // -1 / 0 / +1
+m.SameCurrency(om)       bool
 ```
+
+All comparison methods return an error when the currencies differ.
 
 ### Assertions
 
 ```go
-money.New(0,   "USD").IsZero()     // true
-money.New(100, "USD").IsPositive() // true
-money.New(-1,  "USD").IsNegative() // true
+m.IsZero()     bool   // amount == 0
+m.IsPositive() bool   // amount > 0
+m.IsNegative() bool   // amount < 0
+m.IsWhole()    bool   // no fractional sub-unit
 ```
 
 ### Arithmetic Operations
 
-All operations return a **new** Money; the receiver is unchanged.
+```go
+m.Add(om)      (*Money, error)  // m + om  (same currency required)
+m.Subtract(om) (*Money, error)  // m - om
+m.Multiply(n)  *Money           // m × n  (integer multiplier)
+m.Divide(n)    *Money           // m ÷ n  (truncated toward zero)
+m.Absolute()   *Money           // |m|
+m.Negative()   *Money           // negate
+```
+
+All operations return a new `*Money`; the receiver is never modified (immutable style).
+
+### Float Multiplication & Division
 
 ```go
-a := money.New(1000, "USD")  // $10.00
-b := money.New(500, "USD")   // $5.00
+// Multiply by a float (VAT, interest rate, exchange factor)
+withVAT := price.MultiplyFloat(1.21)        // price × 1.21
+weekRate := annual.MultiplyFloat(1.0 / 52)
 
-// Add / Subtract (require same currency)
-sum, _  := a.Add(b)        // $15.00
-diff, _ := a.Subtract(b)   // $5.00
-
-// Multiply / Divide (integer division)
-a.Multiply(3)              // $30.00
-a.Divide(3)                // $3.33  (remainder truncated — use Split for lossless)
-
-// Sign operations
-money.New(-150, "USD").Absolute() // $1.50
-money.New(150, "USD").Negative()  // -$1.50
+// Divide with configurable rounding (instead of silent truncation)
+half := m.DivideWithRounding(2, money.RoundHalfUp)
+half := m.DivideWithRounding(2, money.RoundHalfEven) // banker's rounding
+third := m.DivideWithRounding(3, money.RoundDown)
 ```
 
 ### Percentage
 
 ```go
-price := money.New(10000, "USD")  // $100.00
-
-price.Percentage(10)    // $10.00  (10%)
-price.Percentage(8.5)   // $8.50   (8.5%)
-price.Percentage(0.5)   // $0.50   (0.5%)
-price.Percentage(100)   // $100.00 (100%)
-
-// Practical use: adding VAT
-net := money.NewFromFloat(49.99, "GBP")
-vat := net.Percentage(20)               // 20% VAT
-gross, _ := net.Add(vat)
+tax  := price.Percentage(8.5)   //  8.5% of price (rounded to nearest cent)
+disc := price.Percentage(-10)   // -10% discount
 ```
 
 ### Rounding Modes
 
-`Round()` uses the library's default behaviour (half-down). For explicit
-control, use `RoundWithMode()`:
+go-money provides five configurable rounding strategies:
 
-| Constant | Description | Example (1.5 → ?) |
-|---|---|---|
-| `RoundHalfUp` | Ties round away from zero | → 2 |
-| `RoundHalfDown` | Ties round toward zero | → 1 |
-| `RoundHalfEven` | Banker's rounding (ties to nearest even) | → 2 |
-| `RoundUp` | Always round away from zero | → 2 |
-| `RoundDown` | Always truncate toward zero | → 1 |
+| Mode | Description | Tie example |
+|------|-------------|-------------|
+| `RoundHalfUp` | Nearest; ties away from zero | 1.5 → 2, −1.5 → −2 |
+| `RoundHalfDown` | Nearest; ties toward zero | 1.5 → 1 |
+| `RoundHalfEven` | Nearest; ties to even (banker's rounding) | 0.5 → 0, 1.5 → 2, 2.5 → 2 |
+| `RoundUp` | Always away from zero | 1.1 → 2, −1.1 → −2 |
+| `RoundDown` | Truncate toward zero | 1.9 → 1, −1.9 → −1 |
 
 ```go
-m := money.New(150, "USD")  // $1.50 (stored as 150 cents)
+m := money.New(150, "USD") // $1.50
 
-m.RoundWithMode(money.RoundHalfUp)   // $2.00
-m.RoundWithMode(money.RoundHalfDown) // $1.00
-m.RoundWithMode(money.RoundHalfEven) // $2.00 (2 is even)
-
-// Banker's rounding minimises cumulative error in batch processing:
-money.New(250, "USD").RoundWithMode(money.RoundHalfEven) // $2.00 (2 is even)
-money.New(350, "USD").RoundWithMode(money.RoundHalfEven) // $4.00 (4 is even)
+m.Round()                                    // $2.00 (default: RoundHalfUp)
+m.RoundWithMode(money.RoundHalfUp)           // $2.00
+m.RoundWithMode(money.RoundHalfDown)         // $1.00
+m.RoundWithMode(money.RoundHalfEven)         // $2.00 (2 is even)
+m.RoundWithMode(money.RoundUp)               // $2.00
+m.RoundWithMode(money.RoundDown)             // $1.00
 ```
+
+### Range Clamping
+
+```go
+min := money.New(100, "USD") // $1.00
+max := money.New(500, "USD") // $5.00
+
+money.New(50,  "USD").Clamp(min, max) // → $1.00 (clamped to min)
+money.New(300, "USD").Clamp(min, max) // → $3.00 (unchanged)
+money.New(600, "USD").Clamp(min, max) // → $5.00 (clamped to max)
+```
+
+Returns an error if currencies differ or if `min > max`.
 
 ### Allocation
 
-#### Even split
+Distribute money without losing a single penny — remainders are spread round-robin:
 
 ```go
-// No penny is ever lost — leftover distributed round-robin to first parties
-parts, _ := money.New(100, "USD").Split(3)
-// $0.34, $0.33, $0.33   (total: $1.00)
-```
+// Equal split
+shares, _ := money.New(100, "GBP").Split(3)
+// £0.34, £0.33, £0.33
 
-#### Ratio-based allocation
+// Weighted by ratio
+parts, _ := money.New(100, "USD").Allocate(50, 30, 20)
+// $0.50, $0.30, $0.20
 
-```go
-profit := money.New(10000, "USD")  // $100.00
-
-parts, _ := profit.Allocate(50, 30, 20)
-// $50.00, $30.00, $20.00
-
-// Uneven ratios with leftover pennies
+// Unequal ratios — leftover cent goes to first party
 parts, _ = money.New(100, "USD").Allocate(33, 33, 33)
-// $0.34, $0.33, $0.33   (total: $1.00)
-
-// 70/30 investor split
-parts, _ = money.New(10000, "USD").Allocate(70, 30)
-// $70.00, $30.00
+// $0.34, $0.33, $0.33
 ```
 
 ### Exchange Rates & Conversion
 
 ```go
-// Create a rate: 1 USD = 0.92 EUR
 rate, err := money.NewExchangeRate("USD", "EUR", 0.92)
 
-usd := money.New(1000, "USD")  // $10.00
-eur, _ := rate.Convert(usd)   // €9.20
-eur.Display()                  // "€9.20"
+// Convert — result rounded to target currency's smallest unit
+euros, err := rate.Convert(money.New(1000, "USD")) // 920 cents → €9.20
 
-// Invert the rate (EUR → USD)
-inv := rate.Invert()
-usd2, _ := inv.Convert(eur)   // ~$9.99 (due to rounding)
+// Invert
+inv := rate.Invert() // EUR → USD at ~1.0869
 
-// Access rate metadata
-rate.From()  // "USD"
-rate.To()    // "EUR"
-rate.Rate()  // 0.92
-
-// Cross-currency chain
-gbpToUsd, _ := money.NewExchangeRate("GBP", "USD", 1.27)
-gbp := money.New(500, "GBP")    // £5.00
-usd3, _ := gbpToUsd.Convert(gbp) // $6.35
+// Accessors
+rate.From() // "USD"
+rate.To()   // "EUR"
+rate.Rate() // 0.92
 ```
+
+`NewExchangeRate` returns an error when rate ≤ 0 or `from == to`.
 
 ### Aggregates
 
 ```go
 prices := []*money.Money{
-    money.New(999, "USD"),   // $9.99
-    money.New(1499, "USD"),  // $14.99
-    money.New(299, "USD"),   // $2.99
+    money.New(100, "USD"),
+    money.New(200, "USD"),
+    money.New(300, "USD"),
 }
 
-total, _   := money.Sum(prices...)     // $27.97
-cheapest, _ := money.Min(prices...)    // $2.99
-priciest, _ := money.Max(prices...)    // $14.99
-avg, _      := money.Average(prices...) // $9.32 (truncated)
+total, _ := money.Sum(prices...)      // $6.00
+min, _   := money.Min(prices...)      // $1.00
+max, _   := money.Max(prices...)      // $3.00
+avg, _   := money.Average(prices...)  // $2.00
 ```
+
+All aggregate functions require the same currency; they return an error for mixed currencies or empty input.
 
 ### Amount as Parts
 
 ```go
-whole, frac := money.New(1234, "USD").AsParts()  // 12, 34   → $12.34
-whole, frac  = money.New(100,  "GBP").AsParts()  //  1,  0   → £1.00
-whole, frac  = money.New(-550, "EUR").AsParts()  // -5, 50   → -€5.50
-whole, frac  = money.New(500,  "JPY").AsParts()  // 500, 0   → ¥500
+whole, frac := money.New(1234, "USD").AsParts()  // 12, 34   ($12.34)
+whole, frac  = money.New(-550, "GBP").AsParts()  // -5, 50   (-£5.50)
+whole, frac  = money.New(100,  "JPY").AsParts()  // 100, 0   (¥100)
 ```
 
 ### Formatting & Display
 
 ```go
-money.New(123456789, "USD").Display()  // "$1,234,567.89"
-money.New(123456789, "EUR").Display()  // "€1,234,567.89"
-money.New(123456789, "GBP").Display()  // "£1,234,567.89"
-money.New(123456789, "JPY").Display()  // "¥123,456,789"
-money.New(100,       "AED").Display()  // "1.00 .د.إ"
-money.New(-150,      "USD").Display()  // "-$1.50"
+money.New(123456789, "USD").Display() // "$1,234,567.89"
+money.New(123456789, "EUR").Display() // "€1,234,567.89"
+money.New(100, "JPY").Display()       // "¥100"
+money.New(100, "GBP").Display()       // "£1.00"
 
-// fmt.Stringer is implemented — works directly with fmt verbs
-fmt.Printf("Total: %s\n", money.New(1000, "USD")) // "Total: $10.00"
-fmt.Println(money.New(500, "GBP"))                // "£5.00"
+// Custom formatter
+f := money.NewFormatter(2, ".", ",", "£", "1$")
+f.Format(123456) // "£1,234.56"
 ```
 
 ### JSON Serialization
 
+`Money` implements `json.Marshaler` and `json.Unmarshaler`:
+
 ```go
-m := money.New(1234, "USD")
+m := money.New(1099, "USD")
 
-// Marshal
 b, _ := json.Marshal(m)
-// {"amount":1234,"currency":"USD"}
+// {"amount":1099,"currency":"USD"}
 
-// Unmarshal
-var restored money.Money
-json.Unmarshal(b, &restored)
-restored.Display() // "$12.34"
-
-// Works in structs
-type Order struct {
-    ID    int         `json:"id"`
-    Price money.Money `json:"price"`
-}
+var m2 money.Money
+json.Unmarshal(b, &m2) // m2.Amount() == 1099, m2.Currency().Code == "USD"
 ```
 
 ### SQL / Database Integration
 
-`Money` implements `database/sql/driver.Valuer` and `sql.Scanner`, allowing
-direct use with any `database/sql`-compatible driver (PostgreSQL, MySQL, SQLite…).
+`Money` implements `driver.Valuer` and `sql.Scanner`:
 
 ```go
-// Stored as "<amount> <CURRENCY>", e.g. "1234 USD"
+// Stored as the string "1099 USD"
+_, err = db.Exec("INSERT INTO orders (price) VALUES (?)", price)
 
-// Writing to database
-price := money.New(1234, "USD")
-db.Exec("INSERT INTO products (price) VALUES (?)", price)
-
-// Reading from database
+// Read back transparently
 var price money.Money
-db.QueryRow("SELECT price FROM products WHERE id = ?", 1).Scan(&price)
-price.Display()  // "$12.34"
-
-// Works in structs with database/sql
-type Product struct {
-    ID    int
-    Price money.Money
-}
+row.Scan(&price) // $10.99 USD
 ```
+
+Works with any `database/sql`-compatible driver (MySQL, PostgreSQL, SQLite, etc.).
 
 ### Money in Words
 
 ```go
-money.New(100,   "USD").ToWords() // "one dollar only"
-money.New(1,     "GBP").ToWords() // "one pound only"
-money.New(1,     "EUR").ToWords() // "one euro only"
-money.New(100,   "JPY").ToWords() // "one hundred yen only"
-money.New(100,   "INR").ToWords() // "one hundred rupee only"
-money.New(100,   "PHP").ToWords() // "one hundred pesos only"
+// Via Money.ToWords() — converts the raw integer amount
+money.New(1, "USD").ToWords()   // "one dollar only"
+money.New(50, "GBP").ToWords()  // "fifty pound only"
 
-// Direct call for sub-unit output (e.g. for cheques/invoices)
-money.GetCurrencyAmountWords(1.25, "USD") // "one dollar and twenty-five cents only"
-money.GetCurrencyAmountWords(0.75, "EUR") // "seventy-five cent only"
-
-// Register a custom currency for words
-money.AddCurrencyMeta("XYZ", "zorkmid", "zork")
+// Via GetCurrencyAmountWords — pass a human-scale float for sub-unit words
+money.GetCurrencyAmountWords(1.50, "USD")  // "one dollar and fifty cents only"
+money.GetCurrencyAmountWords(10.99, "EUR") // "ten euro and ninety-nine cent only"
+money.GetCurrencyAmountWords(0.75, "GBP")  // "seventy-five penny only"
+money.GetCurrencyAmountWords(1000, "JPY")  // "one thousand yen only"
 ```
 
-80+ currencies supported — see [Supported Currencies](#supported-currencies).
+Supports **80+ currencies**. Add custom ones:
+
+```go
+money.AddCurrencyMeta("BTC", "bitcoin", "satoshi")
+money.GetCurrencyAmountWords(1.0, "BTC") // "one bitcoin only"
+```
+
+### Country to Currency Mapping
+
+Map ISO 3166-1 alpha-2 country codes to their primary ISO 4217 currency — covers **180+ countries**:
+
+```go
+code, ok := money.CurrencyForCountry("US") // "USD", true
+code, ok  = money.CurrencyForCountry("JP") // "JPY", true
+code, ok  = money.CurrencyForCountry("DE") // "EUR", true
+code, ok  = money.CurrencyForCountry("gb") // "GBP", true  (case-insensitive)
+code, ok  = money.CurrencyForCountry("XX") // "",    false
+
+// Directly create Money for a country
+m, err := money.NewForCountry(1000, "US")  // $10.00 USD
+m, err  = money.NewForCountry(500,  "JP")  // ¥500  JPY
+m, err  = money.NewForCountry(100,  "XX")  // error
+```
 
 ### Custom Currencies
 
 ```go
-// Register or override a currency
-money.AddCurrency("BTC", "₿", "$1", ".", ",", 8)
-money.New(100000000, "BTC").Display() // "₿1.00000000"
+// Register a new currency (persists for the process lifetime)
+money.AddCurrency("BTC", "₿", "1$", ".", ",", 8)
+m := money.New(100000000, "BTC") // 1.00000000 BTC
+m.Display()                       // "₿1.00000000"
 
-// Custom currency for words
+// Register English words
 money.AddCurrencyMeta("BTC", "bitcoin", "satoshi")
+money.New(1, "BTC").ToWords() // "one bitcoin only"
 ```
 
 ### Currency Code Constants
 
-All major ISO 4217 currency codes are available as package-level constants:
+Use compile-time constants instead of raw strings to catch typos early:
 
 ```go
-money.New(100, money.USD)  // $1.00
-money.New(100, money.EUR)  // €1.00
-money.New(100, money.GBP)  // £1.00
-money.New(100, money.JPY)  // ¥100
-money.New(100, money.INR)  // ₹1.00
+money.New(100, money.USD)  // not "USD"
+money.New(100, money.EUR)
+money.New(100, money.GBP)
+// 80+ constants: USD, EUR, GBP, JPY, CHF, AUD, CAD, NZD, SGD, HKD, CNY,
+//                INR, KRW, TWD, THB, MYR, IDR, PHP, VND, PKR, BDT, AED,
+//                SAR, ILS, EGP, ZAR, NGN, KES, BRL, MXN, RUB, TRY, PLN…
 ```
-
-See [`constants.go`](constants.go) for the full list.
 
 ---
 
 ## Supported Currencies
 
-### Formatting (150+ currencies)
+### Formatting (150+ via `currency.go`)
 
-See [`currency.go`](currency.go) for the complete list.
+All ISO 4217 currencies with symbol, separators, and fraction digits:
 
-Selected currencies:
+`USD` `EUR` `GBP` `JPY` `CHF` `AUD` `CAD` `NZD` `SGD` `HKD` `CNY` `INR` `KRW` `BRL` `MXN` `SEK` `NOK` `DKK` `PLN` `CZK` `HUF` `RON` `RUB` `TRY` `ZAR` `AED` `SAR` `THB` `MYR` `IDR` `PHP` `VND` `PKR` `BDT` `EGP` `NGN` `KES` `GHS` `ETB` `MAD` `TND` `DZD` `LYD` `KWD` `BHD` `OMR` `JOD` `IQD` `QAR` `ILS`…
 
-| Code | Currency | Symbol | Fraction |
-|------|----------|--------|----------|
-| USD  | US Dollar | $ | 2 |
-| EUR  | Euro | € | 2 |
-| GBP  | Pound Sterling | £ | 2 |
-| JPY  | Japanese Yen | ¥ | 0 |
-| CNY  | Chinese Yuan | 元 | 2 |
-| INR  | Indian Rupee | ₹ | 2 |
-| KRW  | South Korean Won | ₩ | 0 |
-| BHD  | Bahraini Dinar | .د.ب | 3 |
-| KWD  | Kuwaiti Dinar | .د.ك | 3 |
-| TND  | Tunisian Dinar | .د.ت | 3 |
+### Money in Words (80+ via `currencyToWords.go`)
 
-### Words (ToWords — 80+ currencies)
-
-Americas: USD, CAD, AUD, NZD, MXN, BRL, ARS, CLP, COP, PEN, BOB, UYU, TTD, JMD, DOP, BSD, BZD, GYD, SRD, PAB
-
-Europe: EUR, GBP, CHF, SEK, NOK, DKK, PLN, CZK, HUF, RON, BGN, HRK, RUB, UAH, TRY, ISK, BAM, RSD, MKD, ALL
-
-Asia-Pacific: JPY, CNY, INR, HKD, SGD, KRW, TWD, THB, MYR, IDR, PHP, VND, PKR, BDT, LKR, NPR, MMK, KHR, LAK, MNT, KZT, UZS, AZN, GEL
-
-Middle East & Africa: AED, SAR, QAR, KWD, BHD, OMR, JOD, IQD, IRR, ILS, EGP, ZAR, NGN, KES, GHS, TZS, UGX, ETB, MUR, ZMW, MAD, TND, DZD, LYD
+`USD` `EUR` `GBP` `JPY` `CNY` `INR` `AUD` `CAD` `CHF` `SGD` `HKD` `KRW` `TWD` `THB` `MYR` `IDR` `PHP` `VND` `PKR` `BDT` `LKR` `NPR` `MMK` `AED` `SAR` `QAR` `KWD` `BHD` `OMR` `JOD` `ILS` `EGP` `ZAR` `NGN` `KES` `GHS` `ETB` `BRL` `MXN` `ARS` `COP` `PEN` `CLP` `RUB` `UAH` `TRY` `PLN` `SEK` `NOK` `DKK`…
 
 ---
 
 ## Comparison with Other Libraries
 
-| Feature | go-money | bojanz/currency | govalues/money |
-|---------|----------|-----------------|----------------|
-| Integer precision | ✅ | ✅ | ✅ |
-| 150+ currencies | ✅ | ✅ | — |
-| Multiple rounding modes | ✅ | ✅ | Banker's only |
-| Exchange rate conversion | ✅ | Partial | ✅ |
-| JSON marshaling | ✅ | ✅ | ✅ |
-| SQL Scanner/Valuer | ✅ | ✅ | — |
-| Money in words | ✅ (80+ currencies) | — | — |
-| NewFromFloat | ✅ | — | — |
-| Aggregate (Sum/Min/Max/Avg) | ✅ | — | — |
-| Immutable values | ✅ | ✅ | ✅ |
-| Zero dependencies | ✅ | ❌ (CLDR data) | ❌ |
-| Currency constants | ✅ | — | — |
+| Feature | **go-money** | [bojanz/currency](https://github.com/bojanz/currency) | [govalues/money](https://github.com/govalues/money) | [Rhymond/go-money](https://github.com/Rhymond/go-money) |
+|---------|:---:|:---:|:---:|:---:|
+| Integer precision (no float errors) | ✅ | ✅ | ✅ | ✅ |
+| Exchange rates & conversion | ✅ | ❌ | ✅ | ❌ |
+| 5 rounding modes | ✅ | basic | banker's only | basic |
+| Split / Allocate (penny-perfect) | ✅ | ❌ | ❌ | ✅ |
+| Aggregates (Sum / Min / Max / Avg) | ✅ | ❌ | ❌ | ❌ |
+| Money in words (80+ currencies) | ✅ | ❌ | ❌ | ❌ |
+| Country → Currency mapping (180+ countries) | ✅ | ❌ | ❌ | ❌ |
+| Float multiply & divide-with-rounding | ✅ | ❌ | ❌ | ❌ |
+| Range clamping (Clamp) | ✅ | ❌ | ❌ | ❌ |
+| IsWhole / WithAmount helpers | ✅ | ❌ | ❌ | ❌ |
+| JSON marshal / unmarshal | ✅ | ✅ | ✅ | ✅ |
+| SQL Valuer / Scanner | ✅ | ✅ | ✅ | ✅ |
+| `fmt.Stringer` | ✅ | ✅ | ✅ | ✅ |
+| Currency code constants | ✅ | ❌ | ❌ | ✅ |
+| Locale-aware CLDR formatting | ❌ | ✅ | ❌ | ❌ |
+| Zero external dependencies | ✅ | ✅ | ✅ | ✅ |
+| **100% test coverage (enforced in CI)** | ✅ | ❌ | ❌ | ❌ |
+| Runnable godoc examples | ✅ | partial | partial | ❌ |
+| Minimum Go version | 1.21 | 1.18 | **1.22** | 1.11 |
+
+### When to choose each library
+
+- **go-money** — best all-round choice: most features, 100% coverage, supports Go 1.21+. Pick this when you need allocation, aggregates, exchange, words, or country mapping in the same library.
+- **bojanz/currency** — best for apps that need locale-aware number formatting (e.g. "1.234,56 €" vs "$1,234.56") using CLDR data.
+- **govalues/money** — best for high-frequency trading systems where zero heap allocation matters and you can require Go 1.22.
+- **shopspring/decimal** — best when you need arbitrary-precision decimal arithmetic without currency semantics.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for
-guidelines. Report bugs and request features via [GitHub Issues](https://github.com/im-adarsh/go-money/issues).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding standards, and PR guidelines.
+
+```bash
+git clone https://github.com/im-adarsh/go-money
+cd go-money
+go test ./...                          # run all tests
+go test -race ./...                    # race detector
+go test -coverprofile=c.out ./... && go tool cover -func=c.out
+# total must show 100.0%
+```
 
 ---
 
 ## License
 
-The MIT License (MIT). See [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
