@@ -32,9 +32,7 @@ func TestNewExchangeRate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewExchangeRate(%q, %q, %v): unexpected error: %v", tc.from, tc.to, tc.rate, err)
 		}
-		if r.From() != "USD" && r.From() != "GBP" {
-			// just checking uppercase normalisation
-		}
+		_ = r.From() // just checking uppercase normalisation
 	}
 }
 

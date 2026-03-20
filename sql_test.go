@@ -1,7 +1,6 @@
 package money
 
 import (
-	"database/sql/driver"
 	"testing"
 )
 
@@ -95,7 +94,7 @@ func TestMoney_SQL_RoundTrip(t *testing.T) {
 	}
 
 	var restored Money
-	if err := restored.Scan(v.(driver.Value)); err != nil {
+	if err := restored.Scan(v); err != nil {
 		t.Fatalf("Scan: %v", err)
 	}
 

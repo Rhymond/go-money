@@ -109,7 +109,9 @@ func TestMoney_MarshalXML(t *testing.T) {
 	if err := enc.EncodeElement(m, start); err != nil {
 		t.Fatalf("MarshalXML: %v", err)
 	}
-	enc.Flush()
+	if err := enc.Flush(); err != nil {
+		t.Fatalf("MarshalXML flush: %v", err)
+	}
 
 	got := buf.String()
 	if got == "" {
@@ -150,8 +152,12 @@ func TestMoney_XML_RoundTrip(t *testing.T) {
 	var buf bytes.Buffer
 	enc := xml.NewEncoder(&buf)
 	start := xml.StartElement{Name: xml.Name{Local: "Money"}}
-	enc.EncodeElement(original, start)
-	enc.Flush()
+	if err := enc.EncodeElement(original, start); err != nil {
+		t.Fatalf("XML round-trip encode: %v", err)
+	}
+	if err := enc.Flush(); err != nil {
+		t.Fatalf("XML round-trip flush: %v", err)
+	}
 
 	var restored Money
 	if err := xml.Unmarshal(buf.Bytes(), &restored); err != nil {
