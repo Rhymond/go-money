@@ -1,6 +1,7 @@
 package money
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -15,55 +16,43 @@ type Decimal struct {
 	exponent int
 }
 
-// NewDecimal builds a Decimal from any supported numeric input.
-// Supported types: int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,
-// float32, float64, string, *big.Int, *Decimal, *Money.
-func NewDecimal(value interface{}) (*Decimal, error) {
-	switch v := value.(type) {
-	case int:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case int8:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case int16:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case int32:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case int64:
-		return &Decimal{val: big.NewInt(v)}, nil
-	case uint:
-		return &Decimal{val: new(big.Int).SetUint64(uint64(v))}, nil
-	case uint8:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case uint16:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case uint32:
-		return &Decimal{val: big.NewInt(int64(v))}, nil
-	case uint64:
-		return &Decimal{val: new(big.Int).SetUint64(v)}, nil
-	case float32:
-		return decimalFromFloat(float64(v), 32)
-	case float64:
-		return decimalFromFloat(v, 64)
-	case string:
-		return decimalFromString(v)
-	case *big.Int:
-		if v == nil {
-			return nil, fmt.Errorf("nil *big.Int")
-		}
-		return &Decimal{val: new(big.Int).Set(v)}, nil
-	case *Decimal:
-		if v == nil {
-			return nil, fmt.Errorf("nil *Decimal")
-		}
-		return &Decimal{val: new(big.Int).Set(v.val), exponent: v.exponent}, nil
-	case *Money:
-		if v == nil || v.amount == nil {
-			return nil, fmt.Errorf("nil *Money")
-		}
-		return &Decimal{val: new(big.Int).Set(v.amount.val), exponent: v.amount.exponent}, nil
-	default:
-		return nil, fmt.Errorf("unsupported value type %T", value)
+// NewDecimalFromInt builds a Decimal from any signed or unsigned integer width.
+// Always succeeds — every integer value fits exactly.
+func NewDecimalFromInt[T Integer](v T) *Decimal {
+	return &Decimal{val: intToBigInt(v)}
+}
+
+// NewDecimalFromFloat builds a Decimal from a float32 or float64 using its
+// shortest round-trip decimal representation. Returns an error for NaN or ±Inf.
+func NewDecimalFromFloat[T Float](v T) (*Decimal, error) {
+	bitSize := 64
+	if _, ok := any(v).(float32); ok {
+		bitSize = 32
 	}
+	return decimalFromFloat(float64(v), bitSize)
+}
+
+// NewDecimalFromString parses a decimal string like "1.25" or "-3" into a Decimal.
+func NewDecimalFromString(s string) (*Decimal, error) {
+	return decimalFromString(s)
+}
+
+// NewDecimalFromBigInt wraps a *big.Int into a Decimal. The input is defensively
+// copied so later mutations to the source don't bleed in.
+func NewDecimalFromBigInt(b *big.Int) (*Decimal, error) {
+	if b == nil {
+		return nil, errors.New("nil *big.Int")
+	}
+	return &Decimal{val: new(big.Int).Set(b)}, nil
+}
+
+// NewDecimalFromMoney returns the Money's amount as a Decimal. The underlying
+// value is defensively copied.
+func NewDecimalFromMoney(m *Money) (*Decimal, error) {
+	if m == nil || m.amount == nil {
+		return nil, errors.New("nil *Money")
+	}
+	return &Decimal{val: new(big.Int).Set(m.amount.val), exponent: m.amount.exponent}, nil
 }
 
 // decimalFromFloat is the single entry point for float → Decimal conversion.

@@ -231,7 +231,7 @@ func TestNewFromString_Invalid(t *testing.T) {
 }
 
 func TestNewFromDecimal(t *testing.T) {
-	d, _ := NewDecimal("12.34")
+	d, _ := NewDecimalFromString("12.34")
 	m, err := NewFromDecimal(d, USD)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -270,9 +270,9 @@ func TestConstructors_Equivalence(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFromFloat: %v", err)
 	}
-	d, err := NewDecimal("1.25")
+	d, err := NewDecimalFromString("1.25")
 	if err != nil {
-		t.Fatalf("NewDecimal: %v", err)
+		t.Fatalf("NewDecimalFromString: %v", err)
 	}
 	mFromDecimal, err := NewFromDecimal(d, USD)
 	if err != nil {

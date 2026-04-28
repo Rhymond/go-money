@@ -221,6 +221,24 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
+// Multiply returns a new Money struct with value representing Self multiplied
+// by every supplied Decimal in order. The result preserves full decimal
+// precision — e.g. $0.01 * 1.5 yields 15 at exponent 3 ($0.015). Call .Round()
+// if you need to collapse to the currency's smallest unit.
+//
+// With no multipliers it returns Self unchanged. A nil *Decimal is a programmer
+// error and panics — construct multipliers via the NewDecimalFrom* family.
+func (m *Money) Multiply(muls ...*Decimal) *Money {
+	result := m.amount
+	for _, d := range muls {
+		if d == nil {
+			panic("money: Multiply received nil *Decimal")
+		}
+		result = mutate.calc.multiply(result, d)
+	}
+	return &Money{amount: result, currency: m.currency}
+}
+
 // Round returns new Money struct with value rounded to nearest zero.
 func (m *Money) Round() *Money {
 	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}

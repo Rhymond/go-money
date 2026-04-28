@@ -157,40 +157,35 @@ result, err := pound.Subtract(twoPounds) // -£1.00, nil
 
 #### Multiplication
 
-Multiplication uses the `Multiplier` type. Validation happens at construction
-time — building a `Multiplier` from an int/float/Decimal cannot fail, and
-`Multiply` itself never returns an error. Strings are the one exception:
-`NewMultiplierFromString` returns `(Multiplier, error)` because parsing can
-fail.
+`Multiply` takes one or more `*Decimal` values. Build them with the typed
+constructors `NewDecimalFromInt` (any int/uint width, never fails),
+`NewDecimalFromFloat` (float32/float64, errors on `NaN`/`±Inf`), and
+`NewDecimalFromString` (errors on malformed input). Because each `*Decimal`
+is pre-validated by its constructor, `Multiply` itself does not return an
+error. A `nil *Decimal` panics — it represents a programming bug.
 
 ```go
 pound := money.New(100, money.GBP)
 
-result := pound.Multiply(money.NewMultiplier(2))         // £2.00
-result = pound.Multiply(money.NewMultiplier(1.5))        // £1.50  (fractional quantity)
+result := pound.Multiply(money.NewDecimalFromInt(2))           // £2.00
+mul, _ := money.NewDecimalFromFloat(1.5)
+result = pound.Multiply(mul)                                   // £1.50  (fractional quantity)
 
 // Chaining multipliers (e.g. quantity × price × discount):
-result = pound.Multiply(
-    money.NewMultiplier(3),
-    money.NewMultiplier(1.2),
-)
+qty := money.NewDecimalFromInt(3)
+rate, _ := money.NewDecimalFromFloat(1.2)
+result = pound.Multiply(qty, rate)
 
-// Strings (the only fallible input):
-rate, err := money.NewMultiplierFromString("0.075")
+// Strings (the only fallible numeric input):
+tax, err := money.NewDecimalFromString("0.075")
 if err != nil {
     log.Fatal(err)
 }
-result = pound.Multiply(rate)
-
-// Wrap an existing *Decimal — same constructor:
-d, _ := money.NewDecimal("1.05")
-result = pound.Multiply(money.NewMultiplier(d))
+result = pound.Multiply(tax)
 ```
 
-`NewMultiplier` accepts any integer or floating-point Go type via generics
-(int8 through uint64, float32, float64) plus `*Decimal`. It panics on `NaN`,
-`±Inf`, or a nil `*Decimal` — those represent programming bugs and are
-caught loudly rather than silently coerced to zero.
+`NewDecimalFromInt` and `NewDecimalFromFloat` accept any integer or
+floating-point Go type via generics (int8 through uint64, float32, float64).
 
 Results preserve full decimal precision (sub-cent values are kept rather than
 silently rounded). Call `.Round()` before `Display()` if you want to collapse

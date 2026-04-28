@@ -66,7 +66,7 @@ func NewFromMajorUnits[T Integer](amount T, code string) *Money {
 // Prefer NewFromString when the value originates as text — float64 cannot
 // represent every decimal exactly (0.1 + 0.2 != 0.3, etc.).
 func NewFromFloat[T Float](amount T, code string) (*Money, error) {
-	d, err := NewDecimal(amount)
+	d, err := NewDecimalFromFloat(amount)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func NewFromFloat[T Float](amount T, code string) (*Money, error) {
 // NewFromString builds Money from a major-unit decimal string (e.g. "1.25").
 // Sub-currency-unit precision is truncated toward zero.
 func NewFromString(amount, code string) (*Money, error) {
-	d, err := NewDecimal(amount)
+	d, err := NewDecimalFromString(amount)
 	if err != nil {
 		return nil, err
 	}
