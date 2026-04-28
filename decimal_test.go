@@ -1,7 +1,9 @@
 package money
 
 import (
+	"math"
 	"math/big"
+	"strings"
 	"testing"
 )
 
@@ -79,6 +81,31 @@ func TestNewDecimal_String(t *testing.T) {
 			t.Errorf("input %q: expected %s e-%d, got %s e-%d",
 				tc.input, tc.wantVal, tc.wantExp, d.val.String(), d.exponent)
 		}
+	}
+}
+
+func TestNewDecimal_FloatNaNInf(t *testing.T) {
+	cases := []struct {
+		name    string
+		input   interface{}
+		wantSub string
+	}{
+		{"NaN float64", math.NaN(), "NaN"},
+		{"+Inf float64", math.Inf(1), "infinity"},
+		{"-Inf float64", math.Inf(-1), "infinity"},
+		{"NaN float32", float32(math.NaN()), "NaN"},
+		{"+Inf float32", float32(math.Inf(1)), "infinity"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := NewDecimal(tc.input)
+			if err == nil {
+				t.Fatalf("expected error")
+			}
+			if !strings.Contains(err.Error(), tc.wantSub) {
+				t.Errorf("expected error to mention %q, got %q", tc.wantSub, err.Error())
+			}
+		})
 	}
 }
 
