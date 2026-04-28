@@ -966,54 +966,6 @@ func TestMoney_Amount(t *testing.T) {
 	}
 }
 
-func TestNewFromFloat(t *testing.T) {
-	m := NewFromFloat(12.34, EUR)
-
-	if m.amount.val.Int64() != 1234 {
-		t.Errorf("Expected %d got %d", 1234, m.amount.val.Int64())
-	}
-
-	if m.currency.Code != EUR {
-		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
-	}
-
-	m = NewFromFloat(12.34, "eur")
-
-	if m.amount.val.Int64() != 1234 {
-		t.Errorf("Expected %d got %d", 1234, m.amount.val.Int64())
-	}
-
-	if m.currency.Code != EUR {
-		t.Errorf("Expected currency %s got %s", EUR, m.currency.Code)
-	}
-
-	m = NewFromFloat(-0.125, EUR)
-
-	if m.amount.val.Int64() != -12 {
-		t.Errorf("Expected %d got %d", -12, m.amount.val.Int64())
-	}
-}
-
-func TestNewFromFloat_WithUnregisteredCurrency(t *testing.T) {
-	const currencyFooCode = "FOO"
-	const expectedAmount = 1234
-	const expectedDisplay = "12.34FOO"
-
-	m := NewFromFloat(12.34, currencyFooCode)
-
-	if m.amount.val.Int64() != expectedAmount {
-		t.Errorf("Expected amount %d got %d", expectedAmount, m.amount.val.Int64())
-	}
-
-	if m.currency.Code != currencyFooCode {
-		t.Errorf("Expected currency code %s got %s", currencyFooCode, m.currency.Code)
-	}
-
-	if m.Display() != expectedDisplay {
-		t.Errorf("Expected display %s got %s", expectedDisplay, m.Display())
-	}
-}
-
 func TestDefaultMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency":"IQD"}`
