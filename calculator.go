@@ -14,9 +14,11 @@ func (c *calculator) subtract(a, b *Decimal) *Decimal {
 	return &Decimal{val: av.Sub(av, bv), exponent: exp}
 }
 
-func (c *calculator) multiply(a *Decimal, m int64) *Decimal {
-	val := new(big.Int).Mul(a.val, big.NewInt(m))
-	return &Decimal{val: val, exponent: a.exponent}
+func (c *calculator) multiply(a, b *Decimal) *Decimal {
+	return &Decimal{
+		val:      new(big.Int).Mul(a.val, b.val),
+		exponent: a.exponent + b.exponent,
+	}
 }
 
 func (c *calculator) divide(a *Decimal, d int64) *Decimal {
@@ -29,9 +31,25 @@ func (c *calculator) modulus(a *Decimal, d int64) *Decimal {
 	return &Decimal{val: val, exponent: a.exponent}
 }
 
-func (c *calculator) allocate(a *Decimal, r, s int) *Decimal {
-	val := new(big.Int).Mul(a.val, big.NewInt(int64(r)))
-	val.Quo(val, big.NewInt(int64(s)))
+// allocate computes a * r / s and returns the result at exponent a.exponent
+// so the caller's leftover arithmetic (which compares against a.val directly)
+// stays valid.
+func (c *calculator) allocate(a, r, s *Decimal) *Decimal {
+	num := new(big.Int).Mul(a.val, r.val)
+
+	// The natural exponent of num/s is a.exponent + r.exponent - s.exponent;
+	// we want a.exponent. Adjust the numerator by 10^(s.exponent - r.exponent)
+	// before dividing.
+	diff := int64(s.exponent - r.exponent)
+	if diff > 0 {
+		scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(diff), nil)
+		num.Mul(num, scale)
+	} else if diff < 0 {
+		scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(-diff), nil)
+		num.Quo(num, scale)
+	}
+
+	val := new(big.Int).Quo(num, s.val)
 	return &Decimal{val: val, exponent: a.exponent}
 }
 

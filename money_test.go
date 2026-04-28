@@ -358,11 +358,122 @@ func TestMoney_Multiply(t *testing.T) {
 
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
-		r := m.Multiply(tc.multiplier).amount.val.Int64()
+		res, err := m.Multiply(tc.multiplier)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		r := res.amount.val.Int64()
 
 		if r != tc.expected {
 			t.Errorf("Expected %d * %d = %d got %d", tc.amount, tc.multiplier, tc.expected, r)
 		}
+	}
+}
+
+func TestMoney_MultiplyFloat(t *testing.T) {
+	m := New(1000, USD) // $10.00, exponent 0
+	r, err := m.Multiply(1.5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r.amount.val.Int64() != 15000 || r.amount.exponent != 1 {
+		t.Errorf("expected 15000 e-1, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MultiplySubUnit(t *testing.T) {
+	// $0.01 * 1.5 = $0.015 — must preserve the extra precision instead of rounding.
+	m := New(1, USD)
+	r, err := m.Multiply(1.5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r.amount.val.Int64() != 15 || r.amount.exponent != 1 {
+		t.Errorf("expected 15 e-1, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MultiplyString(t *testing.T) {
+	m := New(10000, USD) // $100.00
+	r, err := m.Multiply("0.075")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// 10000 * 75 = 750000, exponent 0 + 3 = 3 → 750.000 (in cents)
+	if r.amount.val.Int64() != 750000 || r.amount.exponent != 3 {
+		t.Errorf("expected 750000 e-3, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MultiplyChained(t *testing.T) {
+	m := New(1000, USD) // $10.00
+	r, err := m.Multiply(2, "0.5", 1.5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// 1000 * 2 * 5 * 15, exponents 0 + 0 + 1 + 1 = 2 → 150000 e-2 = 1500.00 cents = $15.00
+	if r.amount.val.Int64() != 150000 || r.amount.exponent != 2 {
+		t.Errorf("expected 150000 e-2, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MultiplyDecimal(t *testing.T) {
+	m := New(200, USD)
+	d, _ := NewDecimal("2.5")
+	r, err := m.Multiply(d)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r.amount.val.Int64() != 5000 || r.amount.exponent != 1 {
+		t.Errorf("expected 5000 e-1, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MustMultiply(t *testing.T) {
+	m := New(1000, USD)
+	r := m.MustMultiply(1.5)
+	if r.amount.val.Int64() != 15000 || r.amount.exponent != 1 {
+		t.Errorf("expected 15000 e-1, got %s e-%d", r.amount.val.String(), r.amount.exponent)
+	}
+}
+
+func TestMoney_MustMultiplyPanics(t *testing.T) {
+	m := New(100, USD)
+
+	cases := []struct {
+		name string
+		args []any
+	}{
+		{"no multipliers", nil},
+		{"unsupported type", []any{[]int{1, 2}}},
+		{"invalid string", []any{"not-a-number"}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("expected panic for %s", tc.name)
+				}
+			}()
+			m.MustMultiply(tc.args...)
+		})
+	}
+}
+
+func TestMoney_MultiplyErrors(t *testing.T) {
+	m := New(100, USD)
+
+	if _, err := m.Multiply(); err == nil {
+		t.Error("expected error when no multipliers supplied")
+	}
+
+	if _, err := m.Multiply([]int{1, 2}); err == nil {
+		t.Error("expected error for unsupported multiplier type")
+	}
+
+	if _, err := m.Multiply(2, "not-a-number"); err == nil {
+		t.Error("expected error for invalid string multiplier")
 	}
 }
 
@@ -459,7 +570,11 @@ func TestMoney_Allocate(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
 		var rs []int64
-		split, _ := m.Allocate(tc.ratios...)
+		ratios := make([]any, len(tc.ratios))
+		for i, r := range tc.ratios {
+			ratios[i] = r
+		}
+		split, _ := m.Allocate(ratios...)
 
 		for _, party := range split {
 			rs = append(rs, party.amount.val.Int64())
@@ -469,6 +584,75 @@ func TestMoney_Allocate(t *testing.T) {
 			t.Errorf("Expected allocation of %d for ratios %v to be %v got %v", tc.amount, tc.ratios,
 				tc.expected, rs)
 		}
+	}
+}
+
+func TestMoney_AllocateFloatRatios(t *testing.T) {
+	// $10.00 split 1.5 : 2.5 : 1.0 = 30% : 50% : 20% → $3.00, $5.00, $2.00
+	m := New(1000, USD)
+	parties, err := m.Allocate(1.5, 2.5, 1.0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := []int64{300, 500, 200}
+	got := make([]int64, len(parties))
+	for i, p := range parties {
+		got[i] = p.amount.val.Int64()
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("expected %v, got %v", want, got)
+	}
+
+	// Allocations must sum back to the original amount.
+	var sum int64
+	for _, v := range got {
+		sum += v
+	}
+	if sum != 1000 {
+		t.Errorf("expected parties to sum to 1000, got %d", sum)
+	}
+}
+
+func TestMoney_AllocateMixedRatios(t *testing.T) {
+	// Mix int, float, string ratios — should behave the same as if all were
+	// expressed as the same numeric type.
+	m := New(1000, USD)
+	parties, err := m.Allocate(1, 1.5, "2.5")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// sum = 5.0, shares = 0.2 / 0.3 / 0.5 → 200, 300, 500
+	want := []int64{200, 300, 500}
+	got := make([]int64, len(parties))
+	for i, p := range parties {
+		got[i] = p.amount.val.Int64()
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("expected %v, got %v", want, got)
+	}
+}
+
+func TestMoney_AllocateFloatLeftover(t *testing.T) {
+	// Penny that doesn't divide evenly by float ratios — leftover must still
+	// land on the first party so the total is preserved.
+	m := New(5, USD)
+	parties, err := m.Allocate(0.5, 0.25, 0.25)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	var sum int64
+	for _, p := range parties {
+		sum += p.amount.val.Int64()
+	}
+	if sum != 5 {
+		t.Errorf("expected sum 5, got %d", sum)
+	}
+}
+
+func TestMoney_AllocateInvalidRatio(t *testing.T) {
+	m := New(100, USD)
+	if _, err := m.Allocate(1, "not-a-number"); err == nil {
+		t.Error("expected error for invalid ratio")
 	}
 }
 
