@@ -3,6 +3,7 @@ package money
 import (
 	"database/sql/driver"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -23,13 +24,13 @@ const (
 // Value implements driver.Valuer to serialise a Money instance into a delimited string using the DBMoneyValueSeparator
 // for example: "amount|currency_code"
 func (m *Money) Value() (driver.Value, error) {
-	return fmt.Sprintf("%d%s%s", m.amount, DBMoneyValueSeparator, m.Currency().Code), nil
+	return fmt.Sprintf("%d%s%s", m.Amount(), DBMoneyValueSeparator, m.Currency().Code), nil
 }
 
 // Scan implements sql.Scanner to deserialize a Money instance from a DBMoneyValueSeparator-separated string
 // for example: "amount|currency_code"
 func (m *Money) Scan(src interface{}) error {
-	var amount Amount
+	var amount int64
 	currency := &Currency{}
 
 	// let's support string and int64
@@ -43,7 +44,7 @@ func (m *Money) Scan(src interface{}) error {
 		if a, err := strconv.ParseInt(parts[0], 10, 64); err == nil {
 			amount = a
 		} else {
-			return fmt.Errorf("scanning %#v into an Amount: %v", parts[0], err)
+			return fmt.Errorf("scanning %#v into an amount: %v", parts[0], err)
 		}
 
 		if err := currency.Scan(parts[1]); err != nil {
@@ -55,7 +56,7 @@ func (m *Money) Scan(src interface{}) error {
 
 	// allocate new Money with the scanned amount and currency
 	*m = Money{
-		amount:   amount,
+		amount:   &Decimal{val: big.NewInt(amount)},
 		currency: currency,
 	}
 
