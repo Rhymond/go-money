@@ -1,69 +1,68 @@
 package money
 
-import "math"
+import "math/big"
 
 type calculator struct{}
 
-func (c *calculator) add(a, b *Amount) *Amount {
-	return &Amount{a.val + b.val}
+func (c *calculator) add(a, b *Decimal) *Decimal {
+	av, bv, exp := align(a, b)
+	return &Decimal{val: av.Add(av, bv), exponent: exp}
 }
 
-func (c *calculator) subtract(a, b *Amount) *Amount {
-	return &Amount{a.val - b.val}
+func (c *calculator) subtract(a, b *Decimal) *Decimal {
+	av, bv, exp := align(a, b)
+	return &Decimal{val: av.Sub(av, bv), exponent: exp}
 }
 
-func (c *calculator) multiply(a *Amount, m int64) *Amount {
-	return &Amount{a.val * m}
+func (c *calculator) multiply(a *Decimal, m int64) *Decimal {
+	val := new(big.Int).Mul(a.val, big.NewInt(m))
+	return &Decimal{val: val, exponent: a.exponent}
 }
 
-func (c *calculator) divide(a *Amount, d int64) *Amount {
-	return &Amount{a.val / d}
+func (c *calculator) divide(a *Decimal, d int64) *Decimal {
+	val := new(big.Int).Quo(a.val, big.NewInt(d))
+	return &Decimal{val: val, exponent: a.exponent}
 }
 
-func (c *calculator) modulus(a *Amount, d int64) *Amount {
-	return &Amount{a.val % d}
+func (c *calculator) modulus(a *Decimal, d int64) *Decimal {
+	val := new(big.Int).Rem(a.val, big.NewInt(d))
+	return &Decimal{val: val, exponent: a.exponent}
 }
 
-func (c *calculator) allocate(a *Amount, r, s int) *Amount {
-	return &Amount{a.val * int64(r) / int64(s)}
+func (c *calculator) allocate(a *Decimal, r, s int) *Decimal {
+	val := new(big.Int).Mul(a.val, big.NewInt(int64(r)))
+	val.Quo(val, big.NewInt(int64(s)))
+	return &Decimal{val: val, exponent: a.exponent}
 }
 
-func (c *calculator) absolute(a *Amount) *Amount {
-	if a.val < 0 {
-		return &Amount{-a.val}
+func (c *calculator) absolute(a *Decimal) *Decimal {
+	return &Decimal{val: new(big.Int).Abs(a.val), exponent: a.exponent}
+}
+
+func (c *calculator) negative(a *Decimal) *Decimal {
+	if a.val.Sign() > 0 {
+		return &Decimal{val: new(big.Int).Neg(a.val), exponent: a.exponent}
+	}
+	return &Decimal{val: new(big.Int).Set(a.val), exponent: a.exponent}
+}
+
+func (c *calculator) round(a *Decimal, e int) *Decimal {
+	if a.val.Sign() == 0 {
+		return &Decimal{val: new(big.Int), exponent: a.exponent}
 	}
 
-	return &Amount{a.val}
-}
+	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(e)), nil)
+	abs := new(big.Int).Abs(a.val)
+	half := new(big.Int).Quo(exp, big.NewInt(2))
 
-func (c *calculator) negative(a *Amount) *Amount {
-	if a.val > 0 {
-		return &Amount{-a.val}
+	rem := new(big.Int).Rem(abs, exp)
+	if rem.Cmp(half) > 0 {
+		abs.Add(abs, exp)
 	}
+	abs.Quo(abs, exp).Mul(abs, exp)
 
-	return &Amount{a.val}
-}
-
-func (c *calculator) round(a *Amount, e int) *Amount {
-	if a.val == 0 {
-		return &Amount{0}
+	if a.val.Sign() < 0 {
+		abs.Neg(abs)
 	}
-
-	absam := c.absolute(a)
-	exp := int64(math.Pow(10, float64(e)))
-	m := absam.val % exp
-
-	if m > (exp / 2) {
-		absam.val += exp
-	}
-
-	absam.val = (absam.val / exp) * exp
-
-	if a.val < 0 {
-		a.val = -absam.val
-	} else {
-		a.val = absam.val
-	}
-
-	return &Amount{a.val}
+	return &Decimal{val: abs, exponent: a.exponent}
 }

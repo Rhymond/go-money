@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 )
 
 // Injection points for backward compatibility.
@@ -34,22 +35,17 @@ func defaultMarshalJSON(m Money) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-// Amount is a datastructure that stores the amount being used for calculations.
-type Amount struct {
-	val int64
-}
-
 // Money represents monetary value information, stores
 // currency and amount value.
 type Money struct {
-	amount   *Amount
+	amount   *Decimal
 	currency *Currency
 }
 
 // New creates and returns new instance of Money.
 func New(amount int64, code string) *Money {
 	return &Money{
-		amount:   &Amount{val: amount},
+		amount:   &Decimal{val: big.NewInt(amount)},
 		currency: newCurrency(code).get(),
 	}
 }
@@ -61,7 +57,7 @@ func (m *Money) Currency() *Currency {
 
 // Amount returns a copy of the internal monetary value as an int64.
 func (m *Money) Amount() int64 {
-	return m.amount.val
+	return m.amount.Int64()
 }
 
 // SameCurrency check if given Money is equals by currency.
@@ -78,14 +74,8 @@ func (m *Money) assertSameCurrency(om *Money) error {
 }
 
 func (m *Money) compare(om *Money) int {
-	switch {
-	case m.amount.val > om.amount.val:
-		return 1
-	case m.amount.val < om.amount.val:
-		return -1
-	}
-
-	return 0
+	av, bv, _ := align(m.amount, om.amount)
+	return av.Cmp(bv)
 }
 
 // Equals checks equality between two Money types.
@@ -135,17 +125,17 @@ func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 
 // IsZero returns boolean of whether the value of Money is equals to zero.
 func (m *Money) IsZero() bool {
-	return m.amount.val == 0
+	return m.amount.Sign() == 0
 }
 
 // IsPositive returns boolean of whether the value of Money is positive.
 func (m *Money) IsPositive() bool {
-	return m.amount.val > 0
+	return m.amount.Sign() > 0
 }
 
 // IsNegative returns boolean of whether the value of Money is negative.
 func (m *Money) IsNegative() bool {
-	return m.amount.val < 0
+	return m.amount.Sign() < 0
 }
 
 // Absolute returns new Money struct from given Money using absolute monetary value.
@@ -202,11 +192,12 @@ func (m *Money) Split(n int) ([]*Money, error) {
 	}
 
 	l := mutate.calc.modulus(m.amount, int64(n)).val
+	one := &Decimal{val: big.NewInt(1), exponent: m.amount.exponent}
 
 	// Add leftovers to the first parties.
-	for p := 0; l != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, &Amount{1})
-		l--
+	for p := 0; l.Sign() != 0; p++ {
+		ms[p].amount = mutate.calc.add(ms[p].amount, one)
+		l.Sub(l, big.NewInt(1))
 	}
 
 	return ms, nil
@@ -226,7 +217,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 		sum += r
 	}
 
-	var total int64
+	total := new(big.Int)
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
@@ -235,19 +226,20 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 		}
 
 		ms = append(ms, party)
-		total += party.amount.val
+		total.Add(total, party.amount.val)
 	}
 
 	// Calculate leftover value and divide to first parties.
-	lo := m.amount.val - total
-	sub := int64(1)
-	if lo < 0 {
-		sub = -sub
+	lo := new(big.Int).Sub(m.amount.val, total)
+	sub := big.NewInt(1)
+	if lo.Sign() < 0 {
+		sub.Neg(sub)
 	}
+	step := &Decimal{val: new(big.Int).Set(sub), exponent: m.amount.exponent}
 
-	for p := 0; lo != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, &Amount{sub})
-		lo -= sub
+	for p := 0; lo.Sign() != 0; p++ {
+		ms[p].amount = mutate.calc.add(ms[p].amount, step)
+		lo.Sub(lo, sub)
 	}
 
 	return ms, nil
@@ -256,13 +248,13 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 // Display lets represent Money struct as string in given Currency value.
 func (m *Money) Display() string {
 	c := m.currency.get()
-	return c.Formatter().Format(m.amount.val)
+	return c.Formatter().Format(m.amount.Int64())
 }
 
 // AsMajorUnits lets represent Money struct as subunits (float64) in given Currency value
 func (m *Money) AsMajorUnits() float64 {
 	c := m.currency.get()
-	return c.Formatter().ToMajorUnits(m.amount.val)
+	return c.Formatter().ToMajorUnits(m.amount.Int64())
 }
 
 // UnmarshalJSON is implementation of json.Unmarshaller
