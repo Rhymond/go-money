@@ -157,12 +157,10 @@ result, err := pound.Subtract(twoPounds) // -£1.00, nil
 
 #### Multiplication
 
-`Multiply` takes one or more `*Decimal` values. Build them with the typed
-constructors `NewDecimalFromInt` (any int/uint width, never fails),
-`NewDecimalFromFloat` (float32/float64, errors on `NaN`/`±Inf`), and
-`NewDecimalFromString` (errors on malformed input). Because each `*Decimal`
-is pre-validated by its constructor, `Multiply` itself does not return an
-error. A `nil *Decimal` panics — it represents a programming bug.
+`Multiply` takes one or more `*Decimal` values, built with `NewDecimalFromInt`,
+`NewDecimalFromFloat`, or `NewDecimalFromString`. Validation happens at
+construction, so `Multiply` itself doesn't return an error. A `nil *Decimal`
+panics.
 
 ```go
 pound := money.New(100, money.GBP)

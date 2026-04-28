@@ -1,0 +1,190 @@
+package money
+
+import (
+	"bytes"
+	"database/sql/driver"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+)
+
+// ErrInvalidJSONUnmarshal happens when the default money.UnmarshalJSON fails
+// to unmarshal Money because of invalid data.
+var ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
+
+// Injection points for backward compatibility. Overwrite to keep your own
+// JSON / XML shape:
+//
+//	money.UnmarshalJSON = func(m *Money, b []byte) error { ... }
+//	money.MarshalJSON   = func(m Money) ([]byte, error) { ... }
+var (
+	UnmarshalJSON = defaultUnmarshalJSON
+	MarshalJSON   = defaultMarshalJSON
+
+	UnmarshalXML = defaultUnmarshalXML
+	MarshalXML   = defaultMarshalXML
+)
+
+// ============================================================================
+// database/sql
+// ============================================================================
+
+const DefaultDBMoneyValueSeparator = "|"
+
+// DBMoneyValueSeparator joins amount and currency when storing Money via
+// driver.Valuer / sql.Scanner — e.g. "amount|currency_code".
+var DBMoneyValueSeparator = DefaultDBMoneyValueSeparator
+
+// Value implements driver.Valuer.
+func (m *Money) Value() (driver.Value, error) {
+	return fmt.Sprintf("%d%s%s", m.Amount(), DBMoneyValueSeparator, m.Currency().Code), nil
+}
+
+// Scan implements sql.Scanner.
+func (m *Money) Scan(src interface{}) error {
+	s, ok := src.(string)
+	if !ok {
+		return fmt.Errorf("don't know how to scan %T into Money; update your query to return a money.DBMoneyValueSeparator-separated pair of \"amount%scurrency_code\"", src, DBMoneyValueSeparator)
+	}
+
+	parts := strings.Split(s, DBMoneyValueSeparator)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return fmt.Errorf("%#v is not valid to scan into Money; update your query to return a money.DBMoneyValueSeparator-separated pair of \"amount%scurrency_code\"", s, DBMoneyValueSeparator)
+	}
+
+	amount, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("scanning %#v into an amount: %v", parts[0], err)
+	}
+
+	currency := &Currency{}
+	if err := currency.Scan(parts[1]); err != nil {
+		return fmt.Errorf("scanning %#v into a Currency: %v", parts[1], err)
+	}
+
+	*m = Money{
+		amount:   &Decimal{val: big.NewInt(amount)},
+		currency: currency,
+	}
+	return nil
+}
+
+// Value implements driver.Valuer for Currency.
+func (c Currency) Value() (driver.Value, error) {
+	return c.Code, nil
+}
+
+// Scan implements sql.Scanner for Currency.
+func (c *Currency) Scan(src interface{}) error {
+	code, ok := src.(string)
+	if !ok {
+		return fmt.Errorf("%T is not a supported type for a Currency (store the Currency.Code value as a string only)", src)
+	}
+
+	val := GetCurrency(code)
+	if val == nil {
+		return fmt.Errorf("GetCurrency(%#v) returned nil", code)
+	}
+
+	*c = *val
+	return nil
+}
+
+// ============================================================================
+// JSON
+// ============================================================================
+
+// MarshalJSON implements json.Marshaler.
+func (m Money) MarshalJSON() ([]byte, error) {
+	return MarshalJSON(m)
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (m *Money) UnmarshalJSON(b []byte) error {
+	return UnmarshalJSON(m, b)
+}
+
+func defaultMarshalJSON(m Money) ([]byte, error) {
+	if m == (Money{}) {
+		m = *New(0, "")
+	}
+	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
+	return buff.Bytes(), nil
+}
+
+func defaultUnmarshalJSON(m *Money, b []byte) error {
+	data := make(map[string]interface{})
+	if err := json.Unmarshal(b, &data); err != nil {
+		return err
+	}
+
+	var amount float64
+	if amountRaw, ok := data["amount"]; ok {
+		amount, ok = amountRaw.(float64)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
+	}
+
+	var currency string
+	if currencyRaw, ok := data["currency"]; ok {
+		currency, ok = currencyRaw.(string)
+		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
+	}
+
+	if amount == 0 && currency == "" {
+		*m = Money{}
+		return nil
+	}
+	*m = *New(int64(amount), currency)
+	return nil
+}
+
+// ============================================================================
+// XML
+// ============================================================================
+
+type xmlMoney struct {
+	Amount   int64  `xml:"amount"`
+	Currency string `xml:"currency"`
+}
+
+// MarshalXML implements xml.Marshaler.
+func (m Money) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	return MarshalXML(m, e, start)
+}
+
+// UnmarshalXML implements xml.Unmarshaler.
+func (m *Money) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return UnmarshalXML(m, d, start)
+}
+
+func defaultMarshalXML(m Money, e *xml.Encoder, start xml.StartElement) error {
+	if m == (Money{}) {
+		m = *New(0, "")
+	}
+	return e.EncodeElement(xmlMoney{
+		Amount:   m.Amount(),
+		Currency: m.Currency().Code,
+	}, start)
+}
+
+func defaultUnmarshalXML(m *Money, d *xml.Decoder, start xml.StartElement) error {
+	var aux xmlMoney
+	if err := d.DecodeElement(&aux, &start); err != nil {
+		return err
+	}
+	if aux.Amount == 0 && aux.Currency == "" {
+		*m = Money{}
+		return nil
+	}
+	*m = *New(aux.Amount, aux.Currency)
+	return nil
+}
+

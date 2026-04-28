@@ -1,74 +1,13 @@
 package money
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"math/big"
 )
 
-// Injection points for backward compatibility.
-// If you need to keep your JSON marshal/unmarshal way, overwrite them like below.
-//
-//	money.UnmarshalJSON = func (m *Money, b []byte) error { ... }
-//	money.MarshalJSON = func (m Money) ([]byte, error) { ... }
-var (
-	// UnmarshalJSON is injection point of json.Unmarshaller for money.Money
-	UnmarshalJSON = defaultUnmarshalJSON
-	// MarshalJSON is injection point of json.Marshaller for money.Money
-	MarshalJSON = defaultMarshalJSON
-
-	// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
-	ErrCurrencyMismatch = errors.New("currencies don't match")
-
-	// ErrInvalidJSONUnmarshal happens when the default money.UnmarshalJSON fails to unmarshal Money because of invalid data.
-	ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
-)
-
-func defaultUnmarshalJSON(m *Money, b []byte) error {
-	data := make(map[string]interface{})
-	err := json.Unmarshal(b, &data)
-	if err != nil {
-		return err
-	}
-
-	var amount float64
-	if amountRaw, ok := data["amount"]; ok {
-		amount, ok = amountRaw.(float64)
-		if !ok {
-			return ErrInvalidJSONUnmarshal
-		}
-	}
-
-	var currency string
-	if currencyRaw, ok := data["currency"]; ok {
-		currency, ok = currencyRaw.(string)
-		if !ok {
-			return ErrInvalidJSONUnmarshal
-		}
-	}
-
-	var ref *Money
-	if amount == 0 && currency == "" {
-		ref = &Money{}
-	} else {
-		ref = New(int64(amount), currency)
-	}
-
-	*m = *ref
-	return nil
-}
-
-func defaultMarshalJSON(m Money) ([]byte, error) {
-	if m == (Money{}) {
-		m = *New(0, "")
-	}
-
-	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
-	return buff.Bytes(), nil
-}
+// ErrCurrencyMismatch happens when two compared Money don't have the same currency.
+var ErrCurrencyMismatch = errors.New("currencies don't match")
 
 // Money represents monetary value information, stores
 // currency and amount value.
@@ -339,16 +278,6 @@ func (m *Money) Display() string {
 func (m *Money) AsMajorUnits() float64 {
 	c := m.currency.get()
 	return c.Formatter().ToMajorUnits(m.amount.Int64())
-}
-
-// UnmarshalJSON is implementation of json.Unmarshaller
-func (m *Money) UnmarshalJSON(b []byte) error {
-	return UnmarshalJSON(m, b)
-}
-
-// MarshalJSON is implementation of json.Marshaller
-func (m Money) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(m)
 }
 
 // Compare function compares two money of the same type
