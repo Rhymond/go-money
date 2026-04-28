@@ -166,38 +166,6 @@ func (m *Money) Subtract(om *Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, om.amount), currency: m.currency}, nil
 }
 
-// Multiply returns a new Money struct whose value is Self multiplied by every
-// supplied multiplier in order. Multipliers may be any type accepted by
-// NewDecimal (int, float, string, *Decimal, ...). The result preserves full
-// decimal precision: e.g. $0.01 * 1.5 yields 15 at exponent 3 ($0.015).
-// Call .Round() if you need to collapse to the currency's smallest unit.
-func (m *Money) Multiply(muls ...any) (*Money, error) {
-	if len(muls) == 0 {
-		return nil, errors.New("at least one multiplier is required")
-	}
-
-	result := m.amount
-	for _, mul := range muls {
-		d, err := NewDecimal(mul)
-		if err != nil {
-			return nil, err
-		}
-		result = mutate.calc.multiply(result, d)
-	}
-
-	return &Money{amount: result, currency: m.currency}, nil
-}
-
-// MustMultiply is like Multiply but panics if any multiplier is invalid.
-// Use it for static multipliers that are known to be valid at the call site.
-func (m *Money) MustMultiply(muls ...any) *Money {
-	r, err := m.Multiply(muls...)
-	if err != nil {
-		panic(err)
-	}
-	return r
-}
-
 // Round returns new Money struct with value rounded to nearest zero.
 func (m *Money) Round() *Money {
 	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}

@@ -2,6 +2,7 @@ package money
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"strconv"
 	"strings"
@@ -40,9 +41,9 @@ func NewDecimal(value interface{}) (*Decimal, error) {
 	case uint64:
 		return &Decimal{val: new(big.Int).SetUint64(v)}, nil
 	case float32:
-		return decimalFromString(strconv.FormatFloat(float64(v), 'f', -1, 32))
+		return decimalFromFloat(float64(v), 32)
 	case float64:
-		return decimalFromString(strconv.FormatFloat(v, 'f', -1, 64))
+		return decimalFromFloat(v, 64)
 	case string:
 		return decimalFromString(v)
 	case *big.Int:
@@ -63,6 +64,20 @@ func NewDecimal(value interface{}) (*Decimal, error) {
 	default:
 		return nil, fmt.Errorf("unsupported value type %T", value)
 	}
+}
+
+// decimalFromFloat is the single entry point for float → Decimal conversion.
+// It rejects NaN and ±Inf with a clear error before delegating to the string
+// parser; otherwise FormatFloat would emit "NaN"/"+Inf" and the failure would
+// surface as a generic "invalid number" message.
+func decimalFromFloat(v float64, bitSize int) (*Decimal, error) {
+	if math.IsNaN(v) {
+		return nil, fmt.Errorf("NaN is not a valid decimal")
+	}
+	if math.IsInf(v, 0) {
+		return nil, fmt.Errorf("infinity is not a valid decimal")
+	}
+	return decimalFromString(strconv.FormatFloat(v, 'f', -1, bitSize))
 }
 
 func decimalFromString(s string) (*Decimal, error) {

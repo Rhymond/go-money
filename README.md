@@ -144,19 +144,40 @@ result, err := pound.Subtract(twoPounds) // -£1.00, nil
 
 #### Multiplication
 
-Multiplication can be performed using `Multiply()`. Multipliers may be any
-type accepted by `NewDecimal` — `int`, `float64`, `string`, `*Decimal`, etc. —
-and you can pass several at once to chain operations like `quantity × price ×
-discount`.
+Multiplication uses the `Multiplier` type. Validation happens at construction
+time — building a `Multiplier` from an int/float/Decimal cannot fail, and
+`Multiply` itself never returns an error. Strings are the one exception:
+`NewMultiplierFromString` returns `(Multiplier, error)` because parsing can
+fail.
 
 ```go
 pound := money.New(100, money.GBP)
 
-result, err := pound.Multiply(2)              // £2.00
-result, err = pound.Multiply(1.5)             // £1.50  (fractional quantity)
-result, err = pound.Multiply("0.075")         // £0.075 (e.g. tax rate)
-result, err = pound.Multiply(3, "0.5", 1.2)   // chained: £1.80
+result := pound.Multiply(money.NewMultiplier(2))         // £2.00
+result = pound.Multiply(money.NewMultiplier(1.5))        // £1.50  (fractional quantity)
+
+// Chaining multipliers (e.g. quantity × price × discount):
+result = pound.Multiply(
+    money.NewMultiplier(3),
+    money.NewMultiplier(1.2),
+)
+
+// Strings (the only fallible input):
+rate, err := money.NewMultiplierFromString("0.075")
+if err != nil {
+    log.Fatal(err)
+}
+result = pound.Multiply(rate)
+
+// Wrap an existing *Decimal — same constructor:
+d, _ := money.NewDecimal("1.05")
+result = pound.Multiply(money.NewMultiplier(d))
 ```
+
+`NewMultiplier` accepts any integer or floating-point Go type via generics
+(int8 through uint64, float32, float64) plus `*Decimal`. It panics on `NaN`,
+`±Inf`, or a nil `*Decimal` — those represent programming bugs and are
+caught loudly rather than silently coerced to zero.
 
 Results preserve full decimal precision (sub-cent values are kept rather than
 silently rounded). Call `.Round()` before `Display()` if you want to collapse
