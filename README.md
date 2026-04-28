@@ -157,13 +157,23 @@ result, err := pound.Subtract(twoPounds) // -£1.00, nil
 
 #### Multiplication
 
-Multiplication can be performed using `Multiply()`.
+Multiplication can be performed using `Multiply()`. Multipliers may be any
+type accepted by `NewDecimal` — `int`, `float64`, `string`, `*Decimal`, etc. —
+and you can pass several at once to chain operations like `quantity × price ×
+discount`.
 
 ```go
 pound := money.New(100, money.GBP)
 
-result := pound.Multiply(2) // £2.00
+result, err := pound.Multiply(2)              // £2.00
+result, err = pound.Multiply(1.5)             // £1.50  (fractional quantity)
+result, err = pound.Multiply("0.075")         // £0.075 (e.g. tax rate)
+result, err = pound.Multiply(3, "0.5", 1.2)   // chained: £1.80
 ```
+
+Results preserve full decimal precision (sub-cent values are kept rather than
+silently rounded). Call `.Round()` before `Display()` if you want to collapse
+to the currency's smallest unit.
 
 #### Absolute
 
@@ -214,12 +224,10 @@ parties[2].Display() // £0.33
 
 To perform allocation operation use `Allocate()`.
 
-It splits money using the given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle.
+It splits money using the given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle. Ratios accept any type that `NewDecimal` accepts, so you can mix integers, floats and strings.
 
 ```go
 pound := money.New(100, money.GBP)
-// Allocate is variadic function which can receive ratios as
-// slice (int[]{33, 33, 33}...) or separated by a comma integers
 parties, err := pound.Allocate(33, 33, 33)
 
 if err != nil {
@@ -229,6 +237,12 @@ if err != nil {
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
 parties[2].Display() // £0.33
+
+// Fractional ratios — e.g. splitting a bill by weight shares.
+parties, _ = money.New(1000, money.USD).Allocate(1.5, 2.5, 1.0)
+parties[0].Display() // $3.00
+parties[1].Display() // $5.00
+parties[2].Display() // $2.00
 ```
 
 Format

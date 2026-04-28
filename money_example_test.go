@@ -109,7 +109,7 @@ func ExampleMoney_Subtract() {
 func ExampleMoney_Multiply() {
 	pound := money.New(100, "GBP")
 
-	result := pound.Multiply(2)
+	result, _ := pound.Multiply(2)
 	fmt.Println(result.Display())
 
 	// Output:

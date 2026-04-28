@@ -228,18 +228,36 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
 }
 
-// Multiply returns new Money struct with value representing Self multiplied value by multiplier.
-func (m *Money) Multiply(muls ...int64) *Money {
+// Multiply returns a new Money struct whose value is Self multiplied by every
+// supplied multiplier in order. Multipliers may be any type accepted by
+// NewDecimal (int, float, string, *Decimal, ...). The result preserves full
+// decimal precision: e.g. $0.01 * 1.5 yields 15 at exponent 3 ($0.015).
+// Call .Round() if you need to collapse to the currency's smallest unit.
+func (m *Money) Multiply(muls ...any) (*Money, error) {
 	if len(muls) == 0 {
-		panic("At least one multiplier is required to multiply")
+		return nil, errors.New("at least one multiplier is required")
 	}
 
 	result := m.amount
 	for _, mul := range muls {
-		result = mutate.calc.multiply(result, mul)
+		d, err := NewDecimal(mul)
+		if err != nil {
+			return nil, err
+		}
+		result = mutate.calc.multiply(result, d)
 	}
 
-	return &Money{amount: result, currency: m.currency}
+	return &Money{amount: result, currency: m.currency}, nil
+}
+
+// MustMultiply is like Multiply but panics if any multiplier is invalid.
+// Use it for static multipliers that are known to be valid at the call site.
+func (m *Money) MustMultiply(muls ...any) *Money {
+	r, err := m.Multiply(muls...)
+	if err != nil {
+		panic(err)
+	}
+	return r
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
@@ -281,28 +299,31 @@ func (m *Money) Split(n int) ([]*Money, error) {
 // Allocate returns slice of Money structs with split Self value in given ratios.
 // It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
-func (m *Money) Allocate(rs ...int) ([]*Money, error) {
+// Ratios may be any type accepted by NewDecimal (int, float, string, *Decimal, ...).
+func (m *Money) Allocate(rs ...any) ([]*Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("no ratios specified")
 	}
 
-	// Calculate sum of ratios.
-	var sum int64
-	for _, r := range rs {
-		if r < 0 {
+	ratios := make([]*Decimal, len(rs))
+	sum := &Decimal{val: new(big.Int)}
+	for i, r := range rs {
+		d, err := NewDecimal(r)
+		if err != nil {
+			return nil, err
+		}
+		if d.val.Sign() < 0 {
 			return nil, errors.New("negative ratios not allowed")
 		}
-		if int64(r) > (math.MaxInt64 - sum) {
-			return nil, errors.New("sum of given ratios exceeds max int")
-		}
-		sum += int64(r)
+		ratios[i] = d
+		sum = mutate.calc.add(sum, d)
 	}
 
 	total := new(big.Int)
 	ms := make([]*Money, 0, len(rs))
-	for _, r := range rs {
+	for _, r := range ratios {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
+			amount:   mutate.calc.allocate(m.amount, r, sum),
 			currency: m.currency,
 		}
 
@@ -312,7 +333,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 
 	// if the sum of all ratios is zero, then we just return zeros and don't do anything
 	// with the leftover
-	if sum == 0 {
+	if sum.val.Sign() == 0 {
 		return ms, nil
 	}
 
