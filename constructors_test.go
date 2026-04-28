@@ -158,6 +158,38 @@ func TestNewFromFloat(t *testing.T) {
 	}
 }
 
+// TestNewFromFloat_IEEE754Pitfalls pins the exact values from issues #121 and
+// #124 so a future change to the float path can't silently re-introduce the
+// off-by-one-cent bug. Each of these values has a binary representation that
+// undershoots the displayed decimal — the master-branch implementation
+// (int64(amount * 100)) returned one cent low because it multiplied the
+// binary float and truncated. The v2 path goes float → shortest-round-trip
+// string → decimal, which preserves the user's intended value exactly.
+func TestNewFromFloat_IEEE754Pitfalls(t *testing.T) {
+	cases := []struct {
+		input float64
+		code  string
+		want  int64 // smallest currency unit
+		issue string
+	}{
+		{1.15, USD, 115, "#121"},
+		{136.98, USD, 13698, "#124"},
+		{18.99, USD, 1899, "#124 (kylebragger comment)"},
+		{73708.43, EUR, 7370843, "#124 (vaihtovirta comment)"},
+		{0.1 + 0.2, USD, 30, "classic float-add pitfall"},
+	}
+
+	for _, tc := range cases {
+		m, err := NewFromFloat(tc.input, tc.code)
+		if err != nil {
+			t.Fatalf("%v (%s): unexpected error: %v", tc.input, tc.issue, err)
+		}
+		if got := m.Amount(); got != tc.want {
+			t.Errorf("%v (%s): got %d, want %d", tc.input, tc.issue, got, tc.want)
+		}
+	}
+}
+
 func TestNewFromFloat_Float32(t *testing.T) {
 	m, err := NewFromFloat(float32(1.5), USD)
 	if err != nil {
