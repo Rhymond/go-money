@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -561,11 +562,7 @@ func TestMoney_Allocate(t *testing.T) {
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
 		var rs []int64
-		ratios := make([]any, len(tc.ratios))
-		for i, r := range tc.ratios {
-			ratios[i] = r
-		}
-		split, _ := m.Allocate(ratios...)
+		split, _ := m.Allocate(tc.ratios...)
 
 		for _, party := range split {
 			rs = append(rs, party.amount.val.Int64())
@@ -575,75 +572,6 @@ func TestMoney_Allocate(t *testing.T) {
 			t.Errorf("Expected allocation of %d for ratios %v to be %v got %v", tc.amount, tc.ratios,
 				tc.expected, rs)
 		}
-	}
-}
-
-func TestMoney_AllocateFloatRatios(t *testing.T) {
-	// $10.00 split 1.5 : 2.5 : 1.0 = 30% : 50% : 20% → $3.00, $5.00, $2.00
-	m := New(1000, USD)
-	parties, err := m.Allocate(1.5, 2.5, 1.0)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := []int64{300, 500, 200}
-	got := make([]int64, len(parties))
-	for i, p := range parties {
-		got[i] = p.amount.val.Int64()
-	}
-	if !reflect.DeepEqual(want, got) {
-		t.Errorf("expected %v, got %v", want, got)
-	}
-
-	// Allocations must sum back to the original amount.
-	var sum int64
-	for _, v := range got {
-		sum += v
-	}
-	if sum != 1000 {
-		t.Errorf("expected parties to sum to 1000, got %d", sum)
-	}
-}
-
-func TestMoney_AllocateMixedRatios(t *testing.T) {
-	// Mix int, float, string ratios — should behave the same as if all were
-	// expressed as the same numeric type.
-	m := New(1000, USD)
-	parties, err := m.Allocate(1, 1.5, "2.5")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	// sum = 5.0, shares = 0.2 / 0.3 / 0.5 → 200, 300, 500
-	want := []int64{200, 300, 500}
-	got := make([]int64, len(parties))
-	for i, p := range parties {
-		got[i] = p.amount.val.Int64()
-	}
-	if !reflect.DeepEqual(want, got) {
-		t.Errorf("expected %v, got %v", want, got)
-	}
-}
-
-func TestMoney_AllocateFloatLeftover(t *testing.T) {
-	// Penny that doesn't divide evenly by float ratios — leftover must still
-	// land on the first party so the total is preserved.
-	m := New(5, USD)
-	parties, err := m.Allocate(0.5, 0.25, 0.25)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	var sum int64
-	for _, p := range parties {
-		sum += p.amount.val.Int64()
-	}
-	if sum != 5 {
-		t.Errorf("expected sum 5, got %d", sum)
-	}
-}
-
-func TestMoney_AllocateInvalidRatio(t *testing.T) {
-	m := New(100, USD)
-	if _, err := m.Allocate(1, "not-a-number"); err == nil {
-		t.Error("expected error for invalid ratio")
 	}
 }
 
@@ -712,6 +640,19 @@ func TestMoney_AsMajorUnits(t *testing.T) {
 		if r != tc.expected {
 			t.Errorf("Expected value as major units of %d to be %f got %f", tc.amount, tc.expected, r)
 		}
+	}
+}
+
+func TestAllocateOverflow(t *testing.T) {
+	m := New(math.MaxInt64, EUR)
+	_, err := m.Allocate(math.MaxInt, 1)
+	if err == nil {
+		t.Fatalf("expected an error, but got nil")
+	}
+
+	expectedErrorMessage := "sum of given ratios exceeds max int"
+	if err.Error() != expectedErrorMessage {
+		t.Fatalf("expected error message %q, but got %q", expectedErrorMessage, err.Error())
 	}
 }
 

@@ -31,29 +31,12 @@ func (c *calculator) modulus(a *Decimal, d int64) *Decimal {
 	return &Decimal{val: val, exponent: a.exponent}
 }
 
-// allocate computes a * r / s and returns the result at exponent a.exponent
-// so the caller's leftover arithmetic (which compares against a.val directly)
-// stays valid.
-func (c *calculator) allocate(a, r, s *Decimal) *Decimal {
-	if s.val.Sign() == 0 {
+func (c *calculator) allocate(a *Decimal, r, s int64) *Decimal {
+	if s == 0 {
 		return &Decimal{val: new(big.Int), exponent: a.exponent}
 	}
-
-	num := new(big.Int).Mul(a.val, r.val)
-
-	// The natural exponent of num/s is a.exponent + r.exponent - s.exponent;
-	// we want a.exponent. Adjust the numerator by 10^(s.exponent - r.exponent)
-	// before dividing.
-	diff := int64(s.exponent - r.exponent)
-	if diff > 0 {
-		scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(diff), nil)
-		num.Mul(num, scale)
-	} else if diff < 0 {
-		scale := new(big.Int).Exp(big.NewInt(10), big.NewInt(-diff), nil)
-		num.Quo(num, scale)
-	}
-
-	val := new(big.Int).Quo(num, s.val)
+	val := new(big.Int).Mul(a.val, big.NewInt(r))
+	val.Quo(val, big.NewInt(s))
 	return &Decimal{val: val, exponent: a.exponent}
 }
 

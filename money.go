@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 )
 
@@ -259,31 +260,28 @@ func (m *Money) Split(n int) ([]*Money, error) {
 // Allocate returns slice of Money structs with split Self value in given ratios.
 // It lets split money by given ratios without losing pennies and as Split operations distributes
 // leftover pennies amongst the parties with round-robin principle.
-// Ratios may be any type accepted by NewDecimal (int, float, string, *Decimal, ...).
-func (m *Money) Allocate(rs ...any) ([]*Money, error) {
+func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("no ratios specified")
 	}
 
-	ratios := make([]*Decimal, len(rs))
-	sum := &Decimal{val: new(big.Int)}
-	for i, r := range rs {
-		d, err := NewDecimal(r)
-		if err != nil {
-			return nil, err
-		}
-		if d.val.Sign() < 0 {
+	// Calculate sum of ratios.
+	var sum int64
+	for _, r := range rs {
+		if r < 0 {
 			return nil, errors.New("negative ratios not allowed")
 		}
-		ratios[i] = d
-		sum = mutate.calc.add(sum, d)
+		if int64(r) > (math.MaxInt64 - sum) {
+			return nil, errors.New("sum of given ratios exceeds max int")
+		}
+		sum += int64(r)
 	}
 
 	total := new(big.Int)
 	ms := make([]*Money, 0, len(rs))
-	for _, r := range ratios {
+	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, r, sum),
+			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
 			currency: m.currency,
 		}
 
@@ -293,7 +291,7 @@ func (m *Money) Allocate(rs ...any) ([]*Money, error) {
 
 	// if the sum of all ratios is zero, then we just return zeros and don't do anything
 	// with the leftover
-	if sum.val.Sign() == 0 {
+	if sum == 0 {
 		return ms, nil
 	}
 

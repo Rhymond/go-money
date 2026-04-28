@@ -245,7 +245,7 @@ parties[2].Display() // £0.33
 
 To perform allocation operation use `Allocate()`.
 
-It splits money using the given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle. Ratios accept any type that `NewDecimal` accepts, so you can mix integers, floats and strings.
+It splits money using the given ratios without losing pennies and as Split operations distributes leftover pennies amongst the parties with round-robin principle.
 
 ```go
 pound := money.New(100, money.GBP)
@@ -258,12 +258,6 @@ if err != nil {
 parties[0].Display() // £0.34
 parties[1].Display() // £0.33
 parties[2].Display() // £0.33
-
-// Fractional ratios — e.g. splitting a bill by weight shares.
-parties, _ = money.New(1000, money.USD).Allocate(1.5, 2.5, 1.0)
-parties[0].Display() // $3.00
-parties[1].Display() // $5.00
-parties[2].Display() // $2.00
 ```
 
 Format
