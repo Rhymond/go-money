@@ -642,6 +642,169 @@ func TestAllocateOverflow(t *testing.T) {
 	}
 }
 
+func TestMoney_Percentage(t *testing.T) {
+	tcs := []struct {
+		name       string
+		amount     int64
+		percentage int64
+		expected   int64
+		expectErr  bool
+	}{
+		{"50% of 100", 100, 50, 50, false},
+		{"25% of 100", 100, 25, 25, false},
+		{"100% of 100", 100, 100, 100, false},
+		{"0% of 100", 100, 0, 0, false},
+		{"50% of 1", 1, 50, 0, false},
+		{"33% of 100", 100, 33, 33, false},
+		{"50% of -100", -100, 50, -50, false},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			m := New(tc.amount, EUR)
+			r, err := m.Percentage(tc.percentage)
+
+			if tc.expectErr {
+				if err == nil {
+					t.Errorf("Expected error for %s, but got nil", tc.name)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error for %s: %v", tc.name, err)
+				}
+				if r.Amount() != tc.expected {
+					t.Errorf("Expected %d%% of %d to be %d, got %d", tc.percentage, tc.amount, tc.expected, r.Amount())
+				}
+			}
+		})
+	}
+}
+
+func TestMoney_Percentage_BoundaryValues(t *testing.T) {
+	tcs := []struct {
+		name       string
+		percentage int64
+		expected   int64
+	}{
+		{"percentage=0", 0, 0},
+		{"percentage=100", 100, 100},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			m := New(100, EUR)
+			r, err := m.Percentage(tc.percentage)
+
+			if err != nil {
+				t.Errorf("Unexpected error for %s: %v", tc.name, err)
+			}
+			if r.Amount() != tc.expected {
+				t.Errorf("Expected %d, got %d", tc.expected, r.Amount())
+			}
+		})
+	}
+}
+
+func TestMoney_Percentage_InvalidInput(t *testing.T) {
+	tcs := []struct {
+		name       string
+		percentage int64
+	}{
+		{"percentage=-1", -1},
+		{"percentage=101", 101},
+		{"percentage=-100", -100},
+		{"percentage=200", 200},
+	}
+
+	expectedErrMsg := "percentage must be between 0 and 100"
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			m := New(100, EUR)
+			r, err := m.Percentage(tc.percentage)
+
+			if err == nil {
+				t.Errorf("Expected error for %s, but got nil", tc.name)
+			}
+			if err != nil && err.Error() != expectedErrMsg {
+				t.Errorf("Expected error message %q, got %q", expectedErrMsg, err.Error())
+			}
+			if r != nil {
+				t.Errorf("Expected nil result for %s, but got %v", tc.name, r)
+			}
+		})
+	}
+}
+
+func TestMoney_PercentageFloat(t *testing.T) {
+	tcs := []struct {
+		name       string
+		amount     int64
+		percentage float64
+		expected   int64
+		expectErr  bool
+	}{
+		{"12.5% of 200", 200, 12.5, 25, false},
+		{"6.25% of 800", 800, 6.25, 50, false},
+		{"33.3% of 300 (truncated)", 300, 33.3, 99, false},
+		{"50.0% of 100", 100, 50.0, 50, false},
+		{"0.0% of 100", 100, 0.0, 0, false},
+		{"100.0% of 100", 100, 100.0, 100, false},
+		{"12.5% of -200", -200, 12.5, -25, false},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			m := New(tc.amount, USD)
+			r, err := m.PercentageFloat(tc.percentage)
+
+			if tc.expectErr {
+				if err == nil {
+					t.Errorf("Expected error for %s, but got nil", tc.name)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error for %s: %v", tc.name, err)
+				}
+				if r.Amount() != tc.expected {
+					t.Errorf("Expected %.1f%% of %d to be %d, got %d", tc.percentage, tc.amount, tc.expected, r.Amount())
+				}
+			}
+		})
+	}
+}
+
+func TestMoney_PercentageFloat_InvalidInput(t *testing.T) {
+	tcs := []struct {
+		name       string
+		percentage float64
+	}{
+		{"percentage=-0.1", -0.1},
+		{"percentage=100.1", 100.1},
+		{"percentage=-100.0", -100.0},
+		{"percentage=200.5", 200.5},
+	}
+
+	expectedErrMsg := "percentage must be between 0 and 100"
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			m := New(100, USD)
+			r, err := m.PercentageFloat(tc.percentage)
+
+			if err == nil {
+				t.Errorf("Expected error for %s, but got nil", tc.name)
+			}
+			if err != nil && err.Error() != expectedErrMsg {
+				t.Errorf("Expected error message %q, got %q", expectedErrMsg, err.Error())
+			}
+			if r != nil {
+				t.Errorf("Expected nil result for %s, but got %v", tc.name, r)
+			}
+		})
+	}
+}
+
 func TestMoney_Format(t *testing.T) {
 	tcs := []struct {
 		amount   int64

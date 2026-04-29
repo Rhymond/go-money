@@ -340,6 +340,32 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	return ms, nil
 }
 
+// Percentage returns new Money struct with value representing given percentage of the original Money.
+// The percentage must be between 0 and 100 (inclusive).
+func (m *Money) Percentage(percentage int64) (*Money, error) {
+	if percentage < 0 || percentage > 100 {
+		return nil, errors.New("percentage must be between 0 and 100")
+	}
+
+	return &Money{amount: mutate.calc.allocate(m.amount, percentage, 100), currency: m.currency}, nil
+}
+
+// PercentageFloat returns new Money struct with value representing given percentage of the original Money.
+// The percentage must be between 0.0 and 100.0 (inclusive).
+// The calculation uses integer arithmetic with a precision of 1e9 to avoid floating point precision issues.
+// Note: The result is truncated towards zero, e.g., 33.3% of 300 = 99 (not 99.9).
+func (m *Money) PercentageFloat(percentage float64) (*Money, error) {
+	if percentage < 0.0 || percentage > 100.0 {
+		return nil, errors.New("percentage must be between 0 and 100")
+	}
+
+	const precision = 1e9
+	numerator := int64(percentage * precision)
+	denominator := int64(100 * precision)
+
+	return &Money{amount: mutate.calc.allocate(m.amount, numerator, denominator), currency: m.currency}, nil
+}
+
 // Display lets represent Money struct as string in given Currency value.
 func (m *Money) Display() string {
 	c := m.currency.get()
