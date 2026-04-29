@@ -133,8 +133,9 @@ func align(a, b *Decimal) (av, bv *big.Int, exp int) {
 }
 
 // Int64 returns the underlying integer value as int64 (in the current exponent
-// space). Callers expecting smallest-currency-unit values should ensure
-// Decimal.exponent matches the currency's fraction.
+// space). Callers expecting smallest-currency-unit values should use
+// Money.Amount, which is exponent-aware. The result silently truncates if val
+// exceeds the int64 range — see (*big.Int).Int64.
 func (d *Decimal) Int64() int64 {
 	return d.val.Int64()
 }
@@ -142,4 +143,89 @@ func (d *Decimal) Int64() int64 {
 // Sign returns -1 if d < 0, 0 if d == 0, +1 if d > 0.
 func (d *Decimal) Sign() int {
 	return d.val.Sign()
+}
+
+// add returns a new Decimal equal to d + b, scaled to the larger of the two
+// exponents.
+func (d *Decimal) add(b *Decimal) *Decimal {
+	av, bv, exp := align(d, b)
+	return &Decimal{val: av.Add(av, bv), exponent: exp}
+}
+
+// subtract returns a new Decimal equal to d - b, scaled to the larger of the
+// two exponents.
+func (d *Decimal) subtract(b *Decimal) *Decimal {
+	av, bv, exp := align(d, b)
+	return &Decimal{val: av.Sub(av, bv), exponent: exp}
+}
+
+// multiply returns a new Decimal equal to d * b. The result's exponent is the
+// sum of the two operand exponents (full precision is preserved).
+func (d *Decimal) multiply(b *Decimal) *Decimal {
+	return &Decimal{
+		val:      new(big.Int).Mul(d.val, b.val),
+		exponent: d.exponent + b.exponent,
+	}
+}
+
+// divide returns a new Decimal equal to d / n, integer-divided in val space
+// (truncated toward zero). The exponent is preserved.
+func (d *Decimal) divide(n int64) *Decimal {
+	val := new(big.Int).Quo(d.val, big.NewInt(n))
+	return &Decimal{val: val, exponent: d.exponent}
+}
+
+// modulus returns a new Decimal equal to d mod n in val space. The exponent
+// is preserved.
+func (d *Decimal) modulus(n int64) *Decimal {
+	val := new(big.Int).Rem(d.val, big.NewInt(n))
+	return &Decimal{val: val, exponent: d.exponent}
+}
+
+// allocate returns a new Decimal equal to d * r / s, used by Money.Allocate
+// to compute each party's share. Returns zero when s == 0 to avoid division
+// by zero. The exponent is preserved.
+func (d *Decimal) allocate(r, s int64) *Decimal {
+	if s == 0 {
+		return &Decimal{val: new(big.Int), exponent: d.exponent}
+	}
+	val := new(big.Int).Mul(d.val, big.NewInt(r))
+	val.Quo(val, big.NewInt(s))
+	return &Decimal{val: val, exponent: d.exponent}
+}
+
+// absolute returns a new Decimal equal to |d|.
+func (d *Decimal) absolute() *Decimal {
+	return &Decimal{val: new(big.Int).Abs(d.val), exponent: d.exponent}
+}
+
+// negative returns a new Decimal equal to -|d| (zero stays zero).
+func (d *Decimal) negative() *Decimal {
+	if d.val.Sign() > 0 {
+		return &Decimal{val: new(big.Int).Neg(d.val), exponent: d.exponent}
+	}
+	return &Decimal{val: new(big.Int).Set(d.val), exponent: d.exponent}
+}
+
+// round returns a new Decimal with val rounded to the nearest 10^e in its
+// own exponent space (half-up). The exponent is preserved.
+func (d *Decimal) round(e int) *Decimal {
+	if d.val.Sign() == 0 {
+		return &Decimal{val: new(big.Int), exponent: d.exponent}
+	}
+
+	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(e)), nil)
+	abs := new(big.Int).Abs(d.val)
+	half := new(big.Int).Quo(exp, big.NewInt(2))
+
+	rem := new(big.Int).Rem(abs, exp)
+	if rem.Cmp(half) > 0 {
+		abs.Add(abs, exp)
+	}
+	abs.Quo(abs, exp).Mul(abs, exp)
+
+	if d.val.Sign() < 0 {
+		abs.Neg(abs)
+	}
+	return &Decimal{val: abs, exponent: d.exponent}
 }

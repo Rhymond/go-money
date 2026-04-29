@@ -149,20 +149,20 @@ func TestNewDecimalFromMoney(t *testing.T) {
 	}
 }
 
-func TestCalculator_AddMismatchedExponents(t *testing.T) {
+func TestDecimal_AddMismatchedExponents(t *testing.T) {
 	a, _ := NewDecimalFromString("1.5")   // 15 e-1
 	b, _ := NewDecimalFromString("1.005") // 1005 e-3
-	sum := mutate.calc.add(a, b)          // expect 2505 e-3
+	sum := a.add(b)                       // expect 2505 e-3
 
 	if sum.val.String() != "2505" || sum.exponent != 3 {
 		t.Errorf("expected 2505 e-3, got %s e-%d", sum.val.String(), sum.exponent)
 	}
 }
 
-func TestCalculator_SubtractMismatchedExponents(t *testing.T) {
+func TestDecimal_SubtractMismatchedExponents(t *testing.T) {
 	a, _ := NewDecimalFromString("2")
 	b, _ := NewDecimalFromString("0.25")
-	diff := mutate.calc.subtract(a, b)
+	diff := a.subtract(b)
 
 	if diff.val.String() != "175" || diff.exponent != 2 {
 		t.Errorf("expected 175 e-2, got %s e-%d", diff.val.String(), diff.exponent)

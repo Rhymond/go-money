@@ -493,6 +493,41 @@ func TestMoney_MultiplyFloat(t *testing.T) {
 	}
 }
 
+// Amount() and Display() must read through the exponent so that callers see
+// $15.00 (not $150.00) after a fractional Multiply.
+func TestMoney_AmountAfterMultiply(t *testing.T) {
+	m := New(1000, USD) // $10.00
+	mul, err := NewDecimalFromFloat(1.5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	r := m.Multiply(mul)
+
+	if got := r.Amount(); got != 1500 {
+		t.Errorf("Amount(): expected 1500, got %d", got)
+	}
+	if got := r.Display(); got != "$15.00" {
+		t.Errorf("Display(): expected $15.00, got %s", got)
+	}
+	if got := r.AsMajorUnits(); got != 15.00 {
+		t.Errorf("AsMajorUnits(): expected 15.00, got %v", got)
+	}
+}
+
+// Sub-smallest-unit precision truncates toward zero on read.
+func TestMoney_AmountTruncatesSubCent(t *testing.T) {
+	m := New(1, USD) // $0.01
+	mul, _ := NewDecimalFromFloat(1.5)
+	r := m.Multiply(mul) // val=15, exp=1 → 1.5 cents
+
+	if got := r.Amount(); got != 1 {
+		t.Errorf("Amount(): expected 1 (truncated), got %d", got)
+	}
+	if got := r.Display(); got != "$0.01" {
+		t.Errorf("Display(): expected $0.01, got %s", got)
+	}
+}
+
 func TestMoney_MultiplySubUnit(t *testing.T) {
 	// $0.01 * 1.5 = $0.015 — must preserve the extra precision instead of rounding.
 	m := New(1, USD)
@@ -573,14 +608,24 @@ func TestMoney_MultiplyGenericIntegerTypes(t *testing.T) {
 	}
 }
 
-func TestMoney_MultiplyNilDecimalPanics(t *testing.T) {
+// A nil *Decimal multiplies to zero — "multiply by nothing returns nothing".
+// Currency is preserved; subsequent multipliers are not applied.
+func TestMoney_MultiplyNilDecimalReturnsZero(t *testing.T) {
 	m := New(100, USD)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("expected panic for nil *Decimal")
-		}
-	}()
-	m.Multiply((*Decimal)(nil))
+	r := m.Multiply((*Decimal)(nil))
+
+	if got := r.Amount(); got != 0 {
+		t.Errorf("expected 0, got %d", got)
+	}
+	if got := r.Currency().Code; got != USD {
+		t.Errorf("expected currency USD, got %s", got)
+	}
+
+	// Nil short-circuits — the trailing 999 must not run.
+	r = m.Multiply(NewDecimalFromInt(2), nil, NewDecimalFromInt(999))
+	if got := r.Amount(); got != 0 {
+		t.Errorf("expected 0 from short-circuit, got %d", got)
+	}
 }
 
 func TestMoney_Round(t *testing.T) {

@@ -1,3 +1,3 @@
-module github.com/Rhymond/go-money
+module github.com/Rhymond/go-money/v2
 
-go 1.26
+go 1.22

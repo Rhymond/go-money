@@ -21,6 +21,9 @@ var ErrInvalidJSONUnmarshal = errors.New("invalid json unmarshal")
 //
 //	money.UnmarshalJSON = func(m *Money, b []byte) error { ... }
 //	money.MarshalJSON   = func(m Money) ([]byte, error) { ... }
+//
+// These globals are not safe to mutate concurrently with use — set them once
+// during package initialization.
 var (
 	UnmarshalJSON = defaultUnmarshalJSON
 	MarshalJSON   = defaultMarshalJSON
@@ -37,17 +40,26 @@ const DefaultDBMoneyValueSeparator = "|"
 
 // DBMoneyValueSeparator joins amount and currency when storing Money via
 // driver.Valuer / sql.Scanner — e.g. "amount|currency_code".
+//
+// Not safe to mutate concurrently with use — set once during package init.
 var DBMoneyValueSeparator = DefaultDBMoneyValueSeparator
 
 // Value implements driver.Valuer.
-func (m *Money) Value() (driver.Value, error) {
+func (m Money) Value() (driver.Value, error) {
 	return fmt.Sprintf("%d%s%s", m.Amount(), DBMoneyValueSeparator, m.Currency().Code), nil
 }
 
-// Scan implements sql.Scanner.
+// Scan implements sql.Scanner. NULL values produce an error; wrap Money in
+// your own nullable type if a column is nullable. Accepts both string and
+// []byte sources — drivers vary on which they hand back for text columns.
 func (m *Money) Scan(src interface{}) error {
-	s, ok := src.(string)
-	if !ok {
+	var s string
+	switch v := src.(type) {
+	case string:
+		s = v
+	case []byte:
+		s = string(v)
+	default:
 		return fmt.Errorf("don't know how to scan %T into Money; update your query to return a money.DBMoneyValueSeparator-separated pair of \"amount%scurrency_code\"", src, DBMoneyValueSeparator)
 	}
 
@@ -61,14 +73,9 @@ func (m *Money) Scan(src interface{}) error {
 		return fmt.Errorf("scanning %#v into an amount: %v", parts[0], err)
 	}
 
-	currency := &Currency{}
-	if err := currency.Scan(parts[1]); err != nil {
-		return fmt.Errorf("scanning %#v into a Currency: %v", parts[1], err)
-	}
-
 	*m = Money{
 		amount:   &Decimal{val: big.NewInt(amount)},
-		currency: currency,
+		currency: newCurrency(parts[1]).get(),
 	}
 	return nil
 }
@@ -78,25 +85,31 @@ func (c Currency) Value() (driver.Value, error) {
 	return c.Code, nil
 }
 
-// Scan implements sql.Scanner for Currency.
+// Scan implements sql.Scanner for Currency. Unknown codes are accepted with
+// default formatting, matching the lenient behavior of New(). Accepts both
+// string and []byte sources.
 func (c *Currency) Scan(src interface{}) error {
-	code, ok := src.(string)
-	if !ok {
+	var code string
+	switch v := src.(type) {
+	case string:
+		code = v
+	case []byte:
+		code = string(v)
+	default:
 		return fmt.Errorf("%T is not a supported type for a Currency (store the Currency.Code value as a string only)", src)
 	}
-
-	val := GetCurrency(code)
-	if val == nil {
-		return fmt.Errorf("GetCurrency(%#v) returned nil", code)
-	}
-
-	*c = *val
+	*c = *newCurrency(code).get()
 	return nil
 }
 
 // ============================================================================
 // JSON
 // ============================================================================
+
+type jsonMoney struct {
+	Amount   int64  `json:"amount"`
+	Currency string `json:"currency"`
+}
 
 // MarshalJSON implements json.Marshaler.
 func (m Money) MarshalJSON() ([]byte, error) {
@@ -112,22 +125,32 @@ func defaultMarshalJSON(m Money) ([]byte, error) {
 	if m == (Money{}) {
 		m = *New(0, "")
 	}
-	buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency": "%s"}`, m.Amount(), m.Currency().Code))
-	return buff.Bytes(), nil
+	return json.Marshal(jsonMoney{
+		Amount:   m.Amount(),
+		Currency: m.Currency().Code,
+	})
 }
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(b))
+	dec.UseNumber()
+
 	data := make(map[string]interface{})
-	if err := json.Unmarshal(b, &data); err != nil {
+	if err := dec.Decode(&data); err != nil {
 		return err
 	}
 
-	var amount float64
+	var amount int64
 	if amountRaw, ok := data["amount"]; ok {
-		amount, ok = amountRaw.(float64)
+		n, ok := amountRaw.(json.Number)
 		if !ok {
 			return ErrInvalidJSONUnmarshal
 		}
+		v, err := n.Int64()
+		if err != nil {
+			return ErrInvalidJSONUnmarshal
+		}
+		amount = v
 	}
 
 	var currency string
@@ -142,7 +165,7 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 		*m = Money{}
 		return nil
 	}
-	*m = *New(int64(amount), currency)
+	*m = *New(amount, currency)
 	return nil
 }
 

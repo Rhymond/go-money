@@ -47,6 +47,7 @@ func TestMoney_Scan(t *testing.T) {
 	}{
 		{src: "10|CAD", want: New(10, CAD)},
 		{src: "20|USD", want: New(20, USD)},
+		{src: []byte("15|EUR"), want: New(15, EUR)}, // drivers often hand back text columns as []byte
 		{src: "30000,IDR", separator: ",", want: New(30000, IDR)},
 		{src: "10|", wantErr: true},
 		{src: "|SAR", wantErr: true},
@@ -55,6 +56,8 @@ func TestMoney_Scan(t *testing.T) {
 		{src: "USD|10", wantErr: true},
 		{src: "", wantErr: true},
 		{src: "a|b|c", wantErr: true},
+		{src: nil, wantErr: true},
+		{src: 42, wantErr: true},
 	}
 	for _, tc := range tcs {
 		if tc.separator != "" {
@@ -101,6 +104,16 @@ func TestCurrency_Scan(t *testing.T) {
 		}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Expected %#v got %#v", want, got)
+		}
+
+		// Same code via []byte must round-trip identically.
+		gotBytes := &Currency{}
+		if err := gotBytes.Scan([]byte(code)); err != nil {
+			t.Errorf("Scan([]byte %s) error = %v", code, err)
+			continue
+		}
+		if !reflect.DeepEqual(gotBytes, want) {
+			t.Errorf("[]byte path: Expected %#v got %#v", want, gotBytes)
 		}
 	}
 }
@@ -192,14 +205,31 @@ func TestMoney_UnmarshalJSON_Invalid(t *testing.T) {
 	tcs := []string{
 		`{"amount": "foo", "currency": "USD"}`,
 		`{"amount": 1234, "currency": 1234}`,
+		`{"amount": 1.5, "currency": "USD"}`,                  // fractional rejected (not a whole int64)
+		`{"amount": 99999999999999999999, "currency": "USD"}`, // exceeds int64 — reject instead of silently corrupting
 	}
 
 	for _, given := range tcs {
 		var m Money
 		err := json.Unmarshal([]byte(given), &m)
 		if !errors.Is(err, ErrInvalidJSONUnmarshal) {
-			t.Errorf("Expected ErrInvalidJSONUnmarshal got %+v", err)
+			t.Errorf("Expected ErrInvalidJSONUnmarshal for %s, got %+v", given, err)
 		}
+	}
+}
+
+// Amounts up to math.MaxInt64 must round-trip exactly — the float64 path used
+// previously would lose precision past 2^53.
+func TestMoney_UnmarshalJSON_LargeAmount(t *testing.T) {
+	const big = int64(1) << 60 // ~1.15e18, well past 2^53
+	src := fmt.Sprintf(`{"amount": %d, "currency": "USD"}`, big)
+
+	var m Money
+	if err := json.Unmarshal([]byte(src), &m); err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if got := m.Amount(); got != big {
+		t.Errorf("Expected %d, got %d", big, got)
 	}
 }
 

@@ -29,9 +29,18 @@ func (m *Money) Currency() *Currency {
 	return m.currency
 }
 
-// Amount returns a copy of the internal monetary value as an int64.
+// Amount returns the monetary value in the currency's smallest unit as an
+// int64. Sub-smallest-unit precision (introduced by Multiply with a fractional
+// Decimal) is truncated toward zero — call Round first if you want
+// round-half-up behavior at the major-unit boundary.
 func (m *Money) Amount() int64 {
-	return m.amount.Int64()
+	if m.amount == nil {
+		return 0
+	}
+	if m.amount.exponent <= 0 {
+		return m.amount.val.Int64()
+	}
+	return new(big.Int).Quo(m.amount.val, pow10(int64(m.amount.exponent))).Int64()
 }
 
 // SameCurrency check if given Money is equals by currency.
@@ -114,12 +123,12 @@ func (m *Money) IsNegative() bool {
 
 // Absolute returns new Money struct from given Money using absolute monetary value.
 func (m *Money) Absolute() *Money {
-	return &Money{amount: mutate.calc.absolute(m.amount), currency: m.currency}
+	return &Money{amount: m.amount.absolute(), currency: m.currency}
 }
 
 // Negative returns new Money struct from given Money using negative monetary value.
 func (m *Money) Negative() *Money {
-	return &Money{amount: mutate.calc.negative(m.amount), currency: m.currency}
+	return &Money{amount: m.amount.negative(), currency: m.currency}
 }
 
 // Add returns new Money struct with value representing sum of Self and Other Money.
@@ -135,10 +144,10 @@ func (m *Money) Add(ms ...*Money) (*Money, error) {
 			return nil, err
 		}
 
-		k.amount = mutate.calc.add(k.amount, m2.amount)
+		k.amount = k.amount.add(m2.amount)
 	}
 
-	return &Money{amount: mutate.calc.add(m.amount, k.amount), currency: m.currency}, nil
+	return &Money{amount: m.amount.add(k.amount), currency: m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
@@ -154,33 +163,37 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 			return nil, err
 		}
 
-		k.amount = mutate.calc.add(k.amount, m2.amount)
+		k.amount = k.amount.add(m2.amount)
 	}
 
-	return &Money{amount: mutate.calc.subtract(m.amount, k.amount), currency: m.currency}, nil
+	return &Money{amount: m.amount.subtract(k.amount), currency: m.currency}, nil
 }
 
 // Multiply returns a new Money struct with value representing Self multiplied
 // by every supplied Decimal in order. The result preserves full decimal
-// precision — e.g. $0.01 * 1.5 yields 15 at exponent 3 ($0.015). Call .Round()
-// if you need to collapse to the currency's smallest unit.
+// precision — e.g. $0.01 * 1.5 yields 15 at exponent 1 ($0.015). Display() and
+// Amount() truncate sub-smallest-unit precision toward zero.
 //
-// With no multipliers it returns Self unchanged. A nil *Decimal is a programmer
-// error and panics — construct multipliers via the NewDecimalFrom* family.
+// With no multipliers it returns Self unchanged. A nil *Decimal is treated as
+// "multiply by nothing": the running result collapses to zero (currency
+// preserved), and any remaining multipliers are ignored.
 func (m *Money) Multiply(muls ...*Decimal) *Money {
 	result := m.amount
 	for _, d := range muls {
 		if d == nil {
-			panic("money: Multiply received nil *Decimal")
+			return &Money{
+				amount:   &Decimal{val: new(big.Int)},
+				currency: m.currency,
+			}
 		}
-		result = mutate.calc.multiply(result, d)
+		result = result.multiply(d)
 	}
 	return &Money{amount: result, currency: m.currency}
 }
 
 // Round returns new Money struct with value rounded to nearest zero.
 func (m *Money) Round() *Money {
-	return &Money{amount: mutate.calc.round(m.amount, m.currency.Fraction), currency: m.currency}
+	return &Money{amount: m.amount.round(m.currency.Fraction), currency: m.currency}
 }
 
 // Split returns slice of Money structs with split Self value in given number.
@@ -191,24 +204,25 @@ func (m *Money) Split(n int) ([]*Money, error) {
 		return nil, errors.New("split must be higher than zero")
 	}
 
-	a := mutate.calc.divide(m.amount, int64(n))
+	a := m.amount.divide(int64(n))
 	ms := make([]*Money, n)
 
 	for i := 0; i < n; i++ {
 		ms[i] = &Money{amount: a, currency: m.currency}
 	}
 
-	l := new(big.Int).Abs(mutate.calc.modulus(m.amount, int64(n)).val)
-	step := big.NewInt(1)
+	l := new(big.Int).Abs(m.amount.modulus(int64(n)).val)
+	stepVal := big.NewInt(1)
 	if m.amount.Sign() < 0 {
-		step.Neg(step)
+		stepVal.Neg(stepVal)
 	}
-	one := &Decimal{val: new(big.Int).Set(step), exponent: m.amount.exponent}
+	step := &Decimal{val: stepVal, exponent: m.amount.exponent}
+	oneBig := big.NewInt(1)
 
 	// Add leftovers to the first parties.
 	for p := 0; l.Sign() != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, one)
-		l.Sub(l, big.NewInt(1))
+		ms[p].amount = ms[p].amount.add(step)
+		l.Sub(l, oneBig)
 	}
 
 	return ms, nil
@@ -238,7 +252,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	ms := make([]*Money, 0, len(rs))
 	for _, r := range rs {
 		party := &Money{
-			amount:   mutate.calc.allocate(m.amount, int64(r), sum),
+			amount:   m.amount.allocate(int64(r), sum),
 			currency: m.currency,
 		}
 
@@ -261,7 +275,7 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	step := &Decimal{val: new(big.Int).Set(sub), exponent: m.amount.exponent}
 
 	for p := 0; lo.Sign() != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, step)
+		ms[p].amount = ms[p].amount.add(step)
 		lo.Sub(lo, sub)
 	}
 
@@ -271,13 +285,13 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 // Display lets represent Money struct as string in given Currency value.
 func (m *Money) Display() string {
 	c := m.currency.get()
-	return c.Formatter().Format(m.amount.Int64())
+	return c.Formatter().Format(m.Amount())
 }
 
 // AsMajorUnits lets represent Money struct as subunits (float64) in given Currency value
 func (m *Money) AsMajorUnits() float64 {
 	c := m.currency.get()
-	return c.Formatter().ToMajorUnits(m.amount.Int64())
+	return c.Formatter().ToMajorUnits(m.Amount())
 }
 
 // Compare function compares two money of the same type
