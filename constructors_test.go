@@ -235,3 +235,18 @@ func TestNewFromDecimal_Nil(t *testing.T) {
 		t.Error("Expected err")
 	}
 }
+
+// Named uint64 types (~uint64) must take the unsigned-conversion path; before
+// this fix, NewDecimalFromInt(MyUint(1<<63)) reinterpreted the high bit as
+// the sign bit and produced a negative big.Int.
+func TestNewDecimalFromInt_NamedUint64(t *testing.T) {
+	type Cents uint64
+	d := NewDecimalFromInt(Cents(1 << 63))
+	if d.val.Sign() < 0 {
+		t.Fatalf("expected positive big.Int for MyUint(1<<63), got %s", d.val.String())
+	}
+	want := new(big.Int).SetUint64(1 << 63)
+	if d.val.Cmp(want) != 0 {
+		t.Errorf("expected %s, got %s", want.String(), d.val.String())
+	}
+}

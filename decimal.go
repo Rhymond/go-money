@@ -208,18 +208,19 @@ func (d *Decimal) negative() *Decimal {
 }
 
 // round returns a new Decimal with val rounded to the nearest 10^e in its
-// own exponent space (half-up). The exponent is preserved.
+// own exponent space using half-away-from-zero. The exponent is preserved.
+// e.g. round(2) on val=150 yields 200; round(2) on val=-150 yields -200.
 func (d *Decimal) round(e int) *Decimal {
 	if d.val.Sign() == 0 {
 		return &Decimal{val: new(big.Int), exponent: d.exponent}
 	}
 
-	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(e)), nil)
+	exp := pow10(int64(e))
 	abs := new(big.Int).Abs(d.val)
 	half := new(big.Int).Quo(exp, big.NewInt(2))
 
 	rem := new(big.Int).Rem(abs, exp)
-	if rem.Cmp(half) > 0 {
+	if rem.Cmp(half) >= 0 {
 		abs.Add(abs, exp)
 	}
 	abs.Quo(abs, exp).Mul(abs, exp)
@@ -228,4 +229,29 @@ func (d *Decimal) round(e int) *Decimal {
 		abs.Neg(abs)
 	}
 	return &Decimal{val: abs, exponent: d.exponent}
+}
+
+// roundToSmallestUnit returns a new Decimal with sub-smallest-unit precision
+// removed using half-away-from-zero. The result has exponent 0, so callers
+// like Money.Amount() see the rounded value directly. For exponent ≤ 0 the
+// value already lives at smallest-unit precision and is returned with
+// exponent 0 unchanged.
+func (d *Decimal) roundToSmallestUnit() *Decimal {
+	if d.exponent <= 0 {
+		return &Decimal{val: new(big.Int).Set(d.val), exponent: 0}
+	}
+
+	scale := pow10(int64(d.exponent))
+	half := new(big.Int).Quo(scale, big.NewInt(2))
+
+	abs := new(big.Int).Abs(d.val)
+	quo, rem := new(big.Int), new(big.Int)
+	quo.QuoRem(abs, scale, rem)
+	if rem.Cmp(half) >= 0 {
+		quo.Add(quo, big.NewInt(1))
+	}
+	if d.val.Sign() < 0 {
+		quo.Neg(quo)
+	}
+	return &Decimal{val: quo, exponent: 0}
 }

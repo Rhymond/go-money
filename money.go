@@ -24,15 +24,47 @@ func New(amount int64, code string) *Money {
 	}
 }
 
-// Currency returns the currency used by Money.
+// safe returns a Money with both fields non-nil. The receiver is returned
+// unchanged when already populated; otherwise a normalized copy is returned
+// (zero amount and a default Currency for any unset field). The original is
+// never mutated. Every method that touches m.amount or m.currency calls
+// safe() first so the zero value Money{} doesn't panic.
+func (m *Money) safe() *Money {
+	if m.amount != nil && m.currency != nil {
+		return m
+	}
+	fixed := *m
+	if fixed.amount == nil {
+		fixed.amount = &Decimal{val: new(big.Int)}
+	}
+	if fixed.currency == nil {
+		fixed.currency = (&Currency{}).getDefault()
+	}
+	return &fixed
+}
+
+// Currency returns the currency used by Money. The returned *Currency is a
+// defensive copy — mutating its fields does not affect the global registry
+// or any other Money instance.
 func (m *Money) Currency() *Currency {
-	return m.currency
+	c := m.safe().currency
+	cp := *c
+	return &cp
 }
 
 // Amount returns the monetary value in the currency's smallest unit as an
-// int64. Sub-smallest-unit precision (introduced by Multiply with a fractional
-// Decimal) is truncated toward zero — call Round first if you want
-// round-half-up behavior at the major-unit boundary.
+// int64. Sub-smallest-unit precision (introduced by Multiply with a
+// fractional Decimal) is truncated toward zero — call Round first if you
+// want to snap to the smallest unit.
+//
+// The internal value is held in a big.Int, so arithmetic (Add, Subtract,
+// Multiply, Allocate, Split) preserves precision even when intermediate
+// values exceed int64. Amount itself truncates to int64 — values whose
+// smallest-unit magnitude exceeds ~9.2e18 cannot be read back faithfully
+// through Amount, Display, AsMajorUnits, MarshalJSON, MarshalXML, or Value.
+// Callers working anywhere near that ceiling should keep their working
+// magnitudes inside int64 or read the Decimal directly via
+// NewDecimalFromMoney.
 func (m *Money) Amount() int64 {
 	if m.amount == nil {
 		return 0
@@ -45,7 +77,7 @@ func (m *Money) Amount() int64 {
 
 // SameCurrency check if given Money is equals by currency.
 func (m *Money) SameCurrency(om *Money) bool {
-	return m.currency.equals(om.currency)
+	return m.safe().currency.equals(om.safe().currency)
 }
 
 func (m *Money) assertSameCurrency(om *Money) error {
@@ -57,7 +89,7 @@ func (m *Money) assertSameCurrency(om *Money) error {
 }
 
 func (m *Money) compare(om *Money) int {
-	av, bv, _ := align(m.amount, om.amount)
+	av, bv, _ := align(m.safe().amount, om.safe().amount)
 	return av.Cmp(bv)
 }
 
@@ -108,26 +140,28 @@ func (m *Money) LessThanOrEqual(om *Money) (bool, error) {
 
 // IsZero returns boolean of whether the value of Money is equals to zero.
 func (m *Money) IsZero() bool {
-	return m.amount.Sign() == 0
+	return m.safe().amount.Sign() == 0
 }
 
 // IsPositive returns boolean of whether the value of Money is positive.
 func (m *Money) IsPositive() bool {
-	return m.amount.Sign() > 0
+	return m.safe().amount.Sign() > 0
 }
 
 // IsNegative returns boolean of whether the value of Money is negative.
 func (m *Money) IsNegative() bool {
-	return m.amount.Sign() < 0
+	return m.safe().amount.Sign() < 0
 }
 
 // Absolute returns new Money struct from given Money using absolute monetary value.
 func (m *Money) Absolute() *Money {
+	m = m.safe()
 	return &Money{amount: m.amount.absolute(), currency: m.currency}
 }
 
 // Negative returns new Money struct from given Money using negative monetary value.
 func (m *Money) Negative() *Money {
+	m = m.safe()
 	return &Money{amount: m.amount.negative(), currency: m.currency}
 }
 
@@ -137,17 +171,18 @@ func (m *Money) Add(ms ...*Money) (*Money, error) {
 		return m, nil
 	}
 
-	k := New(0, m.currency.Code)
+	m = m.safe()
+	sum := m.amount
 
 	for _, m2 := range ms {
 		if err := m.assertSameCurrency(m2); err != nil {
 			return nil, err
 		}
 
-		k.amount = k.amount.add(m2.amount)
+		sum = sum.add(m2.safe().amount)
 	}
 
-	return &Money{amount: m.amount.add(k.amount), currency: m.currency}, nil
+	return &Money{amount: sum, currency: m.currency}, nil
 }
 
 // Subtract returns new Money struct with value representing difference of Self and Other Money.
@@ -156,28 +191,31 @@ func (m *Money) Subtract(ms ...*Money) (*Money, error) {
 		return m, nil
 	}
 
-	k := New(0, m.currency.Code)
+	m = m.safe()
+	diff := m.amount
 
 	for _, m2 := range ms {
 		if err := m.assertSameCurrency(m2); err != nil {
 			return nil, err
 		}
 
-		k.amount = k.amount.add(m2.amount)
+		diff = diff.subtract(m2.safe().amount)
 	}
 
-	return &Money{amount: m.amount.subtract(k.amount), currency: m.currency}, nil
+	return &Money{amount: diff, currency: m.currency}, nil
 }
 
 // Multiply returns a new Money struct with value representing Self multiplied
 // by every supplied Decimal in order. The result preserves full decimal
 // precision — e.g. $0.01 * 1.5 yields 15 at exponent 1 ($0.015). Display() and
-// Amount() truncate sub-smallest-unit precision toward zero.
+// Amount() truncate sub-smallest-unit precision toward zero; call Round to
+// snap to nearest smallest unit.
 //
 // With no multipliers it returns Self unchanged. A nil *Decimal is treated as
 // "multiply by nothing": the running result collapses to zero (currency
 // preserved), and any remaining multipliers are ignored.
 func (m *Money) Multiply(muls ...*Decimal) *Money {
+	m = m.safe()
 	result := m.amount
 	for _, d := range muls {
 		if d == nil {
@@ -191,8 +229,25 @@ func (m *Money) Multiply(muls ...*Decimal) *Money {
 	return &Money{amount: result, currency: m.currency}
 }
 
-// Round returns new Money struct with value rounded to nearest zero.
+// Round returns a new Money struct with sub-smallest-unit precision removed
+// using half-away-from-zero. After Round, the underlying Decimal sits at
+// exponent 0, so Amount() and Display() reflect the rounded value exactly.
+//
+// e.g. New(1, USD).Multiply(NewDecimalFromString("1.5")).Round() yields
+// $0.02 (rounded up from $0.015). Money created via New() (already at
+// smallest-unit precision) is returned unchanged.
 func (m *Money) Round() *Money {
+	m = m.safe()
+	return &Money{amount: m.amount.roundToSmallestUnit(), currency: m.currency}
+}
+
+// RoundToMajor returns a new Money rounded to the nearest major-unit
+// boundary using half-away-from-zero. e.g. for USD (Fraction=2), a value of
+// $1.25 rounds to $1.00 and $1.75 rounds to $2.00. Useful for summary or
+// presentation views that want whole-currency totals; for the common
+// "drop sub-cent precision" case use Round instead.
+func (m *Money) RoundToMajor() *Money {
+	m = m.safe()
 	return &Money{amount: m.amount.round(m.currency.Fraction), currency: m.currency}
 }
 
@@ -204,6 +259,7 @@ func (m *Money) Split(n int) ([]*Money, error) {
 		return nil, errors.New("split must be higher than zero")
 	}
 
+	m = m.safe()
 	a := m.amount.divide(int64(n))
 	ms := make([]*Money, n)
 
@@ -235,6 +291,8 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 	if len(rs) == 0 {
 		return nil, errors.New("no ratios specified")
 	}
+
+	m = m.safe()
 
 	// Calculate sum of ratios.
 	var sum int64
@@ -284,12 +342,14 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 
 // Display lets represent Money struct as string in given Currency value.
 func (m *Money) Display() string {
+	m = m.safe()
 	c := m.currency.get()
 	return c.Formatter().Format(m.Amount())
 }
 
 // AsMajorUnits lets represent Money struct as subunits (float64) in given Currency value
 func (m *Money) AsMajorUnits() float64 {
+	m = m.safe()
 	c := m.currency.get()
 	return c.Formatter().ToMajorUnits(m.Amount())
 }

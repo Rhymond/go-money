@@ -1,7 +1,9 @@
 package money
 
 import (
+	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -152,5 +154,46 @@ func TestCurrency_GetCurrencyByNumericCodeNonExistingCurrency(t *testing.T) {
 	currency := GetCurrencyByNumericCode("I*am*Not*a*Valid*Numeric*Code")
 	if currency != nil {
 		t.Errorf("Unexpected currency returned %+v", currency)
+	}
+}
+
+// Concurrent AddCurrency / New must be data-race-free. Without the registry
+// mutex, this test fails under -race and can crash with "fatal error:
+// concurrent map writes".
+func TestCurrency_ConcurrentAccess(t *testing.T) {
+	const writers, readers = 20, 20
+	var wg sync.WaitGroup
+	wg.Add(writers + readers)
+
+	for i := 0; i < writers; i++ {
+		go func(i int) {
+			defer wg.Done()
+			AddCurrency(fmt.Sprintf("RACE%d", i), "x", "$1", ".", ",", 2)
+		}(i)
+	}
+	for i := 0; i < readers; i++ {
+		go func() {
+			defer wg.Done()
+			_ = New(100, USD)
+			_ = GetCurrency(USD)
+		}()
+	}
+
+	wg.Wait()
+}
+
+// AddCurrency must return a defensive copy: mutating the returned *Currency
+// must not leak into the global registry. Pre-fix the function returned the
+// pointer it just stored.
+func TestCurrency_AddCurrency_DefensiveCopy(t *testing.T) {
+	c := AddCurrency("DEFCOPY", "x", "$1", ".", ",", 2)
+	c.Fraction = 99
+
+	again := GetCurrency("DEFCOPY")
+	if again == nil {
+		t.Fatal("expected DEFCOPY to be registered")
+	}
+	if again.Fraction != 2 {
+		t.Errorf("Mutation of AddCurrency() return value leaked: Fraction=%d, want 2", again.Fraction)
 	}
 }

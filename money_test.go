@@ -3,6 +3,7 @@ package money
 import (
 	"errors"
 	"math"
+	"math/big"
 	"reflect"
 	"testing"
 )
@@ -628,7 +629,51 @@ func TestMoney_MultiplyNilDecimalReturnsZero(t *testing.T) {
 	}
 }
 
+// Round on Money created via New() (already at smallest-unit precision) is a
+// no-op. Sub-smallest-unit precision introduced by Multiply collapses to the
+// nearest smallest unit using half-away-from-zero.
 func TestMoney_Round(t *testing.T) {
+	noop := []int64{125, 175, 0, -1, -75}
+	for _, amount := range noop {
+		m := New(amount, EUR)
+		r := m.Round().amount.val.Int64()
+		if r != amount {
+			t.Errorf("Round(%d, EUR) at exp=0: expected %d (no-op), got %d", amount, amount, r)
+		}
+	}
+
+	subCent := []struct {
+		val      int64
+		exp      int
+		expected int64
+	}{
+		{15, 1, 2},   // $0.015 → $0.02 (round up)
+		{14, 1, 1},   // $0.014 → $0.01 (round down)
+		{5, 1, 1},    // $0.005 → $0.01 (boundary, half away from zero)
+		{4, 1, 0},    // $0.004 → $0.00
+		{-15, 1, -2}, // -$0.015 → -$0.02
+		{-5, 1, -1},  // -$0.005 → -$0.01 (half away from zero, negative)
+		{0, 1, 0},
+		{1234, 3, 1}, // 1.234 cents → 1 cent
+		{1500, 3, 2}, // 1.500 cents → 2 cents (boundary)
+	}
+	for _, tc := range subCent {
+		m := &Money{
+			amount:   &Decimal{val: big.NewInt(tc.val), exponent: tc.exp},
+			currency: newCurrency(USD).get(),
+		}
+		r := m.Round()
+		if r.amount.val.Int64() != tc.expected || r.amount.exponent != 0 {
+			t.Errorf("Round(val=%d exp=%d): expected %d e-0, got %s e-%d",
+				tc.val, tc.exp, tc.expected, r.amount.val.String(), r.amount.exponent)
+		}
+	}
+}
+
+// RoundToMajor rounds val to the nearest major-unit boundary using
+// half-away-from-zero. This is what Round did before v2's exponent-aware
+// refactor; preserved for callers that want presentation-grade summaries.
+func TestMoney_RoundToMajor(t *testing.T) {
 	tcs := []struct {
 		amount   int64
 		expected int64
@@ -637,36 +682,40 @@ func TestMoney_Round(t *testing.T) {
 		{175, 200},
 		{349, 300},
 		{351, 400},
+		{50, 100}, // boundary: 0.50 rounds away from zero
+		{150, 200},
 		{0, 0},
 		{-1, 0},
+		{-50, -100}, // boundary: -0.50 rounds away from zero
 		{-75, -100},
 	}
 
 	for _, tc := range tcs {
 		m := New(tc.amount, EUR)
-		r := m.Round().amount.val.Int64()
+		r := m.RoundToMajor().amount.val.Int64()
 
 		if r != tc.expected {
-			t.Errorf("Expected rounded %d to be %d got %d", tc.amount, tc.expected, r)
+			t.Errorf("Expected RoundToMajor(%d) to be %d got %d", tc.amount, tc.expected, r)
 		}
 	}
 }
 
-func TestMoney_RoundWithExponential(t *testing.T) {
+func TestMoney_RoundToMajorWithExponential(t *testing.T) {
 	tcs := []struct {
 		amount   int64
 		expected int64
 	}{
 		{12555, 13000},
+		{12500, 13000}, // boundary
 	}
 
 	for _, tc := range tcs {
 		AddCurrency("CUR", "*", "$1", ".", ",", 3)
 		m := New(tc.amount, "CUR")
-		r := m.Round().amount.val.Int64()
+		r := m.RoundToMajor().amount.val.Int64()
 
 		if r != tc.expected {
-			t.Errorf("Expected rounded %d to be %d got %d", tc.amount, tc.expected, r)
+			t.Errorf("Expected RoundToMajor(%d) to be %d got %d", tc.amount, tc.expected, r)
 		}
 	}
 }
@@ -911,5 +960,96 @@ func TestMoney_Amount(t *testing.T) {
 
 	if pound.Amount() != 100 {
 		t.Errorf("Expected %d got %d", 100, pound.Amount())
+	}
+}
+
+// Every read/write/comparison method on the zero-value Money{} must succeed
+// without panicking. Pre-fix, only Amount() and the marshalers handled
+// nil-field state; everything else nil-derefed.
+func TestMoney_ZeroValue_NoPanic(t *testing.T) {
+	other := New(100, USD)
+
+	checks := []struct {
+		name string
+		fn   func(*Money)
+	}{
+		{"Amount", func(m *Money) { _ = m.Amount() }},
+		{"Currency", func(m *Money) { _ = m.Currency().Code }},
+		{"Display", func(m *Money) { _ = m.Display() }},
+		{"AsMajorUnits", func(m *Money) { _ = m.AsMajorUnits() }},
+		{"IsZero", func(m *Money) { _ = m.IsZero() }},
+		{"IsPositive", func(m *Money) { _ = m.IsPositive() }},
+		{"IsNegative", func(m *Money) { _ = m.IsNegative() }},
+		{"SameCurrency", func(m *Money) { _ = m.SameCurrency(other) }},
+		{"Absolute", func(m *Money) { _ = m.Absolute() }},
+		{"Negative", func(m *Money) { _ = m.Negative() }},
+		{"Round", func(m *Money) { _ = m.Round() }},
+		{"RoundToMajor", func(m *Money) { _ = m.RoundToMajor() }},
+		{"Multiply", func(m *Money) { _ = m.Multiply(NewDecimalFromInt(2)) }},
+		{"Add empty", func(m *Money) { _, _ = m.Add() }},
+		{"Subtract empty", func(m *Money) { _, _ = m.Subtract() }},
+		{"Equals zero", func(m *Money) { _, _ = m.Equals(&Money{}) }},
+		{"Compare zero", func(m *Money) { _, _ = m.Compare(&Money{}) }},
+		{"Split", func(m *Money) { _, _ = m.Split(2) }},
+		{"Allocate", func(m *Money) { _, _ = m.Allocate(1, 1) }},
+		{"Value", func(m *Money) { _, _ = m.Value() }},
+	}
+
+	for _, c := range checks {
+		t.Run(c.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("Money{}.%s panicked: %v", c.name, r)
+				}
+			}()
+			var z Money
+			c.fn(&z)
+		})
+	}
+
+	// The semantic checks: zero Money should report zero/empty.
+	var z Money
+	if !z.IsZero() {
+		t.Errorf("Money{}.IsZero() = false, want true")
+	}
+	if z.Amount() != 0 {
+		t.Errorf("Money{}.Amount() = %d, want 0", z.Amount())
+	}
+	if got := z.Currency().Code; got != "" {
+		t.Errorf("Money{}.Currency().Code = %q, want \"\"", got)
+	}
+}
+
+// Money.Currency() must return a defensive copy — mutating fields on the
+// returned *Currency must not bleed through to the global registry or to
+// other Money instances created with the same code.
+func TestMoney_Currency_DefensiveCopy(t *testing.T) {
+	m := New(100, USD)
+	c := m.Currency()
+	originalFraction := c.Fraction
+	c.Fraction = 99
+	c.Code = "MUTATED"
+
+	again := New(100, USD)
+	if got := again.Currency().Fraction; got != originalFraction {
+		t.Errorf("Mutation of caller's *Currency leaked to registry: Fraction=%d, want %d", got, originalFraction)
+	}
+	if got := again.Currency().Code; got != USD {
+		t.Errorf("Mutation of caller's *Currency leaked to registry: Code=%q, want %q", got, USD)
+	}
+}
+
+// GetCurrency must return a defensive copy too.
+func TestGetCurrency_DefensiveCopy(t *testing.T) {
+	c := GetCurrency(USD)
+	if c == nil {
+		t.Fatal("expected non-nil USD")
+	}
+	originalFraction := c.Fraction
+	c.Fraction = 99
+
+	again := GetCurrency(USD)
+	if again.Fraction != originalFraction {
+		t.Errorf("Mutation of GetCurrency() result leaked: Fraction=%d, want %d", again.Fraction, originalFraction)
 	}
 }

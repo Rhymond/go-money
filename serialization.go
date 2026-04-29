@@ -122,12 +122,10 @@ func (m *Money) UnmarshalJSON(b []byte) error {
 }
 
 func defaultMarshalJSON(m Money) ([]byte, error) {
-	if m == (Money{}) {
-		m = *New(0, "")
-	}
+	sm := m.safe()
 	return json.Marshal(jsonMoney{
-		Amount:   m.Amount(),
-		Currency: m.Currency().Code,
+		Amount:   sm.Amount(),
+		Currency: sm.currency.Code,
 	})
 }
 
@@ -161,10 +159,6 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 		}
 	}
 
-	if amount == 0 && currency == "" {
-		*m = Money{}
-		return nil
-	}
 	*m = *New(amount, currency)
 	return nil
 }
@@ -189,12 +183,10 @@ func (m *Money) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 func defaultMarshalXML(m Money, e *xml.Encoder, start xml.StartElement) error {
-	if m == (Money{}) {
-		m = *New(0, "")
-	}
+	sm := m.safe()
 	return e.EncodeElement(xmlMoney{
-		Amount:   m.Amount(),
-		Currency: m.Currency().Code,
+		Amount:   sm.Amount(),
+		Currency: sm.currency.Code,
 	}, start)
 }
 
@@ -202,10 +194,6 @@ func defaultUnmarshalXML(m *Money, d *xml.Decoder, start xml.StartElement) error
 	var aux xmlMoney
 	if err := d.DecodeElement(&aux, &start); err != nil {
 		return err
-	}
-	if aux.Amount == 0 && aux.Currency == "" {
-		*m = Money{}
-		return nil
 	}
 	*m = *New(aux.Amount, aux.Currency)
 	return nil

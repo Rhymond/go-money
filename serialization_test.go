@@ -183,6 +183,9 @@ func TestMoney_UnmarshalJSON(t *testing.T) {
 	}
 }
 
+// Empty/zero JSON should produce a Money that is safe to call IsZero,
+// Display, etc. on — never the nil-field Money{} state. (Pre-fix this left
+// m.amount and m.currency nil and every method panicked.)
 func TestMoney_UnmarshalJSON_Zero(t *testing.T) {
 	tcs := []string{
 		`{"amount": 0, "currency":""}`,
@@ -195,8 +198,14 @@ func TestMoney_UnmarshalJSON_Zero(t *testing.T) {
 			t.Errorf("Unexpected error: %v", err)
 			continue
 		}
-		if m != (Money{}) {
-			t.Errorf("Expected zero value got %+v", m)
+		if !m.IsZero() {
+			t.Errorf("Expected zero amount for %q, got Amount=%d", given, m.Amount())
+		}
+		if m.Currency().Code != "" {
+			t.Errorf("Expected empty currency code for %q, got %q", given, m.Currency().Code)
+		}
+		if got := m.Display(); got == "" {
+			t.Errorf("Expected non-empty Display for zero Money, got empty string")
 		}
 	}
 }
@@ -309,9 +318,11 @@ func TestMoney_UnmarshalXML_Zero(t *testing.T) {
 	if err := xml.Unmarshal([]byte(given), &m); err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-
-	if m != (Money{}) {
-		t.Errorf("Expected zero value got %+v", m)
+	if !m.IsZero() {
+		t.Errorf("Expected zero amount, got %d", m.Amount())
+	}
+	if m.Currency().Code != "" {
+		t.Errorf("Expected empty currency code, got %q", m.Currency().Code)
 	}
 }
 
