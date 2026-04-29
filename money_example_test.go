@@ -61,26 +61,35 @@ func ExampleMoney_comparisons() {
 }
 
 func ExampleMoney_IsZero() {
-	pound := money.New(100, "GBP")
-	fmt.Println(pound.IsZero())
+	fmt.Println(money.New(0, "GBP").IsZero())
+	fmt.Println(money.New(100, "GBP").IsZero())
+	fmt.Println(money.New(-100, "GBP").IsZero())
 
 	// Output:
+	// true
+	// false
 	// false
 }
 
 func ExampleMoney_IsPositive() {
-	pound := money.New(100, "GBP")
-	fmt.Println(pound.IsPositive())
+	fmt.Println(money.New(100, "GBP").IsPositive())
+	fmt.Println(money.New(0, "GBP").IsPositive())
+	fmt.Println(money.New(-100, "GBP").IsPositive())
 
 	// Output:
 	// true
+	// false
+	// false
 }
 
 func ExampleMoney_IsNegative() {
-	pound := money.New(100, "GBP")
-	fmt.Println(pound.IsNegative())
+	fmt.Println(money.New(-100, "GBP").IsNegative())
+	fmt.Println(money.New(0, "GBP").IsNegative())
+	fmt.Println(money.New(100, "GBP").IsNegative())
 
 	// Output:
+	// true
+	// false
 	// false
 }
 
