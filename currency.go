@@ -2,7 +2,13 @@ package money
 
 import (
 	"strings"
+	"sync"
 )
+
+// currenciesMu guards every read and write against the package-global
+// `currencies` map. Custom Currencies values created by callers are not
+// shared and don't need locking.
+var currenciesMu sync.RWMutex
 
 // Currency represents money currency information required for formatting.
 type Currency struct {
@@ -225,9 +231,11 @@ var currencies = Currencies{
 	ZWL: {Decimal: ".", Thousand: ",", Code: ZWL, Fraction: 2, NumericCode: "932", Grapheme: "Z$", Template: "$1"},
 }
 
-// AddCurrency lets you insert or update currency in currencies list.
+// AddCurrency lets you insert or update currency in currencies list. The
+// returned *Currency is a defensive copy — mutating it does not affect the
+// global registry.
 func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction int) *Currency {
-	c := Currency{
+	c := &Currency{
 		Code:     code,
 		Grapheme: Grapheme,
 		Template: Template,
@@ -235,24 +243,44 @@ func AddCurrency(code, Grapheme, Template, Decimal, Thousand string, Fraction in
 		Thousand: Thousand,
 		Fraction: Fraction,
 	}
-	currencies.Add(&c)
-	return &c
+	currenciesMu.Lock()
+	currencies.Add(c)
+	currenciesMu.Unlock()
+	cp := *c
+	return &cp
 }
 
 func newCurrency(code string) *Currency {
 	return &Currency{Code: strings.ToUpper(code)}
 }
 
-// GetCurrency returns the currency given the code.
+// GetCurrency returns the currency given the code, or nil if unregistered.
+// The returned *Currency is a defensive copy — mutating it does not affect
+// the global registry.
 func GetCurrency(code string) *Currency {
-	return currencies.CurrencyByCode(strings.ToUpper(code))
+	currenciesMu.RLock()
+	c := currencies.CurrencyByCode(strings.ToUpper(code))
+	currenciesMu.RUnlock()
+	if c == nil {
+		return nil
+	}
+	cp := *c
+	return &cp
 }
 
 // GetCurrencyByNumericCode returns the currency given the numeric code.
 // The code parameter should be a string representing a 3-digit numeric code
-// as defined in the ISO-4217 standard. For example, "840" for USD or "978" for EUR.
+// as defined in the ISO-4217 standard. For example, "840" for USD or "978"
+// for EUR. The returned *Currency is a defensive copy.
 func GetCurrencyByNumericCode(code string) *Currency {
-	return currencies.CurrencyByNumericCode(code)
+	currenciesMu.RLock()
+	c := currencies.CurrencyByNumericCode(code)
+	currenciesMu.RUnlock()
+	if c == nil {
+		return nil
+	}
+	cp := *c
+	return &cp
 }
 
 // Formatter returns currency formatter representing
@@ -273,9 +301,15 @@ func (c *Currency) getDefault() *Currency {
 	return &Currency{Decimal: ".", Thousand: ",", Code: c.Code, Fraction: 2, Grapheme: c.Code, Template: "1$"}
 }
 
-// get extended currency using currencies list.
+// get extended currency using currencies list. The returned *Currency may
+// be the live registry pointer — internal callers rely on it for fast
+// equality checks. Public surfaces (Money.Currency, GetCurrency,
+// AddCurrency) re-copy before returning to callers.
 func (c *Currency) get() *Currency {
-	if curr, ok := currencies[c.Code]; ok {
+	currenciesMu.RLock()
+	curr, ok := currencies[c.Code]
+	currenciesMu.RUnlock()
+	if ok {
 		return curr
 	}
 

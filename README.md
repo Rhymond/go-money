@@ -48,9 +48,8 @@ $ go get github.com/Rhymond/go-money
 ```
 
 ## Features
-* Provides a Money struct which stores information about an Money amount value and its currency.
-* Provides a ```Money.Amount``` struct which encapsulates all information about a monetary unit.
-* Represents monetary values as integers, in cents. This avoids floating point rounding errors.
+* Provides a Money struct which stores information about a monetary amount value and its currency.
+* Stores monetary values as exact integers in the currency's smallest unit (with optional fractional precision via `*Decimal` multipliers). No floating-point rounding errors.
 * Represents currency as ```Money.Currency``` instances providing a high level of flexibility.
 
 Usage
@@ -60,9 +59,12 @@ Initialize Money by using smallest unit value (e.g 100 represents 1 pound). Use 
 ```go
 pound := money.New(100, money.GBP)
 ```
-Or initialize Money using the direct amount.
+Or initialize Money using a major-unit amount. `NewFromFloat`, `NewFromString`, and `NewFromDecimal` return an error for invalid inputs (NaN, ±Inf, malformed strings, nil decimals); `NewFromMajorUnits` and `NewFromFixedPoint` are infallible.
 ```go
-quarterEuro := money.NewFromFloat(0.25, money.EUR)
+quarterEuro, err := money.NewFromFloat(0.25, money.EUR)
+if err != nil {
+    log.Fatal(err)
+}
 ```
 Comparison
 -
@@ -157,13 +159,38 @@ result, err := pound.Subtract(twoPounds) // -£1.00, nil
 
 #### Multiplication
 
-Multiplication can be performed using `Multiply()`.
+`Multiply` takes one or more `*Decimal` values, built with `NewDecimalFromInt`,
+`NewDecimalFromFloat`, or `NewDecimalFromString`. Validation happens at
+construction, so `Multiply` itself doesn't return an error. A `nil *Decimal`
+panics.
 
 ```go
 pound := money.New(100, money.GBP)
 
-result := pound.Multiply(2) // £2.00
+result := pound.Multiply(money.NewDecimalFromInt(2))           // £2.00
+mul, _ := money.NewDecimalFromFloat(1.5)
+result = pound.Multiply(mul)                                   // £1.50  (fractional quantity)
+
+// Chaining multipliers (e.g. quantity × price × discount):
+qty := money.NewDecimalFromInt(3)
+rate, _ := money.NewDecimalFromFloat(1.2)
+result = pound.Multiply(qty, rate)
+
+// Strings (the only fallible numeric input):
+tax, err := money.NewDecimalFromString("0.075")
+if err != nil {
+    log.Fatal(err)
+}
+result = pound.Multiply(tax)
 ```
+
+`NewDecimalFromInt` and `NewDecimalFromFloat` accept any integer or
+floating-point Go type via generics (int8 through uint64, float32, float64).
+
+Results preserve full decimal precision internally (sub-cent values are kept
+rather than silently rounded). `Display()` and `Amount()` truncate
+sub-smallest-unit fractions toward zero, so the displayed cents value is
+correct without any extra step.
 
 #### Absolute
 
@@ -218,8 +245,6 @@ It splits money using the given ratios without losing pennies and as Split opera
 
 ```go
 pound := money.New(100, money.GBP)
-// Allocate is variadic function which can receive ratios as
-// slice (int[]{33, 33, 33}...) or separated by a comma integers
 parties, err := pound.Allocate(33, 33, 33)
 
 if err != nil {
