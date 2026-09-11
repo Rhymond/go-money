@@ -332,8 +332,9 @@ func (m *Money) Allocate(rs ...int) ([]*Money, error) {
 		sub = -sub
 	}
 
+	n := len(ms)
 	for p := 0; lo != 0; p++ {
-		ms[p].amount = mutate.calc.add(ms[p].amount, sub)
+		ms[p%n].amount = mutate.calc.add(ms[p%n].amount, sub)
 		lo -= sub
 	}
 

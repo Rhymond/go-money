@@ -1,6 +1,9 @@
 package money
 
-import "math"
+import (
+	"math"
+	"math/big"
+)
 
 type calculator struct{}
 
@@ -29,7 +32,12 @@ func (c *calculator) allocate(a Amount, r, s int64) Amount {
 		return 0
 	}
 
-	return a * r / s
+	// a*r can overflow int64 (e.g. Allocate on a large amount with a large
+	// single ratio). Compute with big.Int; result always fits when r <= s.
+	bigA := new(big.Int).SetInt64(a)
+	bigA.Mul(bigA, big.NewInt(r))
+	bigA.Quo(bigA, big.NewInt(s))
+	return Amount(bigA.Int64())
 }
 
 func (c *calculator) absolute(a Amount) Amount {

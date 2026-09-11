@@ -642,6 +642,35 @@ func TestAllocateOverflow(t *testing.T) {
 	}
 }
 
+func TestAllocateLargeAmountNoPanic(t *testing.T) {
+	// Regression for #77: a*r overflowed int64 inside allocate, leaving a huge
+	// leftover that indexed past the parties slice.
+	m := New(2911127909321522, EUR)
+	parties, err := m.Allocate(30000)
+	if err != nil {
+		t.Fatalf("Allocate returned error: %v", err)
+	}
+	if len(parties) != 1 {
+		t.Fatalf("expected 1 party, got %d", len(parties))
+	}
+	if parties[0].Amount() != 2911127909321522 {
+		t.Fatalf("expected full amount allocated, got %d", parties[0].Amount())
+	}
+
+	m2 := New(math.MaxInt64/2, EUR)
+	parties, err = m2.Allocate(3, 3, 3)
+	if err != nil {
+		t.Fatalf("Allocate returned error: %v", err)
+	}
+	var sum int64
+	for _, p := range parties {
+		sum += p.Amount()
+	}
+	if sum != m2.Amount() {
+		t.Fatalf("expected parties to sum to %d, got %d", m2.Amount(), sum)
+	}
+}
+
 func TestMoney_Format(t *testing.T) {
 	tcs := []struct {
 		amount   int64
