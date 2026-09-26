@@ -28,8 +28,14 @@ func NewFormatter(fraction int, decimal, thousand, grapheme, template string) *F
 
 // Format returns string of formatted integer using given currency template.
 func (f *Formatter) Format(amount int64) string {
-	// Work with absolute amount value
-	sa := strconv.FormatInt(f.abs(amount), 10)
+	// Work with absolute amount value. Negating the minimum int64
+	// wraps, so FormatInt would keep a minus and this function would add another.
+	var sa string
+	if amount == math.MinInt64 {
+		sa = "9223372036854775808"
+	} else {
+		sa = strconv.FormatInt(f.abs(amount), 10)
+	}
 
 	if len(sa) <= f.Fraction {
 		sa = strings.Repeat("0", f.Fraction-len(sa)+1) + sa
