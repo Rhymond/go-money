@@ -53,21 +53,17 @@ func (c *calculator) round(a Amount, e int) Amount {
 		return 0
 	}
 
-	absam := c.absolute(a)
+	// Round using signed quotient and remainder so MinInt64 does not overflow
+	// when converted to an absolute value. Preserve the existing tie behavior:
+	// exact halves round toward zero.
 	exp := int64(math.Pow(10, float64(e)))
-	m := absam % exp
-
-	if m > (exp / 2) {
-		absam += exp
+	quotient := a / exp
+	remainder := a % exp
+	if remainder > exp/2 {
+		quotient++
+	} else if remainder < -(exp / 2) {
+		quotient--
 	}
 
-	absam = (absam / exp) * exp
-
-	if a < 0 {
-		a = -absam
-	} else {
-		a = absam
-	}
-
-	return a
+	return quotient * exp
 }
