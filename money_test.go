@@ -955,3 +955,45 @@ func TestCustomUnmarshal(t *testing.T) {
 		t.Errorf("Expected %s got %s", expected, m.Display())
 	}
 }
+
+func TestDefaultUnmarshalInt64Precision(t *testing.T) {
+	// TestCustomUnmarshal replaces the package-level UnmarshalJSON hook
+	// without restoring it, so pin the default for this test.
+	unmarshalJSON := UnmarshalJSON
+	UnmarshalJSON = defaultUnmarshalJSON
+	defer func() { UnmarshalJSON = unmarshalJSON }()
+
+	// Amounts are int64 minor units, but float64 only represents integers
+	// exactly up to 2^53. Decoding the "amount" field through a float64
+	// silently corrupted larger values (9007199254740993 became 9007199254740992).
+	given := `{"amount": 9007199254740993, "currency":"JPY"}`
+	var m Money
+	if err := json.Unmarshal([]byte(given), &m); err != nil {
+		t.Fatal(err)
+	}
+	if expected := int64(9007199254740993); m.Amount() != expected {
+		t.Errorf("Expected %d got %d", expected, m.Amount())
+	}
+
+	original := New(1234567890123456789, "EUR")
+	b, err := json.Marshal(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Money
+	if err := json.Unmarshal(b, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Amount() != original.Amount() {
+		t.Errorf("Expected %d got %d", original.Amount(), decoded.Amount())
+	}
+
+	// Non-integer amounts keep the historical truncating conversion.
+	given = `{"amount": 10012.51, "currency":"USD"}`
+	if err := json.Unmarshal([]byte(given), &m); err != nil {
+		t.Fatal(err)
+	}
+	if expected := int64(10012); m.Amount() != expected {
+		t.Errorf("Expected %d got %d", expected, m.Amount())
+	}
+}
