@@ -870,6 +870,9 @@ func TestDefaultMarshal(t *testing.T) {
 func TestCustomMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
+	marshalJSON := MarshalJSON
+	defer func() { MarshalJSON = marshalJSON }()
+
 	MarshalJSON = func(m Money) ([]byte, error) {
 		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
 		return buff.Bytes(), nil
@@ -934,6 +937,8 @@ func TestDefaultUnmarshal(t *testing.T) {
 func TestCustomUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
 	expected := "$100.12"
+	unmarshalJSON := UnmarshalJSON
+	defer func() { UnmarshalJSON = unmarshalJSON }()
 	UnmarshalJSON = func(m *Money, b []byte) error {
 		data := make(map[string]interface{})
 		err := json.Unmarshal(b, &data)
@@ -957,11 +962,6 @@ func TestCustomUnmarshal(t *testing.T) {
 }
 
 func TestDefaultUnmarshalInt64Precision(t *testing.T) {
-	// TestCustomUnmarshal replaces the package-level UnmarshalJSON hook
-	// without restoring it, so pin the default for this test.
-	unmarshalJSON := UnmarshalJSON
-	UnmarshalJSON = defaultUnmarshalJSON
-	defer func() { UnmarshalJSON = unmarshalJSON }()
 
 	// Amounts are int64 minor units, but float64 only represents integers
 	// exactly up to 2^53. Decoding the "amount" field through a float64
