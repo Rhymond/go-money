@@ -997,3 +997,42 @@ func TestDefaultUnmarshalInt64Precision(t *testing.T) {
 		t.Errorf("Expected %d got %d", expected, m.Amount())
 	}
 }
+
+func TestDefaultUnmarshalExactAmountWithDecimalOrExponent(t *testing.T) {
+	// Spellings that strconv.ParseInt rejects but that still name an exact
+	// integer must not fall back to float64, which silently rounds them.
+	cases := []struct {
+		raw  string
+		want int64
+	}{
+		{"9007199254740993.0", 9007199254740993},
+		{"1e18", 1000000000000000000},
+		{"42.000", 42},
+		{"-1e3", -1000},
+	}
+
+	for _, c := range cases {
+		var m Money
+		given := fmt.Sprintf("{\"amount\": %s, \"currency\": \"BRL\"}", c.raw)
+		if err := json.Unmarshal([]byte(given), &m); err != nil {
+			t.Fatalf("amount %s: unexpected error %v", c.raw, err)
+		}
+		if got := m.Amount(); got != c.want {
+			t.Fatalf("amount %s: expected %d, got %d", c.raw, c.want, got)
+		}
+	}
+}
+
+func TestUnmarshalJSONRejectsTrailingData(t *testing.T) {
+	// The exported hook decodes with a json.Decoder, which stops at the end of
+	// the first value instead of rejecting the rest of the payload.
+	for _, given := range []string{
+		"{\"amount\": 1, \"currency\": \"BRL\"}{\"amount\": 2}",
+		"{\"amount\": 1, \"currency\": \"BRL\"} x",
+	} {
+		var m Money
+		if err := UnmarshalJSON(&m, []byte(given)); err == nil {
+			t.Fatalf("expected an error for trailing data in %q, got %#v", given, m)
+		}
+	}
+}
