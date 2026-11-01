@@ -113,6 +113,7 @@ func parseAmount(n json.Number) (int64, error) {
 
 	return int64(amount), nil
 }
+
 // Amount is a data structure that stores the amount being used for calculations.
 type Amount = int64
 
