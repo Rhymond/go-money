@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 )
 
 // Injection points for backward compatibility.
@@ -28,15 +29,21 @@ var (
 
 func defaultUnmarshalJSON(m *Money, b []byte) error {
 	data := make(map[string]interface{})
-	err := json.Unmarshal(b, &data)
+	decoder := json.NewDecoder(bytes.NewReader(b))
+	decoder.UseNumber()
+	err := decoder.Decode(&data)
 	if err != nil {
 		return err
 	}
 
-	var amount float64
+	var amount int64
 	if amountRaw, ok := data["amount"]; ok {
-		amount, ok = amountRaw.(float64)
+		number, ok := amountRaw.(json.Number)
 		if !ok {
+			return ErrInvalidJSONUnmarshal
+		}
+		amount, err = parseAmount(number)
+		if err != nil {
 			return ErrInvalidJSONUnmarshal
 		}
 	}
@@ -69,6 +76,22 @@ func defaultMarshalJSON(m Money) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
+// parseAmount converts a JSON number into a Money Amount. Integer literals are
+// parsed with strconv.ParseInt so that values above the float64 precision limit
+// (2^53) survive a JSON round trip. Non-integer values fall back to the
+// historical float64 conversion, which truncates the fractional part.
+func parseAmount(n json.Number) (int64, error) {
+	if amount, err := strconv.ParseInt(n.String(), 10, 64); err == nil {
+		return amount, nil
+	}
+
+	amount, err := strconv.ParseFloat(n.String(), 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return int64(amount), nil
+}
 // Amount is a data structure that stores the amount being used for calculations.
 type Amount = int64
 
