@@ -870,6 +870,9 @@ func TestDefaultMarshal(t *testing.T) {
 func TestCustomMarshal(t *testing.T) {
 	given := New(12345, IQD)
 	expected := `{"amount":12345,"currency_code":"IQD","currency_fraction":3}`
+	marshalJSON := MarshalJSON
+	defer func() { MarshalJSON = marshalJSON }()
+
 	MarshalJSON = func(m Money) ([]byte, error) {
 		buff := bytes.NewBufferString(fmt.Sprintf(`{"amount": %d, "currency_code": "%s", "currency_fraction": %d}`, m.Amount(), m.Currency().Code, m.Currency().Fraction))
 		return buff.Bytes(), nil
@@ -934,6 +937,8 @@ func TestDefaultUnmarshal(t *testing.T) {
 func TestCustomUnmarshal(t *testing.T) {
 	given := `{"amount": 10012, "currency_code":"USD", "currency_fraction":2}`
 	expected := "$100.12"
+	unmarshalJSON := UnmarshalJSON
+	defer func() { UnmarshalJSON = unmarshalJSON }()
 	UnmarshalJSON = func(m *Money, b []byte) error {
 		data := make(map[string]interface{})
 		err := json.Unmarshal(b, &data)
@@ -953,5 +958,81 @@ func TestCustomUnmarshal(t *testing.T) {
 
 	if m.Display() != expected {
 		t.Errorf("Expected %s got %s", expected, m.Display())
+	}
+}
+
+func TestDefaultUnmarshalInt64Precision(t *testing.T) {
+
+	// Amounts are int64 minor units, but float64 only represents integers
+	// exactly up to 2^53. Decoding the "amount" field through a float64
+	// silently corrupted larger values (9007199254740993 became 9007199254740992).
+	given := `{"amount": 9007199254740993, "currency":"JPY"}`
+	var m Money
+	if err := json.Unmarshal([]byte(given), &m); err != nil {
+		t.Fatal(err)
+	}
+	if expected := int64(9007199254740993); m.Amount() != expected {
+		t.Errorf("Expected %d got %d", expected, m.Amount())
+	}
+
+	original := New(1234567890123456789, "EUR")
+	b, err := json.Marshal(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Money
+	if err := json.Unmarshal(b, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded.Amount() != original.Amount() {
+		t.Errorf("Expected %d got %d", original.Amount(), decoded.Amount())
+	}
+
+	// Non-integer amounts keep the historical truncating conversion.
+	given = `{"amount": 10012.51, "currency":"USD"}`
+	if err := json.Unmarshal([]byte(given), &m); err != nil {
+		t.Fatal(err)
+	}
+	if expected := int64(10012); m.Amount() != expected {
+		t.Errorf("Expected %d got %d", expected, m.Amount())
+	}
+}
+
+func TestDefaultUnmarshalExactAmountWithDecimalOrExponent(t *testing.T) {
+	// Spellings that strconv.ParseInt rejects but that still name an exact
+	// integer must not fall back to float64, which silently rounds them.
+	cases := []struct {
+		raw  string
+		want int64
+	}{
+		{"9007199254740993.0", 9007199254740993},
+		{"1e18", 1000000000000000000},
+		{"42.000", 42},
+		{"-1e3", -1000},
+	}
+
+	for _, c := range cases {
+		var m Money
+		given := fmt.Sprintf("{\"amount\": %s, \"currency\": \"BRL\"}", c.raw)
+		if err := json.Unmarshal([]byte(given), &m); err != nil {
+			t.Fatalf("amount %s: unexpected error %v", c.raw, err)
+		}
+		if got := m.Amount(); got != c.want {
+			t.Fatalf("amount %s: expected %d, got %d", c.raw, c.want, got)
+		}
+	}
+}
+
+func TestUnmarshalJSONRejectsTrailingData(t *testing.T) {
+	// The exported hook decodes with a json.Decoder, which stops at the end of
+	// the first value instead of rejecting the rest of the payload.
+	for _, given := range []string{
+		"{\"amount\": 1, \"currency\": \"BRL\"}{\"amount\": 2}",
+		"{\"amount\": 1, \"currency\": \"BRL\"} x",
+	} {
+		var m Money
+		if err := UnmarshalJSON(&m, []byte(given)); err == nil {
+			t.Fatalf("expected an error for trailing data in %q, got %#v", given, m)
+		}
 	}
 }
