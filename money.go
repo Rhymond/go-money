@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
+	"math/big"
 	"strconv"
 )
 
@@ -34,6 +36,12 @@ func defaultUnmarshalJSON(m *Money, b []byte) error {
 	err := decoder.Decode(&data)
 	if err != nil {
 		return err
+	}
+
+	// Decode stops at the end of the first value, so trailing data would be
+	// accepted silently; json.Unmarshal rejects it and so should this hook.
+	if _, err := decoder.Token(); err != io.EOF {
+		return ErrInvalidJSONUnmarshal
 	}
 
 	var amount int64
@@ -81,11 +89,24 @@ func defaultMarshalJSON(m Money) ([]byte, error) {
 // (2^53) survive a JSON round trip. Non-integer values fall back to the
 // historical float64 conversion, which truncates the fractional part.
 func parseAmount(n json.Number) (int64, error) {
-	if amount, err := strconv.ParseInt(n.String(), 10, 64); err == nil {
+	raw := n.String()
+
+	if amount, err := strconv.ParseInt(raw, 10, 64); err == nil {
 		return amount, nil
 	}
 
-	amount, err := strconv.ParseFloat(n.String(), 64)
+	// JSON allows an integer to be spelled with a decimal point or an exponent
+	// ("9007199254740993.0", "1e18"). Those spellings are parsed exactly here
+	// instead of falling back to float64, which rounds anything above 2^53.
+	if rat, ok := new(big.Rat).SetString(raw); ok && rat.IsInt() {
+		if !rat.Num().IsInt64() {
+			return 0, ErrInvalidJSONUnmarshal
+		}
+
+		return rat.Num().Int64(), nil
+	}
+
+	amount, err := strconv.ParseFloat(raw, 64)
 	if err != nil {
 		return 0, err
 	}
